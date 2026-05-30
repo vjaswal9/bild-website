@@ -39,7 +39,7 @@ export default function Hero() {
               href="/join"
               className="bg-saffron-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-saffron-600 transition-all hover:shadow-lg hover:-translate-y-0.5"
             >
-              Join BILD — {SITE_CONFIG.membershipFeeAED} AED
+              Join BILD
             </Link>
             <Link
               href="/events"
