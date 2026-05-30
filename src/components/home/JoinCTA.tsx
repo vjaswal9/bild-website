@@ -9,7 +9,7 @@ export default function JoinCTA() {
           Ready to join the BILD community?
         </h2>
         <p className="text-gray-300 text-lg mb-8">
-          Lifetime membership is just {SITE_CONFIG.membershipFeeAED} AED. Connect with British Indians across Dubai and the UAE.
+          Connect with British Indians across Dubai and the UAE.
         </p>
         <Link
           href="/join"
