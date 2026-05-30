@@ -6,6 +6,8 @@ export const SITE_CONFIG = {
   linkedinUrl: 'https://www.linkedin.com/groups/10025041/',
   contactEmail: 'connect@bild.ae',
   membershipFeeAED: 50,
+  // Get your free endpoint at formspree.io — replace REPLACE_ME with your form ID
+  businessFormEndpoint: 'https://formspree.io/f/REPLACE_ME',
   foundedYear: 2023,
   siteName: 'BILD',
   siteTagline: 'British Indians Living in Dubai',

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { Search, Globe, Phone, Mail, Share2, CheckCircle } from 'lucide-react'
 import businessesData from '@/data/businesses.json'
 import { Business } from '@/lib/types'
@@ -142,12 +143,12 @@ export default function DirectoryPage() {
             <p className="text-gray-300 mb-5 text-sm">
               Get your business listed in the BILD directory, free for all members.
             </p>
-            <a
-              href={`mailto:${SITE_CONFIG.contactEmail}?subject=Business Directory Listing Request`}
+            <Link
+              href="/directory/submit"
               className="inline-block bg-gold-500 text-white px-6 py-3 rounded-lg font-semibold text-sm hover:bg-gold-600 transition-colors"
             >
               Submit Your Business
-            </a>
+            </Link>
           </div>
         </div>
       </div>
