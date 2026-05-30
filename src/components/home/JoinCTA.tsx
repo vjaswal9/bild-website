@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { SITE_CONFIG } from '@/data/config'
 
 export default function JoinCTA() {
   return (
