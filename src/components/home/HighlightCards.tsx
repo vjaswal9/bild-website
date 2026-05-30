@@ -38,25 +38,25 @@ export default function HighlightCards() {
                 key={card.title}
                 className={`rounded-2xl p-8 flex flex-col transition-all hover:-translate-y-1 hover:shadow-xl ${
                   card.highlight
-                    ? 'bg-saffron-500 text-white shadow-lg'
-                    : 'bg-gold-50 shadow-sm border border-gold-200'
+                    ? 'bg-charcoal-800 text-white shadow-lg'
+                    : 'bg-cream shadow-sm border border-gold-200'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${
-                  card.highlight ? 'bg-white/20' : 'bg-saffron-100'
+                  card.highlight ? 'bg-gold-500/20' : 'bg-gold-100'
                 }`}>
-                  <Icon size={24} className={card.highlight ? 'text-white' : 'text-saffron-600'} />
+                  <Icon size={24} className={card.highlight ? 'text-gold-400' : 'text-gold-600'} />
                 </div>
                 <h3 className={`font-display text-xl font-semibold mb-3 ${card.highlight ? 'text-white' : 'text-charcoal-800'}`}>
                   {card.title}
                 </h3>
-                <p className={`text-sm leading-relaxed mb-6 flex-1 ${card.highlight ? 'text-white/85' : 'text-charcoal-600'}`}>
+                <p className={`text-sm leading-relaxed mb-6 flex-1 ${card.highlight ? 'text-gray-300' : 'text-charcoal-600'}`}>
                   {card.description}
                 </p>
                 <Link
                   href={card.href}
                   className={`text-sm font-semibold inline-flex items-center gap-1 ${
-                    card.highlight ? 'text-white hover:underline' : 'text-saffron-600 hover:text-saffron-700'
+                    card.highlight ? 'text-gold-400 hover:text-gold-300' : 'text-gold-600 hover:text-gold-700'
                   }`}
                 >
                   {card.cta} →

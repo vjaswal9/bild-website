@@ -46,7 +46,7 @@ export default function FounderMessage() {
             </blockquote>
 
             <div className="mt-8 flex items-center gap-4">
-              <div className="h-px flex-1 bg-gray-200" />
+              <div className="w-10 h-0.5 bg-gold-500 rounded-full shrink-0" />
               <div>
                 <p className="font-display font-bold text-charcoal-800 text-lg">Truna Jaswal</p>
                 <p className="text-sm text-charcoal-500">Founder, BILD</p>

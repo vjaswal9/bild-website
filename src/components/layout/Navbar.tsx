@@ -5,7 +5,9 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
+import { FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
+import { SITE_CONFIG } from '@/data/config'
 
 const links = [
   { href: '/', label: 'Home' },
@@ -34,9 +36,9 @@ export default function Navbar() {
         scrolled ? 'bg-cream/95 backdrop-blur-sm shadow-sm' : 'bg-cream'
       )}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-28 flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/bild-logo.png" alt="BILD" width={100} height={100} className="h-24 w-24 object-contain" />
+          <Image src="/bild-logo.png" alt="BILD" width={72} height={72} className="h-16 w-16 object-contain" />
           <span className="hidden sm:inline text-sm font-sans font-normal text-charcoal-600">
             British Indians Living in Dubai
           </span>
@@ -48,18 +50,21 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               className={cn(
-                'text-sm font-medium transition-colors',
+                'relative text-sm font-medium transition-colors pb-1',
                 pathname === link.href
-                  ? 'text-saffron-600'
+                  ? 'text-gold-500'
                   : 'text-charcoal-600 hover:text-charcoal-900'
               )}
             >
               {link.label}
+              {pathname === link.href && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gold-500 rounded-full" />
+              )}
             </Link>
           ))}
           <Link
             href="/join"
-            className="ml-2 bg-saffron-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-saffron-600 transition-colors"
+            className="ml-2 bg-gold-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gold-600 transition-colors"
           >
             Join BILD
           </Link>
@@ -74,6 +79,7 @@ export default function Navbar() {
         </button>
       </nav>
 
+      {/* Mobile menu */}
       {open && (
         <div className="lg:hidden bg-cream border-t border-gold-100 px-4 py-4 flex flex-col gap-3">
           {links.map((link) => (
@@ -82,8 +88,10 @@ export default function Navbar() {
               href={link.href}
               onClick={() => setOpen(false)}
               className={cn(
-                'py-2 text-base font-medium',
-                pathname === link.href ? 'text-saffron-600' : 'text-charcoal-700'
+                'py-2 text-base font-medium border-l-2 pl-3',
+                pathname === link.href
+                  ? 'text-gold-600 border-gold-500'
+                  : 'text-charcoal-700 border-transparent'
               )}
             >
               {link.label}
@@ -92,10 +100,25 @@ export default function Navbar() {
           <Link
             href="/join"
             onClick={() => setOpen(false)}
-            className="mt-2 bg-saffron-500 text-white px-4 py-2.5 rounded-lg text-base font-semibold text-center hover:bg-saffron-600 transition-colors"
+            className="mt-2 bg-gold-500 text-white px-4 py-2.5 rounded-lg text-base font-semibold text-center hover:bg-gold-600 transition-colors"
           >
             Join BILD
           </Link>
+          {/* Fix 11 — social icons in mobile menu */}
+          <div className="flex gap-4 pt-3 pb-1 border-t border-gold-100 mt-1">
+            <a href={SITE_CONFIG.instagramUrl} target="_blank" rel="noopener noreferrer"
+              className="text-charcoal-500 hover:text-gold-600 transition-colors" aria-label="Instagram">
+              <FaInstagram size={20} />
+            </a>
+            <a href={SITE_CONFIG.facebookUrl} target="_blank" rel="noopener noreferrer"
+              className="text-charcoal-500 hover:text-gold-600 transition-colors" aria-label="Facebook">
+              <FaFacebookF size={20} />
+            </a>
+            <a href={SITE_CONFIG.linkedinUrl} target="_blank" rel="noopener noreferrer"
+              className="text-charcoal-500 hover:text-gold-600 transition-colors" aria-label="LinkedIn">
+              <FaLinkedinIn size={20} />
+            </a>
+          </div>
         </div>
       )}
     </header>

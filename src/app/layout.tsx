@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import PageTransition from '@/components/ui/PageTransition'
+import BackToTop from '@/components/ui/BackToTop'
 import { SITE_CONFIG } from '@/data/config'
 
 export const metadata: Metadata = {
@@ -22,8 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-1 pt-28">{children}</main>
+        <main className="flex-1 pt-20"><PageTransition>{children}</PageTransition></main>
         <Footer />
+        <BackToTop />
       </body>
     </html>
   )
