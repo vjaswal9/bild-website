@@ -1,6 +1,6 @@
 import PageHero from '@/components/ui/PageHero'
 import DirectoryClient, { DisplayBusiness } from './DirectoryClient'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import staticBusinesses from '@/data/businesses.json'
 
 export const dynamic = 'force-dynamic'

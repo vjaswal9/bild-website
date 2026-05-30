@@ -1,4 +1,4 @@
-import { supabaseAdmin, BusinessSubmission } from '@/lib/supabase'
+import { supabaseAdmin, BusinessSubmission } from '@/lib/supabase-admin'
 import AdminDashboard from './AdminDashboard'
 
 export const dynamic = 'force-dynamic'
