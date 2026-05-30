@@ -1,9 +1,9 @@
 export const SITE_CONFIG = {
   stripeMembershipLink: 'https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAO__YRes75UNk5HR1ZTTlBEWTBWNE5aS0hCRExTWjhEVC4u',
   whatsappGroupLink: 'REPLACE_ME_WHATSAPP_LINK',
-  instagramUrl: 'https://instagram.com/bildcommunity',
-  facebookUrl: 'https://facebook.com/bildcommunity',
-  linkedinUrl: 'https://linkedin.com/company/bildcommunity',
+  instagramUrl: 'https://www.instagram.com/bild_ae',
+  facebookUrl: 'https://www.facebook.com/groups/2465313657124373',
+  linkedinUrl: 'https://www.linkedin.com/groups/10025041/',
   contactEmail: 'hello@bild.ae',
   membershipFeeAED: 50,
   foundedYear: 2023,

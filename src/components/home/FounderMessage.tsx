@@ -24,8 +24,8 @@ export default function FounderMessage() {
 
             <blockquote className="space-y-4 text-charcoal-600 leading-relaxed">
               <p>
-                &ldquo;Hello, I&apos;m Truna, the Founder of BILD. What started as a simple idea: bringing people
-                together so no one ever feels alone in a new city: has grown into a warm, close-knit community that
+                &ldquo;Hello, I&apos;m Truna, the Founder of BILD. What started as a simple idea, bringing people
+                together so no one ever feels alone in a new city, has grown into a warm, close-knit community that
                 feels like family.&rdquo;
               </p>
               <p>
@@ -37,11 +37,11 @@ export default function FounderMessage() {
                 and everyone is genuinely welcomed.&rdquo;
               </p>
               <p>
-                &ldquo;This is a space where anyone who connects with our British Indian spirit can feel at home : 
+                &ldquo;This is a space where anyone who connects with our British Indian spirit can feel at home,
                 whether you have lived in Dubai for years or have just arrived.&rdquo;
               </p>
               <p className="text-saffron-600 font-semibold font-display text-lg">
-                &ldquo;Welcome to BILD: your people, your place, your Dubai family.&rdquo;
+                &ldquo;Welcome to BILD. Your people, your place, your Dubai family.&rdquo;
               </p>
             </blockquote>
 
