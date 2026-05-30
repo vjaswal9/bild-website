@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { SITE_CONFIG } from '@/data/config'
 
 export default function Hero() {
   return (
