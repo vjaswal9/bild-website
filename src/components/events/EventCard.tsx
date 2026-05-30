@@ -7,7 +7,7 @@ export default function EventCard({ event }: { event: BildEvent }) {
   const isPast = event.status === 'past'
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-gold-50 rounded-2xl shadow-sm border border-gold-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-48 bg-gradient-to-br from-charcoal-700 to-charcoal-900 flex items-center justify-center relative">
         <span className="font-display text-white/20 text-6xl font-bold">BILD</span>
         {event.isFeatured && !isPast && (

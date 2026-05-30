@@ -31,7 +31,7 @@ export default function Navbar() {
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        scrolled ? 'bg-white/95 backdrop-blur-sm shadow-sm' : 'bg-white'
+        scrolled ? 'bg-cream/95 backdrop-blur-sm shadow-sm' : 'bg-cream'
       )}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-28 flex items-center justify-between">
@@ -75,7 +75,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-4 flex flex-col gap-3">
+        <div className="lg:hidden bg-cream border-t border-gold-100 px-4 py-4 flex flex-col gap-3">
           {links.map((link) => (
             <Link
               key={link.href}

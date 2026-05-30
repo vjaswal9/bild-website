@@ -28,7 +28,7 @@ const cards = [
 
 export default function HighlightCards() {
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-gold-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {cards.map((card) => {
@@ -39,7 +39,7 @@ export default function HighlightCards() {
                 className={`rounded-2xl p-8 flex flex-col transition-all hover:-translate-y-1 hover:shadow-xl ${
                   card.highlight
                     ? 'bg-saffron-500 text-white shadow-lg'
-                    : 'bg-white shadow-sm border border-gray-100'
+                    : 'bg-gold-50 shadow-sm border border-gold-200'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${

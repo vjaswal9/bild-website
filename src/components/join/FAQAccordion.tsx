@@ -37,9 +37,9 @@ export default function FAQAccordion() {
   return (
     <div className="space-y-3">
       {faqs.map((faq, i) => (
-        <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
+        <div key={i} className="border border-gold-200 rounded-xl overflow-hidden">
           <button
-            className="w-full flex items-center justify-between px-6 py-4 text-left font-semibold text-charcoal-800 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center justify-between px-6 py-4 text-left font-semibold text-charcoal-800 hover:bg-gold-50 transition-colors"
             onClick={() => setOpen(open === i ? null : i)}
           >
             {faq.q}
@@ -49,7 +49,7 @@ export default function FAQAccordion() {
             />
           </button>
           {open === i && (
-            <div className="px-6 pb-4 text-charcoal-600 text-sm leading-relaxed border-t border-gray-100">
+            <div className="px-6 pb-4 text-charcoal-600 text-sm leading-relaxed border-t border-gold-100">
               <p className="pt-4">{faq.a}</p>
             </div>
           )}

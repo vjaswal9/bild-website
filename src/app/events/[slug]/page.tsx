@@ -44,7 +44,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
 
         <h1 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mb-6">{event.title}</h1>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 p-6 bg-gray-50 rounded-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 p-6 bg-gold-50 rounded-xl">
           <div className="flex items-start gap-3">
             <Calendar size={18} className="text-saffron-500 shrink-0 mt-0.5" />
             <div>

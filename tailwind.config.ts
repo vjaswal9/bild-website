@@ -9,14 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Rich gold — deeper, more premium than bright yellow-orange
+        gold: {
+          50:  '#fdf8f0',   // warm cream — page background
+          100: '#faefd9',
+          200: '#f4d99b',
+          400: '#e0a135',
+          500: '#C8861A',   // primary button colour — rich burnished gold
+          600: '#a86a10',
+          700: '#7d4e0a',
+        },
+        // Keep saffron alias pointing to gold for backward compat
         saffron: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          400: '#fbbf24',
-          500: '#F59E0B',
-          600: '#d97706',
-          700: '#b45309',
+          50:  '#fdf8f0',
+          100: '#faefd9',
+          200: '#f4d99b',
+          400: '#e0a135',
+          500: '#C8861A',
+          600: '#a86a10',
+          700: '#7d4e0a',
+        },
+        // Deep Indian red — secondary accent
+        ruby: {
+          500: '#9B2335',
+          600: '#7e1c2b',
         },
         charcoal: {
           600: '#4B5563',
@@ -24,6 +40,7 @@ const config: Config = {
           800: '#1F2937',
           900: '#111827',
         },
+        cream: '#fdf8f0',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

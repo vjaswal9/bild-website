@@ -29,7 +29,7 @@ function PhotoVaultContent() {
         <div className="flex flex-wrap gap-2 justify-center mb-10">
           <button
             onClick={() => setActiveEvent('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeEvent === 'all' ? 'bg-saffron-500 text-white' : 'bg-gray-100 text-charcoal-700 hover:bg-gray-200'}`}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeEvent === 'all' ? 'bg-saffron-500 text-white' : 'bg-gold-100 text-charcoal-700 hover:bg-gold-200'}`}
           >
             All Events
           </button>
@@ -37,7 +37,7 @@ function PhotoVaultContent() {
             <button
               key={e.slug}
               onClick={() => setActiveEvent(e.slug)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeEvent === e.slug ? 'bg-saffron-500 text-white' : 'bg-gray-100 text-charcoal-700 hover:bg-gray-200'}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeEvent === e.slug ? 'bg-saffron-500 text-white' : 'bg-gold-100 text-charcoal-700 hover:bg-gold-200'}`}
             >
               {e.title}
             </button>

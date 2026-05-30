@@ -16,7 +16,7 @@ export default function MembershipCard() {
   const hasStripeLink = SITE_CONFIG.stripeMembershipLink !== 'REPLACE_ME_STRIPE_MEMBERSHIP_LINK'
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div className="max-w-md mx-auto bg-gold-50 rounded-2xl shadow-xl border border-gold-100 overflow-hidden">
       <div className="bg-charcoal-800 p-8 text-center">
         <p className="text-saffron-400 font-semibold text-sm uppercase tracking-widest mb-2">Lifetime Membership</p>
         <div className="flex items-end justify-center gap-1">

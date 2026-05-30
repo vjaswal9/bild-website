@@ -57,7 +57,7 @@ export default function DirectoryPage() {
               placeholder="Search businesses, owners, or locations..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron-400 text-charcoal-800 bg-white"
+              className="w-full pl-11 pr-4 py-3 border border-gold-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-saffron-400 text-charcoal-800 bg-cream"
             />
           </div>
         </div>
@@ -67,7 +67,7 @@ export default function DirectoryPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-saffron-500 text-white' : 'bg-gray-100 text-charcoal-700 hover:bg-gray-200'}`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeCategory === cat ? 'bg-saffron-500 text-white' : 'bg-gold-100 text-charcoal-700 hover:bg-gold-200'}`}
             >
               {cat}
             </button>
@@ -98,7 +98,7 @@ export default function DirectoryPage() {
                   )}
                 </div>
 
-                <span className="inline-block bg-saffron-50 text-saffron-700 text-xs font-medium px-3 py-1 rounded-full mb-3">
+                <span className="inline-block bg-gold-100 text-gold-700 text-xs font-medium px-3 py-1 rounded-full mb-3">
                   {biz.category}
                 </span>
 
@@ -133,7 +133,7 @@ export default function DirectoryPage() {
           </div>
         )}
 
-        <div className="mt-16 bg-saffron-50 border border-saffron-200 rounded-2xl p-8 text-center">
+        <div className="mt-16 bg-gold-100 border border-gold-200 rounded-2xl p-8 text-center">
           <h3 className="font-display text-xl font-bold text-charcoal-800 mb-2">Are you a BILD member with a business?</h3>
           <p className="text-charcoal-600 mb-4 text-sm">
             Get your business listed in the BILD directory, free for all members.
