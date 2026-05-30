@@ -78,7 +78,7 @@ export default function CommunityRulesPage() {
 
           <p className="text-sm text-charcoal-500">
             Questions about these rules? Contact us at{' '}
-            <a href="mailto:hello@bild.ae" className="text-saffron-600">hello@bild.ae</a>.
+            <a href="mailto:connect@bild.ae" className="text-saffron-600">connect@bild.ae</a>.
           </p>
         </article>
       </div>

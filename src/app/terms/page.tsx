@@ -85,7 +85,7 @@ export default function TermsPage() {
           <h2>Contact</h2>
           <p>
             For any questions regarding these Terms, please contact us at{' '}
-            <a href="mailto:hello@bild.ae" className="text-saffron-600">hello@bild.ae</a>.
+            <a href="mailto:connect@bild.ae" className="text-saffron-600">connect@bild.ae</a>.
           </p>
         </article>
       </div>
