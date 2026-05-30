@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { BusinessSubmission } from '@/lib/supabase'
 import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText } from 'lucide-react'
@@ -15,7 +14,6 @@ const supabaseClient = createClient(
 type Tab = 'pending' | 'approved' | 'rejected'
 
 export default function AdminDashboard({ submissions }: { submissions: BusinessSubmission[] }) {
-  const router = useRouter()
   const [tab, setTab] = useState<Tab>('pending')
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [processing, setProcessing] = useState<string | null>(null)
@@ -27,18 +25,23 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
 
   async function handleReview(id: string, action: 'approved' | 'rejected') {
     setProcessing(id)
-    await fetch('/api/admin/review', {
+    const res = await fetch('/api/admin/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, action, admin_notes: notes[id] || '' }),
     })
-    setProcessing(null)
-    router.refresh()
+    if (res.ok) {
+      // Full reload guarantees fresh server data
+      window.location.reload()
+    } else {
+      alert('Something went wrong. Please try again.')
+      setProcessing(null)
+    }
   }
 
   async function handleLogout() {
     await fetch('/api/admin/logout', { method: 'POST' })
-    router.push('/admin/login')
+    window.location.href = '/admin/login'
   }
 
   return (
@@ -53,7 +56,7 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => router.refresh()} className="text-gray-400 hover:text-white transition-colors" title="Refresh">
+          <button onClick={() => window.location.reload()} className="text-gray-400 hover:text-white transition-colors" title="Refresh">
             <RefreshCw size={18} />
           </button>
           <button
