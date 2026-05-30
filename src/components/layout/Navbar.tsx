@@ -94,7 +94,7 @@ export default function Navbar() {
             onClick={() => setOpen(false)}
             className="mt-2 bg-saffron-500 text-white px-4 py-2.5 rounded-lg text-base font-semibold text-center hover:bg-saffron-600 transition-colors"
           >
-            Join BILD — {SITE_CONFIG.membershipFeeAED} AED
+            Join BILD
           </Link>
         </div>
       )}

@@ -18,12 +18,12 @@ export default function MembershipCard() {
   return (
     <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       <div className="bg-charcoal-800 p-8 text-center">
-        <p className="text-saffron-400 font-semibold text-sm uppercase tracking-widest mb-2">Annual Membership</p>
+        <p className="text-saffron-400 font-semibold text-sm uppercase tracking-widest mb-2">Lifetime Membership</p>
         <div className="flex items-end justify-center gap-1">
           <span className="text-white font-display text-6xl font-bold">{SITE_CONFIG.membershipFeeAED}</span>
-          <span className="text-gray-300 text-xl mb-2">AED / year</span>
+          <span className="text-gray-300 text-xl mb-2">AED</span>
         </div>
-        <p className="text-gray-400 text-sm mt-2">One simple fee. Full community access.</p>
+        <p className="text-gray-400 text-sm mt-2">One simple fee. Lifetime community access.</p>
       </div>
 
       <div className="p-8">

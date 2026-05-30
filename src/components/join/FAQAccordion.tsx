@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: 'How much does membership cost?',
-    a: 'Annual membership is 50 AED per year — one simple fee for full access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
+    a: 'Lifetime membership is a one-off 50 AED fee — one simple payment for permanent access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
   },
   {
     q: 'What happens after I pay?',

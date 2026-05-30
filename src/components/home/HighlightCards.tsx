@@ -19,7 +19,7 @@ const cards = [
   {
     icon: Users,
     title: 'Join the Community',
-    description: 'Become a BILD member for just 50 AED/year and connect with hundreds of British Indians in Dubai.',
+    description: 'Become a BILD member for just 50 AED (lifetime) and connect with hundreds of British Indians in Dubai.',
     href: '/join',
     cta: 'Join BILD',
     highlight: true,

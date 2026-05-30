@@ -24,12 +24,11 @@ export default function TermsPage() {
             By joining BILD and paying the membership fee, you confirm that you meet the eligibility criteria as
             set out in our Community Rules and agree to be bound by these Terms and Conditions.
           </p>
-          <p>Membership is annual and must be renewed each year. Membership fees are non-refundable.</p>
+          <p>Membership is a lifetime fee — a single one-off payment. Membership fees are non-refundable.</p>
 
           <h2>3. Membership Fees & Payments</h2>
           <ul>
-            <li>The current annual membership fee is 50 AED.</li>
-            <li>Payments are processed securely via Stripe. BILD does not store card details.</li>
+            <li>The current lifetime membership fee is 50 AED — a one-off payment.</li>
             <li>Membership fees are non-refundable unless a payment error has occurred.</li>
             <li>BILD reserves the right to change the membership fee with reasonable notice to members.</li>
           </ul>
