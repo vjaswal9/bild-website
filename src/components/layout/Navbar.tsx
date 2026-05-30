@@ -36,7 +36,7 @@ export default function Navbar() {
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/bild-logo.png" alt="BILD" width={80} height={40} className="h-10 w-auto object-contain" />
+          <Image src="/bild-logo.png" alt="BILD" width={48} height={48} className="h-12 w-12 object-contain" />
           <span className="hidden sm:inline text-sm font-sans font-normal text-charcoal-600">
             British Indians Living in Dubai
           </span>
