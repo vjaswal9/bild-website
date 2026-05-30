@@ -1,5 +1,5 @@
 export const SITE_CONFIG = {
-  stripeMembershipLink: 'REPLACE_ME_STRIPE_MEMBERSHIP_LINK',
+  stripeMembershipLink: 'https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAO__YRes75UNk5HR1ZTTlBEWTBWNE5aS0hCRExTWjhEVC4u',
   whatsappGroupLink: 'REPLACE_ME_WHATSAPP_LINK',
   instagramUrl: 'https://instagram.com/bildcommunity',
   facebookUrl: 'https://facebook.com/bildcommunity',

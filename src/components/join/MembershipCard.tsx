@@ -43,7 +43,7 @@ export default function MembershipCard() {
             rel="noopener noreferrer"
             className="block w-full bg-saffron-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-saffron-600 transition-all hover:shadow-lg"
           >
-            Pay & Join Now — {SITE_CONFIG.membershipFeeAED} AED
+            Join BILD Now — {SITE_CONFIG.membershipFeeAED} AED
           </a>
         ) : (
           <a
@@ -55,7 +55,7 @@ export default function MembershipCard() {
         )}
 
         <p className="text-xs text-center text-gray-400 mt-4">
-          Secure payment via Stripe. After payment, you will be welcomed into the BILD community within 48 hours.
+          Complete the form and our team will be in touch within 48 hours to welcome you to BILD.
         </p>
       </div>
     </div>
