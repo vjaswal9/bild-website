@@ -1,32 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle, Upload, ArrowLeft } from 'lucide-react'
+import { CheckCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import PageHero from '@/components/ui/PageHero'
-import { SITE_CONFIG } from '@/data/config'
+import { supabase } from '@/lib/supabase'
 
 const CATEGORIES = [
-  'Financial Services',
-  'Beauty',
-  'Residency Services',
-  'Marketing',
-  'Consultancy & Advisory',
-  'Recruitment',
-  'Motors',
-  'Health & Wellbeing',
-  'Property',
-  'Jewellery',
-  'Legal',
-  'Food & Catering',
-  'Technology',
-  'Education & Tutoring',
-  'Professional Services',
-  'Arts & Entertainment',
-  'Retail & Fashion',
-  'Photography & Videography',
-  'Events & Entertainment',
-  'Other',
+  'Financial Services', 'Beauty', 'Residency Services', 'Marketing',
+  'Consultancy & Advisory', 'Recruitment', 'Motors', 'Health & Wellbeing',
+  'Property', 'Jewellery', 'Legal', 'Food & Catering', 'Technology',
+  'Education & Tutoring', 'Photography & Videography', 'Events & Entertainment',
+  'Retail & Fashion', 'Professional Services', 'Arts & Entertainment', 'Other',
 ]
 
 export default function SubmitBusinessPage() {
@@ -40,25 +25,35 @@ export default function SubmitBusinessPage() {
     setError('')
 
     const form = e.currentTarget
-    const data = new FormData(form)
+    const fd = new FormData(form)
 
-    try {
-      const res = await fetch(SITE_CONFIG.businessFormEndpoint, {
-        method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' },
-      })
-
-      if (res.ok) {
-        setSubmitted(true)
-      } else {
-        setError('Something went wrong. Please try again or email us directly.')
-      }
-    } catch {
-      setError('Something went wrong. Please check your connection and try again.')
-    } finally {
-      setSubmitting(false)
+    const payload = {
+      business_name: fd.get('business_name') as string,
+      category: fd.get('category') as string,
+      description: fd.get('description') as string,
+      location: fd.get('location') as string,
+      owner_name: fd.get('owner_name') as string,
+      phone: fd.get('phone') as string,
+      email: fd.get('email') as string,
+      website: fd.get('website') as string || null,
+      instagram: fd.get('instagram') as string || null,
+      logo_url: fd.get('logo_url') as string || null,
+      years_in_business: fd.get('years_in_business') as string || null,
+      bild_offer: fd.get('bild_offer') as string || null,
+      extra_info: fd.get('extra_info') as string || null,
+      status: 'pending',
     }
+
+    const { error: sbError } = await supabase
+      .from('business_submissions')
+      .insert([payload])
+
+    if (sbError) {
+      setError('Something went wrong. Please try again or email us at connect@bild.ae')
+    } else {
+      setSubmitted(true)
+    }
+    setSubmitting(false)
   }
 
   if (submitted) {
@@ -70,13 +65,11 @@ export default function SubmitBusinessPage() {
             <CheckCircle size={40} className="text-gold-500" />
           </div>
           <h2 className="font-display text-3xl font-bold text-charcoal-800 mb-4">Submission received!</h2>
-          <p className="text-charcoal-600 mb-8">
-            Thank you for submitting your business. We will review your listing and add it to the directory within 48 hours.
+          <p className="text-charcoal-600 mb-2">
+            Thank you for submitting your business. Our team will review your listing and you will hear back within 48 hours.
           </p>
-          <Link
-            href="/directory"
-            className="inline-block bg-gold-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gold-600 transition-colors"
-          >
+          <p className="text-charcoal-400 text-sm mb-8">Once approved, your business will appear in the BILD directory.</p>
+          <Link href="/directory" className="inline-block bg-gold-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gold-600 transition-colors">
             Back to Directory
           </Link>
         </div>
@@ -100,7 +93,6 @@ export default function SubmitBusinessPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Business Info */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business Information</legend>
 
@@ -121,7 +113,7 @@ export default function SubmitBusinessPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Business Description <span className="text-ruby-500">*</span></label>
-                <textarea name="description" required rows={4} placeholder="Tell us what your business does and what makes it special (max 200 words)..."
+                <textarea name="description" required rows={4} placeholder="Tell us what your business does and what makes it special..."
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400 resize-none" />
               </div>
 
@@ -132,7 +124,6 @@ export default function SubmitBusinessPage() {
               </div>
             </fieldset>
 
-            {/* Contact Info */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Contact Details</legend>
 
@@ -171,29 +162,16 @@ export default function SubmitBusinessPage() {
               </div>
             </fieldset>
 
-            {/* Logo upload */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Logo &amp; Branding</legend>
-
               <div>
-                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Business Logo</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gold-300 rounded-xl cursor-pointer bg-white hover:bg-gold-50 transition-colors">
-                  <Upload size={24} className="text-gold-400 mb-2" />
-                  <span className="text-sm text-charcoal-500">Click to upload logo</span>
-                  <span className="text-xs text-charcoal-400 mt-1">PNG, JPG or SVG (max 2MB)</span>
-                  <input name="logo" type="file" accept="image/*" className="hidden" />
-                </label>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Logo URL (alternative)</label>
+                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Logo URL</label>
                 <input name="logo_url" type="url" placeholder="https://link-to-your-logo.com/logo.png"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">If you have a hosted logo, paste the URL here instead.</p>
+                <p className="text-xs text-charcoal-400 mt-1">Paste a link to your logo (Instagram profile pic, website logo, Google Drive link, etc.)</p>
               </div>
             </fieldset>
 
-            {/* Extra info */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Additional Information</legend>
 
@@ -207,12 +185,11 @@ export default function SubmitBusinessPage() {
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Special Offer for BILD Members</label>
                 <input name="bild_offer" type="text" placeholder="e.g. 10% discount for BILD members"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">Optional — any exclusive deal you want to offer fellow BILD members.</p>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Anything else you&apos;d like to add?</label>
-                <textarea name="extra_info" rows={3} placeholder="Awards, certifications, notable clients, languages spoken, etc."
+                <textarea name="extra_info" rows={3} placeholder="Awards, certifications, languages spoken, notable clients, etc."
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400 resize-none" />
               </div>
 
@@ -225,9 +202,7 @@ export default function SubmitBusinessPage() {
               </div>
             </fieldset>
 
-            {error && (
-              <p className="text-ruby-500 text-sm text-center">{error}</p>
-            )}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
             <button
               type="submit"
@@ -238,7 +213,7 @@ export default function SubmitBusinessPage() {
             </button>
 
             <p className="text-xs text-center text-charcoal-400">
-              Your submission will be reviewed by the BILD team within 48 hours. By submitting, you agree to our{' '}
+              Your submission will be reviewed within 48 hours. By submitting, you agree to our{' '}
               <Link href="/community-rules" className="text-gold-600 hover:underline">community rules</Link>.
             </p>
           </form>
