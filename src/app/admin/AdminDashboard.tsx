@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { BusinessSubmission } from '@/lib/supabase'
-import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseClient = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 type Tab = 'pending' | 'approved' | 'rejected'
 
@@ -131,6 +137,7 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
                     {sub.extra_info && <Detail label="Extra Info" value={sub.extra_info} />}
                     {sub.logo_url && <Detail label="Logo URL" value={sub.logo_url} link />}
                     {sub.admin_notes && <Detail label="Admin Notes" value={sub.admin_notes} />}
+                    {sub.license_url && <LicenseButton path={sub.license_url} />}
                   </div>
                 </div>
 
@@ -167,6 +174,34 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function LicenseButton({ path }: { path: string }) {
+  const [loading, setLoading] = useState(false)
+
+  async function getSignedUrl() {
+    setLoading(true)
+    const { data } = await supabaseClient.storage
+      .from('business-licenses')
+      .createSignedUrl(path, 300) // valid for 5 minutes
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank')
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div>
+      <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Business License</p>
+      <button
+        onClick={getSignedUrl}
+        disabled={loading}
+        className="inline-flex items-center gap-2 bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 transition-colors px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
+      >
+        <FileText size={14} /> {loading ? 'Opening...' : 'View License PDF'}
+      </button>
     </div>
   )
 }

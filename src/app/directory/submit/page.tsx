@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { CheckCircle, ArrowLeft } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { CheckCircle, ArrowLeft, FileText, X } from 'lucide-react'
 import Link from 'next/link'
 import PageHero from '@/components/ui/PageHero'
 import { supabase } from '@/lib/supabase'
@@ -18,6 +18,8 @@ export default function SubmitBusinessPage() {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [licenseFile, setLicenseFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -27,6 +29,22 @@ export default function SubmitBusinessPage() {
     const form = e.currentTarget
     const fd = new FormData(form)
 
+    // Upload business license PDF to Supabase Storage
+    let licenseUrl: string | null = null
+    if (licenseFile) {
+      const fileName = `${Date.now()}-${licenseFile.name.replace(/\s+/g, '-')}`
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('business-licenses')
+        .upload(fileName, licenseFile, { contentType: 'application/pdf' })
+
+      if (uploadError) {
+        setError('Failed to upload business license. Please try again.')
+        setSubmitting(false)
+        return
+      }
+      licenseUrl = uploadData.path
+    }
+
     const payload = {
       business_name: fd.get('business_name') as string,
       category: fd.get('category') as string,
@@ -35,12 +53,13 @@ export default function SubmitBusinessPage() {
       owner_name: fd.get('owner_name') as string,
       phone: fd.get('phone') as string,
       email: fd.get('email') as string,
-      website: fd.get('website') as string || null,
-      instagram: fd.get('instagram') as string || null,
-      logo_url: fd.get('logo_url') as string || null,
-      years_in_business: fd.get('years_in_business') as string || null,
-      bild_offer: fd.get('bild_offer') as string || null,
-      extra_info: fd.get('extra_info') as string || null,
+      website: (fd.get('website') as string) || null,
+      instagram: (fd.get('instagram') as string) || null,
+      logo_url: (fd.get('logo_url') as string) || null,
+      years_in_business: (fd.get('years_in_business') as string) || null,
+      bild_offer: (fd.get('bild_offer') as string) || null,
+      extra_info: (fd.get('extra_info') as string) || null,
+      license_url: licenseUrl,
       status: 'pending',
     }
 
@@ -93,6 +112,7 @@ export default function SubmitBusinessPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
+            {/* Business Info */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business Information</legend>
 
@@ -124,6 +144,7 @@ export default function SubmitBusinessPage() {
               </div>
             </fieldset>
 
+            {/* Contact Info */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Contact Details</legend>
 
@@ -162,16 +183,58 @@ export default function SubmitBusinessPage() {
               </div>
             </fieldset>
 
+            {/* Logo */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Logo &amp; Branding</legend>
               <div>
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Logo URL</label>
                 <input name="logo_url" type="url" placeholder="https://link-to-your-logo.com/logo.png"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">Paste a link to your logo (Instagram profile pic, website logo, Google Drive link, etc.)</p>
+                <p className="text-xs text-charcoal-400 mt-1">Paste a direct link to your logo image.</p>
               </div>
             </fieldset>
 
+            {/* Business License */}
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-4">
+              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business License <span className="text-ruby-500">*</span></legend>
+              <p className="text-sm text-charcoal-500">
+                Please upload a copy of your valid UAE trade licence or business license. This is required for verification and will only be seen by the BILD admin team — it will never be shared publicly.
+              </p>
+
+              {!licenseFile ? (
+                <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gold-300 rounded-xl cursor-pointer bg-white hover:bg-gold-50 transition-colors">
+                  <FileText size={32} className="text-gold-400 mb-2" />
+                  <span className="text-sm font-medium text-charcoal-600">Click to upload your business license</span>
+                  <span className="text-xs text-charcoal-400 mt-1">PDF only — max 10MB</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    required
+                    className="hidden"
+                    onChange={e => setLicenseFile(e.target.files?.[0] || null)}
+                  />
+                </label>
+              ) : (
+                <div className="flex items-center gap-3 bg-gold-50 border border-gold-200 rounded-xl px-4 py-3">
+                  <FileText size={24} className="text-gold-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-charcoal-800 truncate">{licenseFile.name}</p>
+                    <p className="text-xs text-charcoal-400">{(licenseFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setLicenseFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                    className="text-charcoal-400 hover:text-red-500 transition-colors"
+                    aria-label="Remove file"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              )}
+            </fieldset>
+
+            {/* Extra */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Additional Information</legend>
 
@@ -197,19 +260,19 @@ export default function SubmitBusinessPage() {
                 <input id="member_confirm" name="member_confirm" type="checkbox" required
                   className="mt-1 h-4 w-4 accent-gold-500" />
                 <label htmlFor="member_confirm" className="text-sm text-charcoal-600">
-                  I confirm that I am a current BILD member and the information provided is accurate. <span className="text-ruby-500">*</span>
+                  I confirm that I am a current BILD member, the information provided is accurate, and the business license uploaded is valid. <span className="text-ruby-500">*</span>
                 </label>
               </div>
             </fieldset>
 
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            {error && <p className="text-red-500 text-sm text-center bg-red-50 border border-red-200 rounded-xl p-3">{error}</p>}
 
             <button
               type="submit"
               disabled={submitting}
               className="w-full bg-gold-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Submitting...' : 'Submit My Business'}
+              {submitting ? 'Uploading & Submitting...' : 'Submit My Business'}
             </button>
 
             <p className="text-xs text-center text-charcoal-400">

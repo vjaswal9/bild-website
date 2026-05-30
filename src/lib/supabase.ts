@@ -25,4 +25,5 @@ export type BusinessSubmission = {
   extra_info?: string
   admin_notes?: string
   reviewed_at?: string
+  license_url?: string
 }
