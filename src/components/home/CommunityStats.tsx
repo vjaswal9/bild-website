@@ -1,7 +1,7 @@
 const stats = [
-  { value: '50+', label: 'Members' },
-  { value: '5+', label: 'Events Hosted' },
-  { value: '3+', label: 'Businesses Listed' },
+  { value: '2000+', label: 'Members' },
+  { value: '59+', label: 'Events Hosted' },
+  { value: '60+', label: 'Businesses Listed' },
   { value: '2019', label: 'Est. in Dubai' },
 ]
 
