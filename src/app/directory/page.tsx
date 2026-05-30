@@ -136,7 +136,7 @@ export default function DirectoryPage() {
         <div className="mt-16 bg-saffron-50 border border-saffron-200 rounded-2xl p-8 text-center">
           <h3 className="font-display text-xl font-bold text-charcoal-800 mb-2">Are you a BILD member with a business?</h3>
           <p className="text-charcoal-600 mb-4 text-sm">
-            Get your business listed in the BILD directory — free for all members.
+            Get your business listed in the BILD directory, free for all members.
           </p>
           <a
             href={`mailto:${SITE_CONFIG.contactEmail}?subject=Business Directory Listing Request`}

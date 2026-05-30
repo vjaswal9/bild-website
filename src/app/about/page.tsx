@@ -9,13 +9,13 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title="About BILD"
-          subtitle="British Indians Living in Dubai — our story, mission and values"
+          subtitle="Our story, mission and values"
         />
 
         <article className="prose prose-lg prose-charcoal max-w-none">
           <h2>Who We Are</h2>
           <p>
-            BILD — British Indians Living in Dubai — is a not-for-profit community created exclusively for individuals
+            BILD (British Indians Living in Dubai) is a not-for-profit community created exclusively for individuals
             of British Indian heritage, or those married to someone who is, living in the UAE. We welcome those of
             Indian origin who were born or raised in the UK and identify with both British and Indian culture.
           </p>
@@ -23,7 +23,7 @@ export default function AboutPage() {
           <h2>Our Mission</h2>
           <p>
             BILD was founded on a simple belief: that the shared experience of being British and Indian, and living
-            far from both home countries, creates a unique and powerful bond. We exist to nurture that bond — to help
+            far from both home countries, creates a unique and powerful bond. We exist to nurture that bond, to help
             British Indians in Dubai find their community, celebrate their dual heritage, and support one another.
           </p>
 
@@ -31,17 +31,17 @@ export default function AboutPage() {
           <p>BILD connects members through:</p>
           <ul>
             <li>
-              <strong>Cultural celebrations</strong> — Diwali, Holi, and other festivals celebrated in true
+              <strong>Cultural celebrations</strong>: Diwali, Holi, and other festivals celebrated in true
               British-Indian style
             </li>
             <li>
-              <strong>Social meet-ups</strong> — relaxed, informal gatherings for members and their families
+              <strong>Social meet-ups</strong>: relaxed, informal gatherings for members and their families
             </li>
             <li>
-              <strong>Family-friendly activities</strong> — events designed for the whole family to enjoy together
+              <strong>Family-friendly activities</strong>: events designed for the whole family to enjoy together
             </li>
             <li>
-              <strong>Business networking</strong> — opportunities to support and grow British Indian businesses,
+              <strong>Business networking</strong>: opportunities to support and grow British Indian businesses,
               professionals, and entrepreneurs in the UAE
             </li>
           </ul>

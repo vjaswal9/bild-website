@@ -7,8 +7,8 @@ export default function MissionStatement() {
           Two cultures. One community.
         </h2>
         <p className="text-lg text-charcoal-600 leading-relaxed mb-6">
-          BILD is a not-for-profit community created exclusively for individuals of British Indian heritage — or those
-          married to someone who is — living in the UAE. We welcome those of Indian origin who were born or raised in
+          BILD is a not-for-profit community created exclusively for individuals of British Indian heritage, or those
+          married to someone who is, living in the UAE. We welcome those of Indian origin who were born or raised in
           the UK and identify with both British and Indian culture.
         </p>
         <p className="text-lg text-charcoal-600 leading-relaxed mb-6">

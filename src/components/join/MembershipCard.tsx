@@ -43,7 +43,7 @@ export default function MembershipCard() {
             rel="noopener noreferrer"
             className="block w-full bg-saffron-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-saffron-600 transition-all hover:shadow-lg"
           >
-            Join BILD Now — {SITE_CONFIG.membershipFeeAED} AED
+            Join BILD Now
           </a>
         ) : (
           <a

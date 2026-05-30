@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: 'How much does membership cost?',
-    a: 'Lifetime membership is a one-off 50 AED fee — one simple payment for permanent access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
+    a: 'Lifetime membership is a one-off 50 AED fee: one simple payment for permanent access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
   },
   {
     q: 'What happens after I pay?',
@@ -27,7 +27,7 @@ const faqs = [
   },
   {
     q: 'Can I list my business in the BILD directory?',
-    a: 'Yes — BILD members can list their businesses in our Business Directory. This is included in your membership. Contact us after joining to submit your business details.',
+    a: 'Yes. BILD members can list their businesses in our Business Directory. This is included in your membership. Contact us after joining to submit your business details.',
   },
 ]
 

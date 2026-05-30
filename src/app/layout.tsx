@@ -6,7 +6,7 @@ import { SITE_CONFIG } from '@/data/config'
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_CONFIG.siteName} — ${SITE_CONFIG.siteTagline}`,
+    default: `${SITE_CONFIG.siteName}: ${SITE_CONFIG.siteTagline}`,
     template: `%s | ${SITE_CONFIG.siteName}`,
   },
   description: SITE_CONFIG.siteDescription,

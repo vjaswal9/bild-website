@@ -71,7 +71,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-charcoal-700 py-5 text-center text-xs text-gray-500">
-        <p>© {new Date().getFullYear()} BILD — British Indians Living in Dubai. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} BILD: British Indians Living in Dubai. All rights reserved.</p>
         <p className="mt-1">A not-for-profit community organisation. Registered in UAE.</p>
       </div>
     </footer>

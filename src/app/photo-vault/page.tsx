@@ -46,7 +46,7 @@ function PhotoVaultContent() {
 
         {filtered.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-charcoal-500 text-lg">No photos yet — check back after our next event!</p>
+            <p className="text-charcoal-500 text-lg">No photos yet. Check back after our next event!</p>
           </div>
         ) : (
           <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
