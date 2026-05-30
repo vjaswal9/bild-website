@@ -1,5 +1,6 @@
 import Hero from '@/components/home/Hero'
 import MissionStatement from '@/components/home/MissionStatement'
+import FounderMessage from '@/components/home/FounderMessage'
 import HighlightCards from '@/components/home/HighlightCards'
 import JoinCTA from '@/components/home/JoinCTA'
 import EventCard from '@/components/events/EventCard'
@@ -15,6 +16,7 @@ export default function Home() {
     <>
       <Hero />
       <MissionStatement />
+      <FounderMessage />
       <HighlightCards />
 
       {upcomingEvents.length > 0 && (

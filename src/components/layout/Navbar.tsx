@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { SITE_CONFIG } from '@/data/config'
 
 const links = [
   { href: '/', label: 'Home' },
@@ -35,8 +35,8 @@ export default function Navbar() {
       )}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-display font-bold text-xl text-charcoal-800">
-          <span className="text-saffron-500">BILD</span>
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/bild-logo.png" alt="BILD" width={80} height={40} className="h-10 w-auto object-contain" />
           <span className="hidden sm:inline text-sm font-sans font-normal text-charcoal-600">
             British Indians Living in Dubai
           </span>
