@@ -1,0 +1,30 @@
+import type { Metadata } from 'next'
+import './globals.css'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import { SITE_CONFIG } from '@/data/config'
+
+export const metadata: Metadata = {
+  title: {
+    default: `${SITE_CONFIG.siteName} — ${SITE_CONFIG.siteTagline}`,
+    template: `%s | ${SITE_CONFIG.siteName}`,
+  },
+  description: SITE_CONFIG.siteDescription,
+  openGraph: {
+    type: 'website',
+    siteName: SITE_CONFIG.siteName,
+    description: SITE_CONFIG.siteDescription,
+  },
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 pt-16">{children}</main>
+        <Footer />
+      </body>
+    </html>
+  )
+}

@@ -1,0 +1,57 @@
+{
+  "events": [
+    {
+      "id": "diwali-2025",
+      "slug": "diwali-2025",
+      "title": "BILD Diwali Celebration 2025",
+      "date": "2025-10-20T19:00:00",
+      "endDate": "2025-10-20T23:30:00",
+      "location": "Jumeirah, Dubai",
+      "venue": "To Be Announced",
+      "description": "Join the BILD family for our annual Diwali celebration — an evening of light, colour, music, and togetherness. Enjoy traditional food, live entertainment, and connect with fellow British Indians in Dubai. A family-friendly event celebrating the festival of lights in true British Indian style.",
+      "shortDescription": "Annual Diwali night with dinner, music and festivities for the whole family.",
+      "imageUrl": "/images/events/diwali-2025-placeholder.jpg",
+      "stripeLink": "REPLACE_ME_STRIPE_DIWALI_2025",
+      "ticketPrice": 150,
+      "currency": "AED",
+      "status": "upcoming",
+      "tags": ["cultural", "family", "festival", "diwali"],
+      "isFeatured": true
+    },
+    {
+      "id": "summer-meetup-2025",
+      "slug": "summer-meetup-2025",
+      "title": "BILD Summer Social",
+      "date": "2025-07-12T18:00:00",
+      "endDate": "2025-07-12T21:00:00",
+      "location": "Dubai Marina, Dubai",
+      "venue": "To Be Announced",
+      "description": "An informal summer meet-up for BILD members and their families. Great conversations, good food, and the chance to grow your British Indian network in Dubai. All members welcome.",
+      "shortDescription": "Informal summer social for members and families at Dubai Marina.",
+      "imageUrl": "/images/events/summer-2025-placeholder.jpg",
+      "stripeLink": "REPLACE_ME_STRIPE_SUMMER_2025",
+      "ticketPrice": 0,
+      "currency": "AED",
+      "status": "upcoming",
+      "tags": ["social", "networking", "family"],
+      "isFeatured": false
+    },
+    {
+      "id": "diwali-2024",
+      "slug": "diwali-2024",
+      "title": "BILD Diwali 2024",
+      "date": "2024-11-01T19:00:00",
+      "endDate": "2024-11-01T23:00:00",
+      "location": "Downtown Dubai",
+      "venue": "Taj Hotel, Downtown Dubai",
+      "description": "Our inaugural Diwali celebration brought together over 100 BILD members and their families for an unforgettable evening of food, music, and celebration.",
+      "shortDescription": "Our inaugural Diwali celebration with 100+ members.",
+      "imageUrl": "/images/events/diwali-2024-placeholder.jpg",
+      "ticketPrice": 120,
+      "currency": "AED",
+      "status": "past",
+      "tags": ["cultural", "family", "festival", "diwali"],
+      "isFeatured": true
+    }
+  ]
+}

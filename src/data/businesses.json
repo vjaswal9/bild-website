@@ -1,0 +1,49 @@
+{
+  "businesses": [
+    {
+      "id": "biz-001",
+      "name": "Spice Route Catering",
+      "ownerName": "Priya Sharma",
+      "category": "Food & Catering",
+      "description": "Authentic British-Indian fusion catering for weddings, corporate events, and private parties. Specialising in Indo-British buffets and canape menus.",
+      "contactEmail": "priya@example.ae",
+      "contactPhone": "+971 50 123 4567",
+      "website": "",
+      "instagram": "@spiceroutedxb",
+      "location": "Dubai Marina",
+      "isVerified": true,
+      "memberSince": "2024-01",
+      "logoUrl": ""
+    },
+    {
+      "id": "biz-002",
+      "name": "Patel & Associates Law",
+      "ownerName": "Rahul Patel",
+      "category": "Professional Services",
+      "description": "Specialist legal services for expatriates in the UAE — covering employment law, business setup, property, and family law. British-qualified solicitors.",
+      "contactEmail": "rahul@example.ae",
+      "contactPhone": "+971 4 234 5678",
+      "website": "",
+      "instagram": "",
+      "location": "DIFC, Dubai",
+      "isVerified": true,
+      "memberSince": "2024-03",
+      "logoUrl": ""
+    },
+    {
+      "id": "biz-003",
+      "name": "Bloom Wellness Studio",
+      "ownerName": "Anika Mehta",
+      "category": "Health & Wellness",
+      "description": "Holistic wellness studio offering yoga, meditation, and Ayurvedic treatments. Classes designed for busy professionals and families.",
+      "contactEmail": "anika@example.ae",
+      "contactPhone": "+971 55 345 6789",
+      "website": "",
+      "instagram": "@bloomwellnessdxb",
+      "location": "Jumeirah, Dubai",
+      "isVerified": true,
+      "memberSince": "2024-06",
+      "logoUrl": ""
+    }
+  ]
+}

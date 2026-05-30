@@ -1,0 +1,22 @@
+{
+  "photos": [
+    {
+      "id": "ph-001",
+      "eventSlug": "diwali-2024",
+      "eventTitle": "Diwali 2024",
+      "src": "/images/events/diwali-2024-placeholder.jpg",
+      "alt": "BILD members celebrating Diwali 2024",
+      "width": 1200,
+      "height": 800
+    },
+    {
+      "id": "ph-002",
+      "eventSlug": "diwali-2024",
+      "eventTitle": "Diwali 2024",
+      "src": "/images/events/diwali-2024-placeholder.jpg",
+      "alt": "Diwali 2024 group photo",
+      "width": 800,
+      "height": 1000
+    }
+  ]
+}
