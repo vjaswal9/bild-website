@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="320" height="200">
-  <!-- Card background -->
-  <rect width="320" height="200" rx="18" ry="18" fill="#1C1C1C"/>
+  <!-- Transparent background -->
+  <rect width="320" height="200" rx="18" ry="18" fill="transparent"/>
 
   <!-- Crown -->
   <g transform="translate(160, 38)" fill="#C9A84C">
@@ -25,7 +25,7 @@
     font-size="58"
     font-weight="700"
     letter-spacing="6"
-    fill="#F0EAD6"
+    fill="#374151"
   >B.I.L.D</text>
 
   <!-- Decorative line left -->

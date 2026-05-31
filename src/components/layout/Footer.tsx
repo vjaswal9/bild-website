@@ -19,7 +19,7 @@ export default function Footer() {
     <footer className="bg-charcoal-800 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
-          <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain rounded-xl mb-3" />
+          <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain mb-3 brightness-0 invert" />
           <p className="text-sm text-gray-400 mb-4">British Indians Living in Dubai</p>
           <p className="text-sm leading-relaxed text-gray-400">
             A not-for-profit community connecting British Indians in the UAE through culture, connection, and commerce.

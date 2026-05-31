@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-charcoal-900 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain mx-auto mb-4 rounded-xl" />
+          <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain mx-auto mb-4 brightness-0 invert" />
           <h1 className="font-display text-2xl font-bold text-white">Admin Access</h1>
           <p className="text-gray-400 text-sm mt-1">BILD Business Directory</p>
         </div>
