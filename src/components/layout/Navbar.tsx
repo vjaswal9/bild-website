@@ -14,7 +14,7 @@ const links = [
   { href: '/about', label: 'About' },
   { href: '/events', label: 'Events' },
   { href: '/photo-vault', label: 'Photo Vault' },
-  { href: '/directory', label: 'Directory' },
+  { href: '/directory', label: 'Business Directory' },
   { href: '/community-rules', label: 'Community Rules' },
 ]
 
