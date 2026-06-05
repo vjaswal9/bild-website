@@ -48,13 +48,22 @@ function waLink(phone: string) {
   return `https://wa.me/${digits}`
 }
 
-function BusinessCard({ biz }: { biz: DisplayBusiness }) {
+function BusinessCard({ biz, featured = false }: { biz: DisplayBusiness; featured?: boolean }) {
   const [expanded, setExpanded] = useState(false)
   const isLong = biz.description.length > 120
   const memberSince = formatMemberSince(biz.memberSince)
 
   return (
-    <div className="bg-cream rounded-2xl border border-gold-200 shadow-sm p-6 hover:shadow-md hover:border-gold-300 transition-all flex flex-col">
+    <div className={`relative rounded-2xl p-6 flex flex-col transition-all ${
+      featured
+        ? 'bg-white ring-2 ring-gold-400 shadow-lg hover:shadow-xl'
+        : 'bg-cream border border-gold-200 shadow-sm hover:shadow-md hover:border-gold-300'
+    }`}>
+      {featured && (
+        <span className="absolute -top-3 left-6 inline-flex items-center gap-1 bg-gold-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+          <Star size={11} className="fill-white" /> Featured
+        </span>
+      )}
       <div className="flex items-start gap-4 mb-3">
         <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} />
         <div className="min-w-0 flex-1">
@@ -193,15 +202,35 @@ export default function DirectoryClient({ businesses }: { businesses: DisplayBus
     <div className="py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+        {/* Top CTA banner — list your business */}
+        <div className="mb-12 bg-charcoal-800 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+          <div className="flex-1">
+            <h2 className="font-display text-xl font-bold text-white mb-1">Own a business? Get listed for free</h2>
+            <p className="text-gray-300 text-sm">
+              The BILD Business Directory is exclusively for members. Add your business in minutes and reach 2,000+ British Indians across the UAE.
+            </p>
+          </div>
+          <Link
+            href="/directory/submit"
+            className="shrink-0 bg-gold-500 text-white px-7 py-3 rounded-lg font-semibold hover:bg-gold-600 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+          >
+            Submit Your Business
+          </Link>
+        </div>
+
         {/* Featured strip — only when not filtering */}
         {!isFiltering && featured.length > 0 && (
-          <div className="mb-12">
-            <div className="flex items-center gap-2 mb-5">
-              <Star size={18} className="text-gold-500 fill-gold-500" />
-              <h2 className="font-display text-xl font-bold text-charcoal-800">Featured Members</h2>
+          <div className="mb-14 bg-gradient-to-br from-gold-50 to-gold-100/50 border border-gold-200 rounded-3xl px-6 py-8 sm:px-8">
+            <div className="text-center mb-7">
+              <span className="inline-flex items-center gap-1.5 text-gold-600 font-semibold text-sm uppercase tracking-widest">
+                <Star size={15} className="fill-gold-500 text-gold-500" /> Featured Members
+              </span>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-charcoal-800 mt-2">
+                Trusted businesses in our community
+              </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featured.map(biz => <BusinessCard key={`feat-${biz.id}`} biz={biz} />)}
+              {featured.map(biz => <BusinessCard key={`feat-${biz.id}`} biz={biz} featured />)}
             </div>
           </div>
         )}
@@ -275,15 +304,14 @@ export default function DirectoryClient({ businesses }: { businesses: DisplayBus
           </div>
         )}
 
-        {/* Get listed CTA */}
-        <div className="mt-16 bg-charcoal-800 rounded-2xl p-8 text-center">
-          <h3 className="font-display text-xl font-bold text-white mb-2">Are you a BILD member with a business?</h3>
-          <p className="text-gray-300 mb-5 text-sm">Get your business listed in the BILD directory, free for all members.</p>
-          <Link href="/directory/submit"
-            className="inline-block bg-gold-500 text-white px-6 py-3 rounded-lg font-semibold text-sm hover:bg-gold-600 transition-colors">
-            Submit Your Business
+        {/* Light closing reminder */}
+        <p className="mt-14 text-center text-sm text-charcoal-500">
+          Are you a BILD member with a business?{' '}
+          <Link href="/directory/submit" className="text-gold-600 font-semibold hover:underline">
+            Get listed for free
           </Link>
-        </div>
+          .
+        </p>
       </div>
     </div>
   )
