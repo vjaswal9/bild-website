@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import HeroConstellation from './HeroConstellation'
 
 export default function Hero() {
   return (
@@ -9,6 +10,9 @@ export default function Hero() {
 
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#1a0a14]" />
+
+      {/* Constellation / network pattern */}
+      <HeroConstellation />
 
       {/* Gold glow top right */}
       <div
