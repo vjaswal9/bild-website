@@ -26,7 +26,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
   return (
     <div className="py-16">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/events" className="inline-flex items-center gap-2 text-charcoal-600 hover:text-saffron-600 mb-8 text-sm font-medium">
+        <Link href="/events" className="inline-flex items-center gap-2 text-charcoal-600 hover:text-gold-600 mb-8 text-sm font-medium">
           <ArrowLeft size={16} /> Back to Events
         </Link>
 
@@ -36,7 +36,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
 
         <div className="flex flex-wrap gap-2 mb-4">
           {event.tags.map(tag => (
-            <span key={tag} className="bg-saffron-100 text-saffron-700 text-xs font-medium px-3 py-1 rounded-full">
+            <span key={tag} className="bg-gold-100 text-gold-700 text-xs font-medium px-3 py-1 rounded-full">
               {tag}
             </span>
           ))}
@@ -46,7 +46,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 p-6 bg-gold-50 rounded-xl">
           <div className="flex items-start gap-3">
-            <Calendar size={18} className="text-saffron-500 shrink-0 mt-0.5" />
+            <Calendar size={18} className="text-gold-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-xs text-charcoal-500 font-medium uppercase tracking-wide">Date</p>
               <p className="text-sm text-charcoal-800 font-semibold">{formatEventDate(event.date)}</p>
@@ -54,7 +54,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <MapPin size={18} className="text-saffron-500 shrink-0 mt-0.5" />
+            <MapPin size={18} className="text-gold-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-xs text-charcoal-500 font-medium uppercase tracking-wide">Venue</p>
               <p className="text-sm text-charcoal-800 font-semibold">{event.venue}</p>
@@ -63,7 +63,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
           </div>
           {event.ticketPrice !== undefined && (
             <div className="flex items-start gap-3">
-              <Tag size={18} className="text-saffron-500 shrink-0 mt-0.5" />
+              <Tag size={18} className="text-gold-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs text-charcoal-500 font-medium uppercase tracking-wide">Ticket Price</p>
                 <p className="text-sm text-charcoal-800 font-semibold">
@@ -83,7 +83,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
             href={event.stripeLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-saffron-500 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-saffron-600 transition-all hover:shadow-lg"
+            className="inline-block bg-gold-500 text-white px-10 py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all hover:shadow-lg"
           >
             Sign Up for This Event
           </a>

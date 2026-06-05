@@ -14,7 +14,7 @@ export default function SectionHeading({ title, subtitle, centered = true, class
       {subtitle && (
         <p className="text-lg text-charcoal-600 max-w-2xl mx-auto">{subtitle}</p>
       )}
-      <div className={cn('mt-4 h-1 w-16 bg-saffron-500 rounded', centered && 'mx-auto')} />
+      <div className={cn('mt-4 h-1 w-16 bg-gold-500 rounded', centered && 'mx-auto')} />
     </div>
   )
 }

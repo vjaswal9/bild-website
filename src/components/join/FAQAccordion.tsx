@@ -14,12 +14,12 @@ const faqs = [
     a: 'Lifetime membership is a one-off 50 AED fee: one simple payment for permanent access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
   },
   {
-    q: 'What happens after I pay?',
-    a: 'After completing your payment via Stripe, our team will reach out within 48 hours to welcome you to BILD, add you to our WhatsApp community, and provide details on upcoming events.',
+    q: 'What happens after I sign up?',
+    a: 'Once you complete the sign-up form, our team will reach out within 48 hours to welcome you to BILD, arrange your one-off membership fee, add you to our WhatsApp community, and share details on upcoming events.',
   },
   {
-    q: 'Is my payment secure?',
-    a: 'Yes. All payments are processed securely via Stripe, a globally trusted payment platform. BILD does not store any card details.',
+    q: 'Is my information secure?',
+    a: 'Yes. Your details are handled securely and used only to manage your BILD membership. We never sell or share your information with third parties.',
   },
   {
     q: 'Can I get a refund?',
@@ -45,7 +45,7 @@ export default function FAQAccordion() {
             {faq.q}
             <ChevronDown
               size={18}
-              className={cn('shrink-0 text-saffron-500 transition-transform', open === i && 'rotate-180')}
+              className={cn('shrink-0 text-gold-500 transition-transform', open === i && 'rotate-180')}
             />
           </button>
           {open === i && (

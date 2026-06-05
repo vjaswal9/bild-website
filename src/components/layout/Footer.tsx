@@ -31,7 +31,7 @@ export default function Footer() {
           <ul className="space-y-2">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-sm text-gray-400 hover:text-saffron-400 transition-colors">
+                <Link href={link.href} className="text-sm text-gray-400 hover:text-gold-400 transition-colors">
                   {link.label}
                 </Link>
               </li>
@@ -43,7 +43,7 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Connect</h3>
           <a
             href={`mailto:${SITE_CONFIG.contactEmail}`}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-saffron-400 transition-colors mb-6"
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gold-400 transition-colors mb-6"
           >
             <Mail size={16} />
             {SITE_CONFIG.contactEmail}
@@ -53,7 +53,7 @@ export default function Footer() {
               href={SITE_CONFIG.instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full bg-charcoal-700 flex items-center justify-center text-gray-400 hover:bg-saffron-500 hover:text-white transition-all"
+              className="w-9 h-9 rounded-full bg-charcoal-700 flex items-center justify-center text-gray-400 hover:bg-gold-500 hover:text-white transition-all"
               aria-label="Instagram"
             >
               <FaInstagram size={18} />
@@ -62,7 +62,7 @@ export default function Footer() {
               href={SITE_CONFIG.facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full bg-charcoal-700 flex items-center justify-center text-gray-400 hover:bg-saffron-500 hover:text-white transition-all"
+              className="w-9 h-9 rounded-full bg-charcoal-700 flex items-center justify-center text-gray-400 hover:bg-gold-500 hover:text-white transition-all"
               aria-label="Facebook"
             >
               <FaFacebookF size={18} />
@@ -71,7 +71,7 @@ export default function Footer() {
               href={SITE_CONFIG.linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full bg-charcoal-700 flex items-center justify-center text-gray-400 hover:bg-saffron-500 hover:text-white transition-all"
+              className="w-9 h-9 rounded-full bg-charcoal-700 flex items-center justify-center text-gray-400 hover:bg-gold-500 hover:text-white transition-all"
               aria-label="LinkedIn"
             >
               <FaLinkedinIn size={18} />

@@ -2,7 +2,7 @@ export default function MissionStatement() {
   return (
     <section className="py-20 bg-gold-50">
       <div className="max-w-4xl mx-auto px-4 text-center">
-        <span className="text-saffron-500 font-semibold text-sm uppercase tracking-widest">Who We Are</span>
+        <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">Who We Are</span>
         <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-4 mb-6">
           Two cultures. One community.
         </h2>
@@ -22,7 +22,7 @@ export default function MissionStatement() {
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-3">
           {['Born or raised in the UK', 'Indian heritage', 'Living in UAE', 'All faiths welcome', 'Family friendly'].map(tag => (
-            <span key={tag} className="bg-gold-100 text-gold-700 border border-saffron-200 px-4 py-1.5 rounded-full text-sm font-medium">
+            <span key={tag} className="bg-gold-100 text-gold-700 border border-gold-200 px-4 py-1.5 rounded-full text-sm font-medium">
               {tag}
             </span>
           ))}

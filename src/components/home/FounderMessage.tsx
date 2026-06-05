@@ -6,7 +6,7 @@ export default function FounderMessage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="relative">
-            <div className="absolute -top-4 -left-4 w-full h-full bg-saffron-100 rounded-2xl" />
+            <div className="absolute -top-4 -left-4 w-full h-full bg-gold-100 rounded-2xl" />
             <Image
               src="/images/truna-jaswal.jpg"
               alt="Truna Jaswal, Founder of BILD"
@@ -17,7 +17,7 @@ export default function FounderMessage() {
           </div>
 
           <div>
-            <span className="text-saffron-500 font-semibold text-sm uppercase tracking-widest">A message from our Founder</span>
+            <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">A message from our Founder</span>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-4 mb-6">
               Welcome to BILD
             </h2>
@@ -40,7 +40,7 @@ export default function FounderMessage() {
                 &ldquo;This is a space where anyone who connects with our British Indian spirit can feel at home,
                 whether you have lived in Dubai for years or have just arrived.&rdquo;
               </p>
-              <p className="text-saffron-600 font-semibold font-display text-lg">
+              <p className="text-gold-600 font-semibold font-display text-lg">
                 &ldquo;Welcome to BILD. Your people, your place, your Dubai family.&rdquo;
               </p>
             </blockquote>

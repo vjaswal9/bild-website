@@ -18,7 +18,7 @@ export default function MembershipCard() {
   return (
     <div className="max-w-md mx-auto bg-gold-50 rounded-2xl shadow-xl border border-gold-100 overflow-hidden">
       <div className="bg-charcoal-800 p-8 text-center">
-        <p className="text-saffron-400 font-semibold text-sm uppercase tracking-widest mb-2">Lifetime Membership</p>
+        <p className="text-gold-400 font-semibold text-sm uppercase tracking-widest mb-2">Lifetime Membership</p>
         <div className="flex items-end justify-center gap-1">
           <span className="text-white font-display text-6xl font-bold">{SITE_CONFIG.membershipFeeAED}</span>
           <span className="text-gray-300 text-xl mb-2">AED</span>
@@ -30,7 +30,7 @@ export default function MembershipCard() {
         <ul className="space-y-3 mb-8">
           {benefits.map(benefit => (
             <li key={benefit} className="flex items-start gap-3">
-              <Check size={18} className="text-saffron-500 shrink-0 mt-0.5" />
+              <Check size={18} className="text-gold-500 shrink-0 mt-0.5" />
               <span className="text-charcoal-600 text-sm">{benefit}</span>
             </li>
           ))}
@@ -41,14 +41,14 @@ export default function MembershipCard() {
             href={SITE_CONFIG.stripeMembershipLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full bg-saffron-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-saffron-600 transition-all hover:shadow-lg"
+            className="block w-full bg-gold-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all hover:shadow-lg"
           >
             Join BILD Now
           </a>
         ) : (
           <a
             href={`mailto:${SITE_CONFIG.contactEmail}?subject=BILD Membership Enquiry`}
-            className="block w-full bg-saffron-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-saffron-600 transition-all"
+            className="block w-full bg-gold-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all"
           >
             Enquire to Join
           </a>

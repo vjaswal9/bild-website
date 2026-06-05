@@ -49,7 +49,7 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
       {/* Header */}
       <header className="bg-charcoal-800 border-b border-charcoal-700 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Image src="/bild-logo.png" alt="BILD" width={40} height={40} className="h-10 w-10 object-contain" />
+          <Image src="/bild-logo-new.svg" alt="BILD" width={64} height={40} className="h-10 w-auto object-contain brightness-0 invert" />
           <div>
             <h1 className="font-display font-bold text-white text-lg">BILD Admin</h1>
             <p className="text-gray-400 text-xs">Business Directory</p>

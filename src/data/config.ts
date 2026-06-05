@@ -8,7 +8,7 @@ export const SITE_CONFIG = {
   membershipFeeAED: 50,
   // Get your free endpoint at formspree.io replace REPLACE_ME with your form ID
   businessFormEndpoint: 'https://formspree.io/f/REPLACE_ME',
-  foundedYear: 2023,
+  foundedYear: 2019,
   siteName: 'BILD',
   siteTagline: 'British Indians Living in Dubai',
   siteDescription:
