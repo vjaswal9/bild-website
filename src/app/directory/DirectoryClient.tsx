@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, Star, ChevronDown, CalendarDays, ShieldCheck, Briefcase } from 'lucide-react'
+import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, ChevronDown, CalendarDays, ShieldCheck, Briefcase, Crown } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import BusinessAvatar from '@/components/directory/BusinessAvatar'
 
@@ -64,8 +64,8 @@ function BusinessCard({ biz, featured = false }: { biz: DisplayBusiness; feature
         : 'bg-cream border border-gold-200 shadow-sm hover:shadow-md hover:border-gold-300'
     }`}>
       {featured && (
-        <span className="absolute -top-3 left-6 inline-flex items-center gap-1 bg-gold-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-          <Star size={11} className="fill-white" /> Featured
+        <span className="absolute -top-3 left-6 inline-flex items-center gap-1 bg-gold-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
+          <Crown size={12} className="fill-white" /> Featured
         </span>
       )}
       <div className="flex items-start gap-4 mb-3">
@@ -244,19 +244,34 @@ export default function DirectoryClient({ businesses }: { businesses: DisplayBus
           </Link>
         </div>
 
-        {/* Featured strip — only when not filtering */}
+        {/* Featured spotlight — only when not filtering */}
         {!isFiltering && featured.length > 0 && (
-          <div className="mb-14 bg-gradient-to-br from-gold-50 to-gold-100/50 border border-gold-200 rounded-3xl px-6 py-8 sm:px-8">
-            <div className="text-center mb-7">
-              <span className="inline-flex items-center gap-1.5 text-gold-600 font-semibold text-sm uppercase tracking-widest">
-                <Star size={15} className="fill-gold-500 text-gold-500" /> Featured Members
-              </span>
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-charcoal-800 mt-2">
-                Trusted businesses in our community
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featured.map(biz => <BusinessCard key={`feat-${biz.id}`} biz={biz} featured />)}
+          <div className="relative mb-16 bg-charcoal-900 rounded-3xl px-6 py-10 sm:px-10 sm:py-12 overflow-hidden">
+            {/* Gold glow accents */}
+            <div
+              className="absolute top-0 right-0 w-72 h-72 rounded-full blur-[110px] opacity-20 -translate-y-1/3 translate-x-1/4"
+              style={{ background: 'radial-gradient(circle, #C8861A 0%, transparent 70%)' }}
+            />
+            <div
+              className="absolute bottom-0 left-0 w-60 h-60 rounded-full blur-[100px] opacity-15 translate-y-1/3 -translate-x-1/4"
+              style={{ background: 'radial-gradient(circle, #E0A135 0%, transparent 70%)' }}
+            />
+
+            <div className="relative z-10">
+              <div className="text-center mb-9">
+                <span className="inline-flex items-center gap-2 bg-gold-500/15 text-gold-400 border border-gold-500/30 px-4 py-1.5 rounded-full text-sm font-semibold uppercase tracking-widest">
+                  <Crown size={16} className="fill-gold-400" /> Featured Members
+                </span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-white mt-4">
+                  Our spotlight businesses
+                </h2>
+                <p className="text-gray-400 mt-2 max-w-lg mx-auto">
+                  Hand-picked, trusted businesses from across the BILD community.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featured.map(biz => <BusinessCard key={`feat-${biz.id}`} biz={biz} featured />)}
+              </div>
             </div>
           </div>
         )}
