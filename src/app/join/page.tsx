@@ -10,7 +10,7 @@ export default function JoinPage() {
     <>
       <PageHero title="Join BILD" subtitle="Become part of the British Indian community in Dubai" />
       <div className="py-12">
-        {/* Fix 12 — stack on tablet, side by side only on lg+ */}
+        {/* Fix 12 stack on tablet, side by side only on lg+ */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-12 items-start">
             <div className="w-full lg:w-auto lg:flex-shrink-0">

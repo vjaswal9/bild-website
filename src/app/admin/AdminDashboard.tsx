@@ -144,7 +144,7 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
                   </div>
                 </div>
 
-                {/* Actions — only show for pending */}
+                {/* Actions only show for pending */}
                 {sub.status === 'pending' && (
                   <div className="px-6 pb-6 flex flex-col sm:flex-row gap-3">
                     <textarea

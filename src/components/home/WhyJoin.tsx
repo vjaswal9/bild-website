@@ -5,7 +5,7 @@ const benefits = [
   {
     icon: Calendar,
     title: 'Exclusive Events',
-    description: 'Diwali celebrations, social nights, family days, and cultural gatherings — all designed for British Indians in Dubai.',
+    description: 'Diwali celebrations, social nights, family days, and cultural gatherings, all designed for British Indians in Dubai.',
   },
   {
     icon: Users,
@@ -30,7 +30,7 @@ const benefits = [
   {
     icon: MessageCircle,
     title: 'Support Network',
-    description: 'Whether you\'ve just arrived or been here for years — BILD is your home away from home.',
+    description: 'Whether you\'ve just arrived or been here for years. BILD is your home away from home.',
   },
 ]
 
@@ -91,7 +91,7 @@ export default function WhyJoin() {
             href="/join"
             className="inline-block bg-gold-500 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-gold-600 transition-all hover:shadow-lg hover:shadow-gold-500/25 hover:-translate-y-0.5"
           >
-            Become a Member — 50 AED for Life
+            Become a Member: 50 AED for Life
           </Link>
           <p className="text-gray-500 text-sm mt-3">One-off lifetime fee. No renewals. No hidden costs.</p>
         </div>

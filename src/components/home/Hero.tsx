@@ -9,7 +9,7 @@ export default function Hero() {
       {/* Rich layered gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#2d1a0a]" />
 
-      {/* Mandala / geometric pattern overlay — SVG inline for zero network cost */}
+      {/* Mandala / geometric pattern overlay (SVG inline for zero network cost) */}
       <div className="absolute inset-0 opacity-[0.06]" aria-hidden="true">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>

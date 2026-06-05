@@ -98,7 +98,7 @@ export default function SubmitBusinessPage() {
 
   return (
     <>
-      <PageHero title="List Your Business" subtitle="Join the BILD Business Directory — free for all members" />
+      <PageHero title="List Your Business" subtitle="Join the BILD Business Directory, free for all members" />
       <div className="py-12">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/directory" className="inline-flex items-center gap-2 text-charcoal-600 hover:text-gold-600 mb-8 text-sm font-medium">
@@ -198,14 +198,14 @@ export default function SubmitBusinessPage() {
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-4">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business License <span className="text-ruby-500">*</span></legend>
               <p className="text-sm text-charcoal-500">
-                Please upload a copy of your valid UAE trade licence or business license. This is required for verification and will only be seen by the BILD admin team — it will never be shared publicly.
+                Please upload a copy of your valid UAE trade licence or business license. This is required for verification and will only be seen by the BILD admin team. It will never be shared publicly.
               </p>
 
               {!licenseFile ? (
                 <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gold-300 rounded-xl cursor-pointer bg-white hover:bg-gold-50 transition-colors">
                   <FileText size={32} className="text-gold-400 mb-2" />
                   <span className="text-sm font-medium text-charcoal-600">Click to upload your business license</span>
-                  <span className="text-xs text-charcoal-400 mt-1">PDF only — max 10MB</span>
+                  <span className="text-xs text-charcoal-400 mt-1">PDF only, max 10MB</span>
                   <input
                     ref={fileInputRef}
                     type="file"

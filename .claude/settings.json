@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); file=$(echo \"$input\" | jq -r '.tool_input.file_path // empty'); content=$(echo \"$input\" | jq -r '.tool_input.new_string // .tool_input.content // empty'); if echo \"$file\" | grep -qE 'src/.*\\.(tsx|ts)$' && echo \"$content\" | grep -qF '—'; then echo '{\"decision\":\"block\",\"reason\":\"Long dash (\\u2014) detected. Use a comma, colon, or hyphen instead.\"}'; exit 2; fi",
+            "statusMessage": "Checking for long dashes..."
+          }
+        ]
+      }
+    ]
+  }
+}

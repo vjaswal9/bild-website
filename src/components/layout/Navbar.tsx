@@ -104,7 +104,7 @@ export default function Navbar() {
           >
             Join BILD
           </Link>
-          {/* Fix 11 — social icons in mobile menu */}
+          {/* Fix 11 social icons in mobile menu */}
           <div className="flex gap-4 pt-3 pb-1 border-t border-gold-100 mt-1">
             <a href={SITE_CONFIG.instagramUrl} target="_blank" rel="noopener noreferrer"
               className="text-charcoal-500 hover:text-gold-600 transition-colors" aria-label="Instagram">
