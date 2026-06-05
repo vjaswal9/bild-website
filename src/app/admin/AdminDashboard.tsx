@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { BusinessSubmission } from '@/lib/supabase'
 import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText, Star, Search, X } from 'lucide-react'
@@ -18,6 +18,33 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [processing, setProcessing] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [view, setView] = useState<'cards' | 'table'>('cards')
+  // Local optimistic featured state so tick boxes respond instantly
+  const [featuredMap, setFeaturedMap] = useState<Record<string, boolean>>({})
+  const [saving, setSaving] = useState<string | null>(null)
+
+  useEffect(() => {
+    const init: Record<string, boolean> = {}
+    submissions.forEach(s => { init[s.id] = !!s.featured })
+    setFeaturedMap(init)
+  }, [submissions])
+
+  async function toggleFeatured(id: string) {
+    const next = !featuredMap[id]
+    setFeaturedMap(prev => ({ ...prev, [id]: next }))
+    setSaving(id)
+    const res = await fetch('/api/admin/feature', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, featured: next }),
+    })
+    if (!res.ok) {
+      // revert on failure
+      setFeaturedMap(prev => ({ ...prev, [id]: !next }))
+      alert('Could not update. Please try again.')
+    }
+    setSaving(null)
+  }
 
   const pending = submissions.filter(s => s.status === 'pending')
   const approved = submissions.filter(s => s.status === 'approved')
@@ -31,15 +58,16 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
     rejected
 
   const q = search.trim().toLowerCase()
-  const filtered = q
-    ? byTab.filter(s =>
-        s.business_name.toLowerCase().includes(q) ||
-        s.owner_name.toLowerCase().includes(q) ||
-        s.category.toLowerCase().includes(q) ||
-        s.location.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q)
-      )
-    : byTab
+  const matchesQ = (s: BusinessSubmission) =>
+    s.business_name.toLowerCase().includes(q) ||
+    s.owner_name.toLowerCase().includes(q) ||
+    s.category.toLowerCase().includes(q) ||
+    s.location.toLowerCase().includes(q) ||
+    s.email.toLowerCase().includes(q)
+
+  const filtered = q ? byTab.filter(matchesQ) : byTab
+  // Approved businesses for the Table (featured management) view
+  const approvedForTable = q ? approved.filter(matchesQ) : approved
 
   async function handleReview(id: string, action: 'approved' | 'rejected') {
     setProcessing(id)
@@ -121,22 +149,83 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
           ))}
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6 max-w-md">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by business, owner, category, location, email..."
-            className="w-full pl-11 pr-4 py-2.5 bg-charcoal-800 border border-charcoal-700 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
-              <X size={16} />
+        {/* Search + view toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          <div className="relative flex-1 max-w-md">
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by business, owner, category, location, email..."
+              className="w-full pl-11 pr-4 py-2.5 bg-charcoal-800 border border-charcoal-700 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          <div className="inline-flex rounded-xl bg-charcoal-800 border border-charcoal-700 p-1 self-start">
+            <button
+              onClick={() => setView('cards')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${view === 'cards' ? 'bg-gold-500 text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              Review cards
             </button>
-          )}
+            <button
+              onClick={() => setView('table')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${view === 'table' ? 'bg-gold-500 text-white' : 'text-gray-400 hover:text-white'}`}
+            >
+              Feature list
+            </button>
+          </div>
         </div>
+
+        {/* TABLE VIEW: quick featured management for approved businesses */}
+        {view === 'table' ? (
+          <div className="bg-charcoal-800 border border-charcoal-700 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-charcoal-700">
+              <h2 className="font-display font-bold text-white">Feature businesses</h2>
+              <p className="text-gray-400 text-sm mt-0.5">Tick a business to feature it on the directory. Changes save instantly.</p>
+            </div>
+            {approvedForTable.length === 0 ? (
+              <p className="text-gray-500 text-sm px-5 py-10 text-center">No approved businesses{search ? ' match your search' : ' yet'}.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-500 border-b border-charcoal-700">
+                      <th className="px-5 py-3 font-medium">Business name</th>
+                      <th className="px-5 py-3 font-medium">Owner</th>
+                      <th className="px-5 py-3 font-medium text-center w-28">Featured</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {approvedForTable.map(s => (
+                      <tr key={s.id} className="border-b border-charcoal-700/60 hover:bg-charcoal-700/40">
+                        <td className="px-5 py-3 text-white font-medium">{s.business_name}</td>
+                        <td className="px-5 py-3 text-gray-400">{s.owner_name}</td>
+                        <td className="px-5 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={!!featuredMap[s.id]}
+                            disabled={saving === s.id}
+                            onChange={() => toggleFeatured(s.id)}
+                            className="h-5 w-5 accent-gold-500 cursor-pointer disabled:opacity-50"
+                            aria-label={`Feature ${s.business_name}`}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+        <>
+        {/* CARDS VIEW below */}
 
         {/* Tabs */}
         <div className="flex flex-wrap gap-2 mb-6">
@@ -260,6 +349,8 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
               </div>
             ))}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
