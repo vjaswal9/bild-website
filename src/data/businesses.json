@@ -17,7 +17,7 @@
       "tagline": "Authentic British-Indian fusion catering for every occasion",
       "establishedYear": "2018",
       "licenceVerified": true,
-      "featured": true
+      "featured": false
     },
     {
       "id": "biz-002",
@@ -93,7 +93,7 @@
       "tagline": "Bridal makeup, hair and mehndi with a modern British twist",
       "establishedYear": "2019",
       "licenceVerified": true,
-      "featured": true
+      "featured": false
     },
     {
       "id": "biz-006",
@@ -226,7 +226,7 @@
       "tagline": "Bespoke Indian and fusion jewellery, crafted in Dubai",
       "establishedYear": "2017",
       "licenceVerified": true,
-      "featured": true
+      "featured": false
     },
     {
       "id": "biz-013",
