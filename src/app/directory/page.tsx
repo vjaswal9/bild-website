@@ -26,6 +26,8 @@ export default async function DirectoryPage() {
     instagram: b.instagram || undefined,
     location: b.location,
     isVerified: b.isVerified,
+    logoUrl: b.logoUrl || undefined,
+    memberSince: b.memberSince || undefined,
   }))
 
   // Map Supabase approved submissions to DisplayBusiness shape
@@ -42,6 +44,8 @@ export default async function DirectoryPage() {
     location: b.location,
     isVerified: true,
     bildOffer: b.bild_offer || undefined,
+    logoUrl: b.logo_url || undefined,
+    memberSince: b.created_at ? b.created_at.slice(0, 7) : undefined,
   }))
 
   const allBusinesses = [...staticMapped, ...supabaseMapped]
