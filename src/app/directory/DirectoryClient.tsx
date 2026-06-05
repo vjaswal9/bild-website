@@ -33,6 +33,7 @@ export type DisplayBusiness = {
   tagline?: string
   establishedYear?: string
   licenceVerified?: boolean
+  featured?: boolean
 }
 
 type SortKey = 'name' | 'category' | 'newest'
@@ -188,11 +189,12 @@ export default function DirectoryClient({ businesses }: { businesses: DisplayBus
     return [{ name: 'All', count: businesses.length }, ...sorted.map(([name, count]) => ({ name, count }))]
   }, [businesses])
 
-  // Featured = verified, shown only with no active search/filter
-  const featured = useMemo(
-    () => businesses.filter(b => b.isVerified).slice(0, 3),
-    [businesses]
-  )
+  // Featured = explicitly featured by admin; falls back to first verified if none set
+  const featured = useMemo(() => {
+    const chosen = businesses.filter(b => b.featured)
+    if (chosen.length > 0) return chosen.slice(0, 6)
+    return businesses.filter(b => b.isVerified).slice(0, 3)
+  }, [businesses])
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.toLowerCase()

@@ -28,4 +28,5 @@ export type BusinessSubmission = {
   admin_notes?: string
   reviewed_at?: string
   license_url?: string
+  featured?: boolean
 }

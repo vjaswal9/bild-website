@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { BusinessSubmission } from '@/lib/supabase'
-import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText, Star } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseClient = createClient(
@@ -32,6 +32,21 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
     })
     if (res.ok) {
       // Full reload guarantees fresh server data
+      window.location.reload()
+    } else {
+      alert('Something went wrong. Please try again.')
+      setProcessing(null)
+    }
+  }
+
+  async function handleFeature(id: string, featured: boolean) {
+    setProcessing(id)
+    const res = await fetch('/api/admin/feature', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, featured }),
+    })
+    if (res.ok) {
       window.location.reload()
     } else {
       alert('Something went wrong. Please try again.')
@@ -113,16 +128,39 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
                 {/* Card header */}
                 <div className="flex items-start justify-between p-6 border-b border-charcoal-700">
                   <div>
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h2 className="font-display text-xl font-bold text-white">{sub.business_name}</h2>
                       <span className="bg-gold-500/20 text-gold-400 text-xs font-medium px-2.5 py-0.5 rounded-full">{sub.category}</span>
+                      {sub.featured && (
+                        <span className="inline-flex items-center gap-1 bg-gold-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                          <Star size={11} className="fill-white" /> Featured
+                        </span>
+                      )}
                     </div>
                     <p className="text-gray-400 text-sm">{sub.owner_name} · {sub.location}</p>
                     <p className="text-gray-500 text-xs mt-1">Submitted {new Date(sub.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                  {sub.status === 'approved' && <CheckCircle className="text-green-400 shrink-0" size={24} />}
-                  {sub.status === 'rejected' && <XCircle className="text-red-400 shrink-0" size={24} />}
-                  {sub.status === 'pending' && <Clock className="text-yellow-400 shrink-0" size={24} />}
+                  <div className="flex items-center gap-3 shrink-0">
+                    {/* Feature toggle — only for approved businesses */}
+                    {sub.status === 'approved' && (
+                      <button
+                        onClick={() => handleFeature(sub.id, !sub.featured)}
+                        disabled={processing === sub.id}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+                          sub.featured
+                            ? 'bg-gold-500 text-white hover:bg-gold-600'
+                            : 'bg-charcoal-700 text-gray-300 hover:bg-charcoal-600'
+                        }`}
+                        title={sub.featured ? 'Remove from featured' : 'Add to featured'}
+                      >
+                        <Star size={13} className={sub.featured ? 'fill-white' : ''} />
+                        {sub.featured ? 'Featured' : 'Feature'}
+                      </button>
+                    )}
+                    {sub.status === 'approved' && <CheckCircle className="text-green-400" size={24} />}
+                    {sub.status === 'rejected' && <XCircle className="text-red-400" size={24} />}
+                    {sub.status === 'pending' && <Clock className="text-yellow-400" size={24} />}
+                  </div>
                 </div>
 
                 {/* Details grid */}
