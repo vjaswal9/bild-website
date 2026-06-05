@@ -1,29 +1,26 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import HeroConstellation from './HeroConstellation'
 
 export default function Hero() {
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-charcoal-900">
 
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#1a0a14]" />
-
-      {/* Constellation / network pattern */}
-      <HeroConstellation />
-
-      {/* Gold glow top right */}
-      <div
-        className="absolute top-0 right-0 w-[520px] h-[520px] rounded-full blur-[150px] opacity-15 -translate-y-1/2 translate-x-1/3"
-        style={{ background: 'radial-gradient(circle, #C9A84C 0%, transparent 70%)' }}
+      {/* Abstract network background image */}
+      <Image
+        src="/hero-network.webp"
+        alt=""
+        fill
+        priority
+        aria-hidden="true"
+        className="object-cover object-center"
       />
-      {/* Ruby glow bottom left */}
-      <div
-        className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-[120px] opacity-10 translate-y-1/3 -translate-x-1/4"
-        style={{ background: 'radial-gradient(circle, #8B1A2B 0%, transparent 70%)' }}
-      />
+
+      {/* Dark overlay so the headline stays readable */}
+      <div className="absolute inset-0 bg-charcoal-900/70" />
+      <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900 via-charcoal-900/40 to-charcoal-900/70" />
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
