@@ -1,26 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
+import HeroPlexus from './HeroPlexus'
 
 export default function Hero() {
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-charcoal-900">
 
-      {/* Abstract network background image */}
-      <Image
-        src="/hero-network.webp"
-        alt=""
-        fill
-        priority
-        aria-hidden="true"
-        className="object-cover object-center"
-      />
+      {/* Base gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#15100a]" />
 
-      {/* Dark overlay so the headline stays readable */}
-      <div className="absolute inset-0 bg-charcoal-900/70" />
-      <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900 via-charcoal-900/40 to-charcoal-900/70" />
+      {/* Animated gold plexus network */}
+      <HeroPlexus />
+
+      {/* Soft radial vignette so the headline stays the focus */}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(17,17,17,0.55) 100%)' }}
+      />
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
