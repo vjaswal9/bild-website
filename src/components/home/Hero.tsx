@@ -3,16 +3,6 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
-const SPOKES = Array.from({ length: 24 }, (_, i) => {
-  const angle = (i * 15 * Math.PI) / 180
-  return {
-    x2: parseFloat((Math.cos(angle) * 37).toFixed(2)),
-    y2: parseFloat((Math.sin(angle) * 37).toFixed(2)),
-    tx: parseFloat((Math.cos(angle) * 41).toFixed(2)),
-    ty: parseFloat((Math.sin(angle) * 41).toFixed(2)),
-  }
-})
-
 export default function Hero() {
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-charcoal-900">
@@ -20,46 +10,26 @@ export default function Hero() {
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#1a0a14]" />
 
-      {/* Heritage pattern overlay */}
+      {/* Union Jack cross/saltire pattern — very faded */}
       <div className="absolute inset-0" aria-hidden="true">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
           <defs>
-            {/* Union Jack tile 160x160 */}
-            <pattern id="uj-tile" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
-              {/* Saltire diagonals */}
-              <line x1="0" y1="0" x2="160" y2="160" stroke="#C9A84C" strokeWidth="12" opacity="0.2"/>
-              <line x1="160" y1="0" x2="0" y2="160" stroke="#C9A84C" strokeWidth="12" opacity="0.2"/>
-              {/* Counter diagonals (St Patrick red) */}
-              <line x1="0" y1="0" x2="160" y2="160" stroke="#8B1A2B" strokeWidth="5" opacity="0.2"/>
-              <line x1="160" y1="0" x2="0" y2="160" stroke="#8B1A2B" strokeWidth="5" opacity="0.2"/>
+            <pattern id="uj" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+              {/* Diagonal saltires */}
+              <line x1="0" y1="0" x2="200" y2="200" stroke="#C9A84C" strokeWidth="14" opacity="0.18"/>
+              <line x1="200" y1="0" x2="0" y2="200" stroke="#C9A84C" strokeWidth="14" opacity="0.18"/>
+              {/* Narrow counter lines in ruby */}
+              <line x1="0" y1="0" x2="200" y2="200" stroke="#8B1A2B" strokeWidth="5" opacity="0.18"/>
+              <line x1="200" y1="0" x2="0" y2="200" stroke="#8B1A2B" strokeWidth="5" opacity="0.18"/>
               {/* Horizontal bar */}
-              <rect x="0" y="63" width="160" height="34" fill="#C9A84C" opacity="0.15"/>
-              <rect x="0" y="70" width="160" height="20" fill="#8B1A2B" opacity="0.15"/>
+              <rect x="0" y="80" width="200" height="40" fill="#C9A84C" opacity="0.12"/>
+              <rect x="0" y="88" width="200" height="24" fill="#8B1A2B" opacity="0.12"/>
               {/* Vertical bar */}
-              <rect x="63" y="0" width="34" height="160" fill="#C9A84C" opacity="0.15"/>
-              <rect x="70" y="0" width="20" height="160" fill="#8B1A2B" opacity="0.15"/>
-            </pattern>
-
-            {/* Ashoka Chakra tile 220x220 */}
-            <pattern id="chakra-tile" x="110" y="110" width="220" height="220" patternUnits="userSpaceOnUse">
-              <g transform="translate(110,110)" fill="none" stroke="#C9A84C" strokeWidth="1.3" opacity="0.25">
-                <circle r="46"/>
-                <circle r="40"/>
-                <circle r="10"/>
-                {SPOKES.map((s, i) => (
-                  <line key={i} x1="0" y1="0" x2={s.x2} y2={s.y2}/>
-                ))}
-                {SPOKES.map((s, i) => (
-                  <circle key={`dot-${i}`} cx={s.tx} cy={s.ty} r="2.2"/>
-                ))}
-              </g>
+              <rect x="80" y="0" width="40" height="200" fill="#C9A84C" opacity="0.12"/>
+              <rect x="88" y="0" width="24" height="200" fill="#8B1A2B" opacity="0.12"/>
             </pattern>
           </defs>
-
-          {/* Union Jack layer */}
-          <rect width="100%" height="100%" fill="url(#uj-tile)" opacity="0.07"/>
-          {/* Chakra layer */}
-          <rect width="100%" height="100%" fill="url(#chakra-tile)" opacity="0.09"/>
+          <rect width="100%" height="100%" fill="url(#uj)" opacity="0.08"/>
         </svg>
       </div>
 
