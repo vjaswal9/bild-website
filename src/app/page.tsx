@@ -1,4 +1,5 @@
 import Hero from '@/components/home/Hero'
+import WhyJoin from '@/components/home/WhyJoin'
 import MissionStatement from '@/components/home/MissionStatement'
 import FounderMessage from '@/components/home/FounderMessage'
 import CommunityStats from '@/components/home/CommunityStats'
@@ -16,6 +17,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <WhyJoin />
       <MissionStatement />
       <CommunityStats />
       <FounderMessage />
