@@ -2,9 +2,18 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, Star } from 'lucide-react'
+import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, Star, ChevronDown, CalendarDays } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import BusinessAvatar from '@/components/directory/BusinessAvatar'
+
+function formatMemberSince(ym?: string) {
+  if (!ym) return null
+  const [y, m] = ym.split('-')
+  if (!y) return null
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const monthName = m ? months[parseInt(m, 10) - 1] : ''
+  return monthName ? `${monthName} ${y}` : y
+}
 
 export type DisplayBusiness = {
   id: string
@@ -40,6 +49,10 @@ function waLink(phone: string) {
 }
 
 function BusinessCard({ biz }: { biz: DisplayBusiness }) {
+  const [expanded, setExpanded] = useState(false)
+  const isLong = biz.description.length > 120
+  const memberSince = formatMemberSince(biz.memberSince)
+
   return (
     <div className="bg-cream rounded-2xl border border-gold-200 shadow-sm p-6 hover:shadow-md hover:border-gold-300 transition-all flex flex-col">
       <div className="flex items-start gap-4 mb-3">
@@ -58,7 +71,19 @@ function BusinessCard({ biz }: { biz: DisplayBusiness }) {
         </div>
       </div>
 
-      <p className="text-sm text-charcoal-600 mb-3 leading-relaxed flex-1">{biz.description}</p>
+      <p className={`text-sm text-charcoal-600 mb-1 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+        {biz.description}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="self-start inline-flex items-center gap-1 text-xs font-semibold text-gold-600 hover:text-gold-700 mb-3"
+        >
+          {expanded ? 'Show less' : 'Read more'}
+          <ChevronDown size={13} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </button>
+      )}
+      {!isLong && <div className="mb-3" />}
 
       {biz.bildOffer && (
         <div className="bg-gold-50 border border-gold-200 rounded-lg px-3 py-2 mb-3">
@@ -67,7 +92,14 @@ function BusinessCard({ biz }: { biz: DisplayBusiness }) {
         </div>
       )}
 
-      <p className="flex items-center gap-1 text-xs text-charcoal-400 mb-4">
+      {/* Member-since revealed when expanded */}
+      {expanded && memberSince && (
+        <p className="flex items-center gap-1.5 text-xs text-charcoal-500 mb-2">
+          <CalendarDays size={12} className="text-gold-500" /> BILD member since {memberSince}
+        </p>
+      )}
+
+      <p className="flex items-center gap-1 text-xs text-charcoal-400 mb-4 mt-auto">
         <MapPin size={12} /> {biz.location}
       </p>
 
