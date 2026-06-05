@@ -3,38 +3,78 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
+const SPOKES = Array.from({ length: 24 }, (_, i) => {
+  const angle = (i * 15 * Math.PI) / 180
+  return {
+    x2: parseFloat((Math.cos(angle) * 37).toFixed(2)),
+    y2: parseFloat((Math.sin(angle) * 37).toFixed(2)),
+    tx: parseFloat((Math.cos(angle) * 41).toFixed(2)),
+    ty: parseFloat((Math.sin(angle) * 41).toFixed(2)),
+  }
+})
+
 export default function Hero() {
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-charcoal-900">
-      {/* Rich layered gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#2d1a0a]" />
 
-      {/* Mandala / geometric pattern overlay (SVG inline for zero network cost) */}
-      <div className="absolute inset-0 opacity-[0.06]" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      {/* Base gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#1a0a14]" />
+
+      {/* Heritage pattern overlay */}
+      <div className="absolute inset-0" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
           <defs>
-            <pattern id="mandala-grid" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
-              <circle cx="60" cy="60" r="50" fill="none" stroke="#C8861A" strokeWidth="0.8"/>
-              <circle cx="60" cy="60" r="35" fill="none" stroke="#C8861A" strokeWidth="0.6"/>
-              <circle cx="60" cy="60" r="20" fill="none" stroke="#C8861A" strokeWidth="0.5"/>
-              <line x1="10" y1="60" x2="110" y2="60" stroke="#C8861A" strokeWidth="0.4"/>
-              <line x1="60" y1="10" x2="60" y2="110" stroke="#C8861A" strokeWidth="0.4"/>
-              <line x1="25" y1="25" x2="95" y2="95" stroke="#C8861A" strokeWidth="0.3"/>
-              <line x1="95" y1="25" x2="25" y2="95" stroke="#C8861A" strokeWidth="0.3"/>
-              <circle cx="60" cy="10" r="3" fill="#C8861A"/>
-              <circle cx="60" cy="110" r="3" fill="#C8861A"/>
-              <circle cx="10" cy="60" r="3" fill="#C8861A"/>
-              <circle cx="110" cy="60" r="3" fill="#C8861A"/>
+            {/* Union Jack tile 160x160 */}
+            <pattern id="uj-tile" x="0" y="0" width="160" height="160" patternUnits="userSpaceOnUse">
+              {/* Saltire diagonals */}
+              <line x1="0" y1="0" x2="160" y2="160" stroke="#C9A84C" strokeWidth="12" opacity="0.2"/>
+              <line x1="160" y1="0" x2="0" y2="160" stroke="#C9A84C" strokeWidth="12" opacity="0.2"/>
+              {/* Counter diagonals (St Patrick red) */}
+              <line x1="0" y1="0" x2="160" y2="160" stroke="#8B1A2B" strokeWidth="5" opacity="0.2"/>
+              <line x1="160" y1="0" x2="0" y2="160" stroke="#8B1A2B" strokeWidth="5" opacity="0.2"/>
+              {/* Horizontal bar */}
+              <rect x="0" y="63" width="160" height="34" fill="#C9A84C" opacity="0.15"/>
+              <rect x="0" y="70" width="160" height="20" fill="#8B1A2B" opacity="0.15"/>
+              {/* Vertical bar */}
+              <rect x="63" y="0" width="34" height="160" fill="#C9A84C" opacity="0.15"/>
+              <rect x="70" y="0" width="20" height="160" fill="#8B1A2B" opacity="0.15"/>
+            </pattern>
+
+            {/* Ashoka Chakra tile 220x220 */}
+            <pattern id="chakra-tile" x="110" y="110" width="220" height="220" patternUnits="userSpaceOnUse">
+              <g transform="translate(110,110)" fill="none" stroke="#C9A84C" strokeWidth="1.3" opacity="0.25">
+                <circle r="46"/>
+                <circle r="40"/>
+                <circle r="10"/>
+                {SPOKES.map((s, i) => (
+                  <line key={i} x1="0" y1="0" x2={s.x2} y2={s.y2}/>
+                ))}
+                {SPOKES.map((s, i) => (
+                  <circle key={`dot-${i}`} cx={s.tx} cy={s.ty} r="2.2"/>
+                ))}
+              </g>
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#mandala-grid)"/>
+
+          {/* Union Jack layer */}
+          <rect width="100%" height="100%" fill="url(#uj-tile)" opacity="0.07"/>
+          {/* Chakra layer */}
+          <rect width="100%" height="100%" fill="url(#chakra-tile)" opacity="0.09"/>
         </svg>
       </div>
 
-      {/* Gold glow accents */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold-500 rounded-full blur-[120px] opacity-10 -translate-y-1/2 translate-x-1/3" />
-      <div className="absolute bottom-0 left-0 w-72 h-72 bg-ruby-500 rounded-full blur-[100px] opacity-10 translate-y-1/3 -translate-x-1/4" />
+      {/* Gold glow top right */}
+      <div
+        className="absolute top-0 right-0 w-[520px] h-[520px] rounded-full blur-[150px] opacity-15 -translate-y-1/2 translate-x-1/3"
+        style={{ background: 'radial-gradient(circle, #C9A84C 0%, transparent 70%)' }}
+      />
+      {/* Ruby glow bottom left */}
+      <div
+        className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-[120px] opacity-10 translate-y-1/3 -translate-x-1/4"
+        style={{ background: 'radial-gradient(circle, #8B1A2B 0%, transparent 70%)' }}
+      />
 
+      {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
