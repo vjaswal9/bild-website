@@ -10,29 +10,6 @@ export default function Hero() {
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-charcoal-900 via-[#1a1208] to-[#1a0a14]" />
 
-      {/* Union Jack cross/saltire pattern — very faded */}
-      <div className="absolute inset-0" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <defs>
-            <pattern id="uj" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
-              {/* Diagonal saltires */}
-              <line x1="0" y1="0" x2="200" y2="200" stroke="#C9A84C" strokeWidth="14" opacity="0.18"/>
-              <line x1="200" y1="0" x2="0" y2="200" stroke="#C9A84C" strokeWidth="14" opacity="0.18"/>
-              {/* Narrow counter lines in ruby */}
-              <line x1="0" y1="0" x2="200" y2="200" stroke="#8B1A2B" strokeWidth="5" opacity="0.18"/>
-              <line x1="200" y1="0" x2="0" y2="200" stroke="#8B1A2B" strokeWidth="5" opacity="0.18"/>
-              {/* Horizontal bar */}
-              <rect x="0" y="80" width="200" height="40" fill="#C9A84C" opacity="0.12"/>
-              <rect x="0" y="88" width="200" height="24" fill="#8B1A2B" opacity="0.12"/>
-              {/* Vertical bar */}
-              <rect x="80" y="0" width="40" height="200" fill="#C9A84C" opacity="0.12"/>
-              <rect x="88" y="0" width="24" height="200" fill="#8B1A2B" opacity="0.12"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#uj)" opacity="0.08"/>
-        </svg>
-      </div>
-
       {/* Gold glow top right */}
       <div
         className="absolute top-0 right-0 w-[520px] h-[520px] rounded-full blur-[150px] opacity-15 -translate-y-1/2 translate-x-1/3"
