@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, Star, ChevronDown, CalendarDays } from 'lucide-react'
+import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, Star, ChevronDown, CalendarDays, ShieldCheck, Briefcase } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import BusinessAvatar from '@/components/directory/BusinessAvatar'
 
@@ -30,6 +30,9 @@ export type DisplayBusiness = {
   bildOffer?: string
   logoUrl?: string
   memberSince?: string
+  tagline?: string
+  establishedYear?: string
+  licenceVerified?: boolean
 }
 
 type SortKey = 'name' | 'category' | 'newest'
@@ -79,6 +82,27 @@ function BusinessCard({ biz, featured = false }: { biz: DisplayBusiness; feature
           </span>
         </div>
       </div>
+
+      {/* Tagline hook */}
+      {biz.tagline && (
+        <p className="text-sm font-medium text-charcoal-700 mb-2 leading-snug">{biz.tagline}</p>
+      )}
+
+      {/* Trust badges */}
+      {(biz.licenceVerified || biz.establishedYear) && (
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {biz.licenceVerified && (
+            <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 text-xs font-medium px-2 py-0.5 rounded-full">
+              <ShieldCheck size={12} /> Licence verified
+            </span>
+          )}
+          {biz.establishedYear && (
+            <span className="inline-flex items-center gap-1 text-xs text-charcoal-500">
+              <Briefcase size={12} className="text-gold-500" /> Trading since {biz.establishedYear}
+            </span>
+          )}
+        </div>
+      )}
 
       <p className={`text-sm text-charcoal-600 mb-1 leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
         {biz.description}

@@ -21,6 +21,8 @@ export type BusinessSubmission = {
   instagram?: string
   logo_url?: string
   years_in_business?: string
+  tagline?: string
+  established_year?: string
   bild_offer?: string
   extra_info?: string
   admin_notes?: string

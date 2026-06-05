@@ -13,7 +13,10 @@
       "location": "Dubai Marina",
       "isVerified": true,
       "memberSince": "2024-01",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Authentic British-Indian fusion catering for every occasion",
+      "establishedYear": "2018",
+      "licenceVerified": true
     },
     {
       "id": "biz-002",
@@ -28,7 +31,10 @@
       "location": "DIFC, Dubai",
       "isVerified": true,
       "memberSince": "2024-03",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "British-qualified solicitors for expats in the UAE",
+      "establishedYear": "2016",
+      "licenceVerified": true
     },
     {
       "id": "biz-003",
@@ -43,7 +49,10 @@
       "location": "Jumeirah, Dubai",
       "isVerified": true,
       "memberSince": "2024-06",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Holistic yoga, meditation and Ayurvedic wellness",
+      "establishedYear": "2020",
+      "licenceVerified": true
     },
     {
       "id": "biz-004",
@@ -58,7 +67,10 @@
       "location": "Downtown Dubai",
       "isVerified": true,
       "memberSince": "2024-02",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Independent wealth planning for British expats",
+      "establishedYear": "2015",
+      "licenceVerified": true
     },
     {
       "id": "biz-005",
@@ -73,7 +85,10 @@
       "location": "Al Barsha, Dubai",
       "isVerified": true,
       "memberSince": "2024-04",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Bridal makeup, hair and mehndi with a modern British twist",
+      "establishedYear": "2019",
+      "licenceVerified": true
     },
     {
       "id": "biz-006",
@@ -88,7 +103,10 @@
       "location": "Business Bay, Dubai",
       "isVerified": true,
       "memberSince": "2024-05",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "End-to-end UAE residency, visa and Golden Visa services",
+      "establishedYear": "2017",
+      "licenceVerified": true
     },
     {
       "id": "biz-007",
@@ -103,7 +121,10 @@
       "location": "JLT, Dubai",
       "isVerified": true,
       "memberSince": "2024-07",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Social, SEO and paid ads that grow your business",
+      "establishedYear": "2021",
+      "licenceVerified": true
     },
     {
       "id": "biz-008",
@@ -118,7 +139,10 @@
       "location": "DIFC, Dubai",
       "isVerified": true,
       "memberSince": "2024-03",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Big-4 calibre strategy and market-entry consultancy",
+      "establishedYear": "2014",
+      "licenceVerified": true
     },
     {
       "id": "biz-009",
@@ -133,7 +157,10 @@
       "location": "DIFC, Dubai",
       "isVerified": true,
       "memberSince": "2024-08",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Specialist recruitment across finance, tech and healthcare",
+      "establishedYear": "2019",
+      "licenceVerified": true
     },
     {
       "id": "biz-010",
@@ -148,7 +175,10 @@
       "location": "Deira, Dubai",
       "isVerified": true,
       "memberSince": "2024-06",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Honest luxury and used car buying, selling and leasing",
+      "establishedYear": "2018",
+      "licenceVerified": true
     },
     {
       "id": "biz-011",
@@ -163,7 +193,10 @@
       "location": "Palm Jumeirah, Dubai",
       "isVerified": true,
       "memberSince": "2024-01",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Trusted property advice for buyers, sellers and tenants",
+      "establishedYear": "2016",
+      "licenceVerified": true
     },
     {
       "id": "biz-012",
@@ -178,7 +211,10 @@
       "location": "Gold Souk, Dubai",
       "isVerified": true,
       "memberSince": "2024-02",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Bespoke Indian and fusion jewellery, crafted in Dubai",
+      "establishedYear": "2017",
+      "licenceVerified": true
     },
     {
       "id": "biz-013",
@@ -193,7 +229,10 @@
       "location": "Mirdif, Dubai",
       "isVerified": true,
       "memberSince": "2024-09",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Expert UK and IB curriculum tutoring by British teachers",
+      "establishedYear": "2020",
+      "licenceVerified": true
     },
     {
       "id": "biz-014",
@@ -208,7 +247,10 @@
       "location": "Dubai Silicon Oasis",
       "isVerified": true,
       "memberSince": "2024-10",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Cloud, cybersecurity and software for growing SMEs",
+      "establishedYear": "2019",
+      "licenceVerified": true
     },
     {
       "id": "biz-015",
@@ -223,7 +265,10 @@
       "location": "City Walk, Dubai",
       "isVerified": false,
       "memberSince": "2024-11",
-      "logoUrl": ""
+      "logoUrl": "",
+      "tagline": "Pop-up chai bar and Indian street food catering",
+      "establishedYear": "2024",
+      "licenceVerified": false
     }
   ]
 }

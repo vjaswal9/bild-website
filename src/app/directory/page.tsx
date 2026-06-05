@@ -28,6 +28,9 @@ export default async function DirectoryPage() {
     isVerified: b.isVerified,
     logoUrl: b.logoUrl || undefined,
     memberSince: b.memberSince || undefined,
+    tagline: b.tagline || undefined,
+    establishedYear: b.establishedYear || undefined,
+    licenceVerified: b.licenceVerified || false,
   }))
 
   // Map Supabase approved submissions to DisplayBusiness shape
@@ -46,6 +49,10 @@ export default async function DirectoryPage() {
     bildOffer: b.bild_offer || undefined,
     logoUrl: b.logo_url || undefined,
     memberSince: b.created_at ? b.created_at.slice(0, 7) : undefined,
+    tagline: b.tagline || undefined,
+    establishedYear: b.established_year || undefined,
+    // An approved submission with a licence on file is licence-verified
+    licenceVerified: !!b.license_url,
   }))
 
   const allBusinesses = [...staticMapped, ...supabaseMapped]

@@ -133,8 +133,10 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
                     <Detail label="Phone" value={sub.phone} />
                     {sub.website && <Detail label="Website" value={sub.website} link />}
                     {sub.instagram && <Detail label="Instagram" value={`@${sub.instagram}`} />}
+                    {sub.tagline && <Detail label="Tagline" value={sub.tagline} />}
                   </div>
                   <div className="space-y-3">
+                    {sub.established_year && <Detail label="Established" value={sub.established_year} />}
                     {sub.years_in_business && <Detail label="Years in Business" value={sub.years_in_business} />}
                     {sub.bild_offer && <Detail label="BILD Member Offer" value={sub.bild_offer} highlight />}
                     {sub.extra_info && <Detail label="Extra Info" value={sub.extra_info} />}

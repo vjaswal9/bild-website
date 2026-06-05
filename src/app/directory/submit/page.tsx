@@ -48,6 +48,7 @@ export default function SubmitBusinessPage() {
     const payload = {
       business_name: fd.get('business_name') as string,
       category: fd.get('category') as string,
+      tagline: (fd.get('tagline') as string) || null,
       description: fd.get('description') as string,
       location: fd.get('location') as string,
       owner_name: fd.get('owner_name') as string,
@@ -56,7 +57,7 @@ export default function SubmitBusinessPage() {
       website: (fd.get('website') as string) || null,
       instagram: (fd.get('instagram') as string) || null,
       logo_url: (fd.get('logo_url') as string) || null,
-      years_in_business: (fd.get('years_in_business') as string) || null,
+      established_year: (fd.get('established_year') as string) || null,
       bild_offer: (fd.get('bild_offer') as string) || null,
       extra_info: (fd.get('extra_info') as string) || null,
       license_url: licenseUrl,
@@ -129,6 +130,13 @@ export default function SubmitBusinessPage() {
                   <option value="">Select a category</option>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Tagline</label>
+                <input name="tagline" type="text" maxLength={70} placeholder="e.g. Authentic British-Indian fusion catering"
+                  className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
+                <p className="text-xs text-charcoal-400 mt-1">A short one-line hook shown under your business name (max 70 characters).</p>
               </div>
 
               <div>
@@ -239,9 +247,10 @@ export default function SubmitBusinessPage() {
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Additional Information</legend>
 
               <div>
-                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Years in Business</label>
-                <input name="years_in_business" type="number" min="0" placeholder="e.g. 3"
+                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Year Established</label>
+                <input name="established_year" type="number" min="1900" max="2099" placeholder="e.g. 2018"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
+                <p className="text-xs text-charcoal-400 mt-1">The year your business started trading. Shown as &ldquo;Trading since 2018&rdquo;.</p>
               </div>
 
               <div>
