@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Globe, Phone, Mail, Share2, CheckCircle, X, MapPin, ChevronDown, CalendarDays, ShieldCheck, Briefcase, Crown } from 'lucide-react'
-import { FaWhatsapp } from 'react-icons/fa'
+import { Search, Globe, Phone, Mail, CheckCircle, X, MapPin, ChevronDown, CalendarDays, ShieldCheck, Briefcase, Crown } from 'lucide-react'
+import { FaWhatsapp, FaInstagram } from 'react-icons/fa'
 import BusinessAvatar from '@/components/directory/BusinessAvatar'
 
 function formatMemberSince(ym?: string) {
@@ -165,8 +165,8 @@ function BusinessCard({ biz, featured = false }: { biz: DisplayBusiness; feature
             </a>
           )}
           {biz.instagram && (
-            <a href={`https://instagram.com/${biz.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-charcoal-400 hover:text-gold-600 transition-colors" title="Instagram">
-              <Share2 size={16} />
+            <a href={`https://instagram.com/${biz.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-charcoal-400 hover:text-[#E1306C] transition-colors" title="Instagram">
+              <FaInstagram size={16} />
             </a>
           )}
         </div>

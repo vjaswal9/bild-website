@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { BusinessSubmission } from '@/lib/supabase'
-import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText, Star } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, ExternalLink, LogOut, RefreshCw, FileText, Star, Search, X } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseClient = createClient(
@@ -11,17 +11,35 @@ const supabaseClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-type Tab = 'pending' | 'approved' | 'rejected'
+type Tab = 'pending' | 'approved' | 'rejected' | 'featured'
 
 export default function AdminDashboard({ submissions }: { submissions: BusinessSubmission[] }) {
   const [tab, setTab] = useState<Tab>('pending')
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [processing, setProcessing] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   const pending = submissions.filter(s => s.status === 'pending')
   const approved = submissions.filter(s => s.status === 'approved')
   const rejected = submissions.filter(s => s.status === 'rejected')
-  const filtered = tab === 'pending' ? pending : tab === 'approved' ? approved : rejected
+  const featured = approved.filter(s => s.featured)
+
+  const byTab =
+    tab === 'pending' ? pending :
+    tab === 'approved' ? approved :
+    tab === 'featured' ? featured :
+    rejected
+
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? byTab.filter(s =>
+        s.business_name.toLowerCase().includes(q) ||
+        s.owner_name.toLowerCase().includes(q) ||
+        s.category.toLowerCase().includes(q) ||
+        s.location.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q)
+      )
+    : byTab
 
   async function handleReview(id: string, action: 'approved' | 'rejected') {
     setProcessing(id)
@@ -85,10 +103,11 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { label: 'Pending Review', count: pending.length, colour: 'text-yellow-400', tab: 'pending' as Tab },
             { label: 'Approved', count: approved.length, colour: 'text-green-400', tab: 'approved' as Tab },
+            { label: 'Featured', count: featured.length, colour: 'text-gold-400', tab: 'featured' as Tab },
             { label: 'Rejected', count: rejected.length, colour: 'text-red-400', tab: 'rejected' as Tab },
           ].map(s => (
             <button
@@ -102,18 +121,44 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(['pending', 'approved', 'rejected'] as Tab[]).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${tab === t ? 'bg-gold-500 text-white' : 'bg-charcoal-800 text-gray-400 hover:text-white'}`}
-            >
-              {t} ({t === 'pending' ? pending.length : t === 'approved' ? approved.length : rejected.length})
+        {/* Search */}
+        <div className="relative mb-6 max-w-md">
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by business, owner, category, location, email..."
+            className="w-full pl-11 pr-4 py-2.5 bg-charcoal-800 border border-charcoal-700 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gold-500"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+              <X size={16} />
             </button>
-          ))}
+          )}
         </div>
+
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {(['pending', 'approved', 'featured', 'rejected'] as Tab[]).map(t => {
+            const count = t === 'pending' ? pending.length : t === 'approved' ? approved.length : t === 'featured' ? featured.length : rejected.length
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${tab === t ? 'bg-gold-500 text-white' : 'bg-charcoal-800 text-gray-400 hover:text-white'}`}
+              >
+                {t} ({count})
+              </button>
+            )
+          })}
+        </div>
+
+        {search && (
+          <p className="text-gray-500 text-sm mb-4">
+            {filtered.length} result{filtered.length === 1 ? '' : 's'} for &ldquo;{search}&rdquo; in {tab}
+          </p>
+        )}
 
         {/* Submissions */}
         {filtered.length === 0 ? (
