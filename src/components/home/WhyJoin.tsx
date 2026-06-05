@@ -37,20 +37,8 @@ const benefits = [
 export default function WhyJoin() {
   return (
     <section className="py-20 bg-charcoal-900 relative overflow-hidden">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-[0.04]" aria-hidden="true">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="why-pattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-              <circle cx="40" cy="40" r="30" fill="none" stroke="#C9A84C" strokeWidth="0.6"/>
-              <circle cx="40" cy="40" r="15" fill="none" stroke="#C9A84C" strokeWidth="0.4"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#why-pattern)"/>
-        </svg>
-      </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-14">
           <span className="inline-block bg-gold-500/20 text-gold-400 border border-gold-500/30 text-sm font-semibold px-4 py-1.5 rounded-full mb-4 tracking-wide uppercase">
