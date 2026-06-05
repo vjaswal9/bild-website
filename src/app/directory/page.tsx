@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import staticBusinesses from '@/data/businesses.json'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 export default async function DirectoryPage() {
   // Fetch approved submissions from Supabase
