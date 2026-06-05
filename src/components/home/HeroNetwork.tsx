@@ -41,13 +41,6 @@ export default function HeroNetwork() {
         preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <defs>
-          <radialGradient id="node-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#C9A84C" stopOpacity="1"/>
-            <stop offset="100%" stopColor="#C9A84C" stopOpacity="0"/>
-          </radialGradient>
-        </defs>
-
         {/* Connection lines */}
         {EDGES.map(([a, b], i) => (
           <line
@@ -55,24 +48,20 @@ export default function HeroNetwork() {
             x1={NODES[a].x} y1={NODES[a].y}
             x2={NODES[b].x} y2={NODES[b].y}
             stroke="#C9A84C"
-            strokeWidth="0.15"
-            opacity="0.25"
+            strokeWidth="0.18"
+            opacity="0.2"
           />
         ))}
 
-        {/* Nodes */}
+        {/* Nodes — tiny dots only, no glow circles */}
         {NODES.map((n, i) => (
-          <g key={i}>
-            {BRIGHT.has(i) && (
-              <circle cx={n.x} cy={n.y} r="1.8" fill="url(#node-glow)" opacity="0.35"/>
-            )}
-            <circle
-              cx={n.x} cy={n.y}
-              r={BRIGHT.has(i) ? 0.55 : 0.35}
-              fill="#C9A84C"
-              opacity={BRIGHT.has(i) ? 0.7 : 0.4}
-            />
-          </g>
+          <circle
+            key={i}
+            cx={n.x} cy={n.y}
+            r={BRIGHT.has(i) ? 0.6 : 0.35}
+            fill="#C9A84C"
+            opacity={BRIGHT.has(i) ? 0.6 : 0.35}
+          />
         ))}
       </svg>
     </div>
