@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600&display=swap');</style></defs>
+  <rect width="600" height="600" fill="#0E0E0E"/>
+  <circle cx="300" cy="300" r="270" fill="none" stroke="#C8A64B" stroke-width="3"/>
+  
+    <g fill="#C8A64B">
+      <rect x="252.0" y="233.0" width="96.0" height="19.5" rx="3.0"/>
+      <polygon points="255.0,236.0 267.0,188.0 283.5,218.0 300.0,173.0 316.5,218.0 333.0,188.0 345.0,236.0"/>
+      <circle cx="267.0" cy="182.0" r="7.5"/>
+      <circle cx="300.0" cy="167.0"  r="8.2"/>
+      <circle cx="333.0" cy="182.0" r="7.5"/>
+    </g>
+  <text x="300" y="350" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-weight="700" font-size="92" letter-spacing="4" fill="#F4F1EC">B.I.L.D</text>
+  <g>
+    <line x1="215" y1="385" x2="262" y2="385" stroke="#C8A64B" stroke-width="1.4"/>
+    <text x="300" y="392" text-anchor="middle" font-family="'Montserrat', sans-serif" font-weight="500" font-size="18" letter-spacing="6" fill="#C8A64B">ESTD 2019</text>
+    <line x1="338" y1="385" x2="385" y2="385" stroke="#C8A64B" stroke-width="1.4"/>
+  </g>
+</svg>

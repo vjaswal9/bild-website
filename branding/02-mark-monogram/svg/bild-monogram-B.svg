@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@400;500;600&display=swap');</style></defs>
+  
+  
+    <g fill="#C8A64B">
+      <rect x="89.3" y="81.5" width="61.4" height="12.5" rx="1.9"/>
+      <polygon points="91.2,83.44 98.88,52.72 109.44,71.92 120.0,43.120000000000005 130.56,71.92 141.12,52.72 148.8,83.44"/>
+      <circle cx="98.9" cy="48.9" r="4.8"/>
+      <circle cx="120.0" cy="39.3"  r="5.3"/>
+      <circle cx="141.1" cy="48.9" r="4.8"/>
+    </g>
+  <text x="120" y="185" text-anchor="middle" font-family="'Playfair Display', Georgia, serif" font-weight="700" font-size="130" fill="#F4F1EC">B</text>
+</svg>
