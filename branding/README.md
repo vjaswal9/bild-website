@@ -33,7 +33,8 @@ branding/
 │   │   ├── bild-logo-reversed.svg    Gold crown + onyx text (light backgrounds)
 │   │   ├── bild-logo-gold.svg        All gold
 │   │   ├── bild-logo-white.svg       All ivory / white (reverse)
-│   │   └── bild-logo-black.svg       All onyx (monochrome)
+│   │   ├── bild-logo-black.svg       All onyx (monochrome)
+│   │   └── bild-logo-motif.svg       With subtle circular mandala motif (for dark backgrounds)
 │   └── png/   Hi-res transparent PNG (@2000 and @1000) + solid-bg JPGs
 │
 ├── 02-mark-monogram/
