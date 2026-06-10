@@ -14,6 +14,7 @@ const links = [
   { href: '/about', label: 'About' },
   { href: '/events', label: 'Events' },
   { href: '/photo-vault', label: 'Photo Vault' },
+  { href: '/faces-of-bild', label: 'Faces of BILD' },
   { href: '/directory', label: 'Business Directory' },
   { href: '/community-rules', label: 'Community Rules' },
 ]

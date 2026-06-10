@@ -8,6 +8,7 @@ const navLinks = [
   { href: '/about', label: 'About BILD' },
   { href: '/events', label: 'Events' },
   { href: '/photo-vault', label: 'Photo Vault' },
+  { href: '/faces-of-bild', label: 'Faces of BILD' },
   { href: '/directory', label: 'Business Directory' },
   { href: '/join', label: 'Join BILD' },
   { href: '/community-rules', label: 'Community Rules' },
