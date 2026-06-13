@@ -117,6 +117,7 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <a href="/admin/members" className="text-sm text-gray-400 hover:text-white transition-colors">Members</a>
           <button onClick={() => window.location.reload()} className="text-gray-400 hover:text-white transition-colors" title="Refresh">
             <RefreshCw size={18} />
           </button>

@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
 import { SITE_CONFIG } from '@/data/config'
+import ScrollToFormButton from './ScrollToFormButton'
 
 const benefits = [
   'Access to all BILD events and celebrations',
@@ -13,8 +14,6 @@ const benefits = [
 ]
 
 export default function MembershipCard() {
-  const hasStripeLink = SITE_CONFIG.stripeMembershipLink !== 'REPLACE_ME_STRIPE_MEMBERSHIP_LINK'
-
   return (
     <div className="max-w-md mx-auto bg-gold-50 rounded-2xl shadow-xl border border-gold-100 overflow-hidden">
       <div className="bg-charcoal-800 p-8 text-center">
@@ -36,26 +35,10 @@ export default function MembershipCard() {
           ))}
         </ul>
 
-        {hasStripeLink ? (
-          <a
-            href={SITE_CONFIG.stripeMembershipLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full bg-gold-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all hover:shadow-lg"
-          >
-            Join BILD Now
-          </a>
-        ) : (
-          <a
-            href={`mailto:${SITE_CONFIG.contactEmail}?subject=BILD Membership Enquiry`}
-            className="block w-full bg-gold-500 text-white text-center py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all"
-          >
-            Enquire to Join
-          </a>
-        )}
+        <ScrollToFormButton />
 
         <p className="text-xs text-center text-gray-400 mt-4">
-          Complete the form and our team will be in touch within 48 hours to welcome you to BILD.
+          Eligible applicants pay the one-off 50 AED and get their WhatsApp group invite instantly.
         </p>
       </div>
     </div>

@@ -1,6 +1,9 @@
 export const SITE_CONFIG = {
   stripeMembershipLink: 'https://forms.office.com/Pages/ResponsePage.aspx?id=DQSIkWdsW0yxEjajBLZtrQAAAAAAAAAAAAO__YRes75UNk5HR1ZTTlBEWTBWNE5aS0hCRExTWjhEVC4u',
   whatsappGroupLink: 'REPLACE_ME_WHATSAPP_LINK',
+  // Gender-routed WhatsApp group invite links (server-side use only via /j/[token])
+  whatsappGroupMale: 'REPLACE_ME_WHATSAPP_MALE_GROUP',
+  whatsappGroupFemale: 'REPLACE_ME_WHATSAPP_FEMALE_GROUP',
   instagramUrl: 'https://www.instagram.com/bild_ae',
   facebookUrl: 'https://www.facebook.com/groups/2465313657124373',
   linkedinUrl: 'https://www.linkedin.com/groups/10025041/',
