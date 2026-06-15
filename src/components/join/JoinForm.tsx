@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock, Check } from 'lucide-react'
 
 const inputCls =
   'w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400'
@@ -81,18 +82,24 @@ export default function JoinForm() {
 
   return (
     <div>
-      {/* Step indicator */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {[1, 2, 3].map(n => (
-          <div key={n} className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-              step >= n ? 'bg-gold-500 text-white' : 'bg-gold-100 text-charcoal-400'
-            }`}>{n}</div>
-            {n < 3 && <div className={`w-10 h-0.5 ${step > n ? 'bg-gold-500' : 'bg-gold-200'}`} />}
+      {/* Step indicator with labels */}
+      <div className="flex items-start justify-center mb-10">
+        {([[1, 'Eligibility'], [2, 'Your details'], [3, 'Payment']] as [number, string][]).map(([n, label], i) => (
+          <div key={n} className="flex items-start">
+            <div className="flex flex-col items-center w-24">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                step > n ? 'bg-gold-500 text-white' : step === n ? 'bg-gold-500 text-white ring-4 ring-gold-200' : 'bg-gold-100 text-charcoal-400'
+              }`}>
+                {step > n ? <Check size={16} /> : n}
+              </div>
+              <span className={`mt-2 text-xs text-center font-medium ${step >= n ? 'text-charcoal-700' : 'text-charcoal-400'}`}>{label}</span>
+            </div>
+            {i < 2 && <div className={`h-0.5 w-8 sm:w-14 mt-4 ${step > n ? 'bg-gold-500' : 'bg-gold-200'}`} />}
           </div>
         ))}
       </div>
 
+      <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
       {/* STEP 1 — Eligibility */}
       {step === 1 && (
         <form onSubmit={submitStep1} className="space-y-6">
@@ -305,6 +312,7 @@ export default function JoinForm() {
           </p>
         </div>
       )}
+      </motion.div>
     </div>
   )
 }
