@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { sendWelcomeEmail } from '@/lib/email'
 
 // Stripe needs the raw body to verify the signature.
 export async function POST(req: NextRequest) {
@@ -32,11 +33,24 @@ export async function POST(req: NextRequest) {
       stripe_session_id: session.id,
     }
 
-    if (memberId) {
-      await supabaseAdmin.from('members').update(update).eq('id', memberId)
-    } else if (session.customer_email) {
-      // Fallback: match by email (used if a plain Payment Link is used instead of Checkout)
-      await supabaseAdmin.from('members').update(update).eq('email', session.customer_email).eq('status', 'pending')
+    const query = memberId
+      ? supabaseAdmin.from('members').update(update).eq('id', memberId)
+      : session.customer_email
+        ? supabaseAdmin.from('members').update(update).eq('email', session.customer_email).eq('status', 'pending')
+        : null
+
+    if (query) {
+      const { data: rows } = await query.select('email, full_name, invite_token')
+      const member = rows?.[0]
+      if (member?.invite_token) {
+        const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`
+        const base = process.env.NEXT_PUBLIC_SITE_URL || origin
+        await sendWelcomeEmail({
+          to: member.email,
+          name: member.full_name,
+          inviteUrl: `${base}/j/${member.invite_token}`,
+        })
+      }
     }
   }
 

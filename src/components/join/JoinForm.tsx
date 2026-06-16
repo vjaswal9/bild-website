@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock, Check, Pencil, Clock, Save } from 'lucide-react'
@@ -89,6 +89,7 @@ export default function JoinForm() {
   const [tried2, setTried2] = useState(false)
   const [d, setD] = useState<Data>({})
   const [loaded, setLoaded] = useState(false)
+  const step2Ref = useRef<HTMLFormElement>(null)
 
   const set = (k: string, v: string) => setD(prev => ({ ...prev, [k]: v }))
 
@@ -140,7 +141,15 @@ export default function JoinForm() {
   function submitStep2(e: React.FormEvent) {
     e.preventDefault(); setTried2(true)
     if (d.termsConfirm === 'no') { setIneligible(true); return }
-    if (step2Missing()) return
+    if (step2Missing()) {
+      // Scroll to the first highlighted (invalid) field
+      requestAnimationFrame(() => {
+        const firstInvalid = step2Ref.current?.querySelector('.border-ruby-500')
+        if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        else step2Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+      return
+    }
     setStep(3); window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -220,7 +229,7 @@ export default function JoinForm() {
 
         {/* STEP 2 */}
         {step === 2 && (
-          <form onSubmit={submitStep2} className="space-y-6">
+          <form ref={step2Ref} onSubmit={submitStep2} className="space-y-6">
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Your Details</legend>
               <div className="grid sm:grid-cols-2 gap-5">
