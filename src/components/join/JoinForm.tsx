@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock, Check, Pencil } from 'lucide-react'
+import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock, Check, Pencil, Clock, Save } from 'lucide-react'
 
 const inputBase =
   'w-full px-4 py-2.5 border rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-colors'
@@ -169,6 +169,13 @@ export default function JoinForm() {
 
   return (
     <div>
+      {/* Reassurance strip */}
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 mb-6 text-xs text-charcoal-500">
+        <span className="inline-flex items-center gap-1.5"><Clock size={13} className="text-gold-500" /> Takes about 2 minutes</span>
+        <span className="inline-flex items-center gap-1.5"><Save size={13} className="text-gold-500" /> Progress saved automatically</span>
+        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} className="text-gold-500" /> Secure payment by Stripe</span>
+      </div>
+
       {/* Step indicator + progress bar */}
       <div className="flex items-start justify-center mb-3">
         {([[1, 'Eligibility'], [2, 'Your details'], [3, 'Payment']] as [number, string][]).map(([n, label], i) => (
@@ -205,7 +212,9 @@ export default function JoinForm() {
                 <Toggle value={d.falseInfoConfirm || ''} onChange={v => set('falseInfoConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} />
               </div>
             </fieldset>
-            <button type="submit" className="w-full bg-gold-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all inline-flex items-center justify-center gap-2">Continue <ArrowRight size={18} /></button>
+            <div className="sticky bottom-3 z-20 sm:static">
+              <button type="submit" className="w-full bg-gold-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all inline-flex items-center justify-center gap-2 shadow-lg sm:shadow-none">Continue <ArrowRight size={18} /></button>
+            </div>
           </form>
         )}
 
@@ -317,9 +326,9 @@ export default function JoinForm() {
 
             {tried2 && step2Missing() && <p className="text-sm text-ruby-500 text-center bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">Please complete the highlighted fields above.</p>}
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(1)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-              <button type="submit" className="flex-1 bg-gold-500 text-white py-3 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all inline-flex items-center justify-center gap-2">Review &amp; Pay <ArrowRight size={18} /></button>
+            <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
+              <button type="button" onClick={() => setStep(1)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+              <button type="submit" className="flex-1 bg-gold-500 text-white py-3 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all inline-flex items-center justify-center gap-2 shadow-lg sm:shadow-none">Review &amp; Pay <ArrowRight size={18} /></button>
             </div>
           </form>
         )}
@@ -355,9 +364,9 @@ export default function JoinForm() {
 
             {error && <p className="text-ruby-500 text-sm text-center bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">{error}</p>}
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-              <button onClick={pay} disabled={submitting} className="flex-1 bg-gold-500 text-white py-3 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2">
+            <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
+              <button type="button" onClick={() => setStep(2)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+              <button onClick={pay} disabled={submitting} className="flex-1 bg-gold-500 text-white py-3 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-lg sm:shadow-none">
                 <Lock size={16} /> {submitting ? 'Redirecting to payment…' : 'Pay 50 AED & Join'}
               </button>
             </div>
