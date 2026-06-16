@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { CheckCircle, Clock } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 import PageHero from '@/components/ui/PageHero'
+import SuccessCelebration from '@/components/join/SuccessCelebration'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export const metadata: Metadata = { title: 'Welcome to BILD' }
@@ -35,7 +36,8 @@ export default async function JoinSuccessPage({
         <div className="max-w-xl mx-auto px-4 text-center">
           {paid ? (
             <>
-              <div className="w-20 h-20 bg-gold-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <SuccessCelebration />
+              <div className="w-20 h-20 bg-gold-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-[pop_0.5s_ease-out]">
                 <CheckCircle size={40} className="text-gold-500" />
               </div>
               <h2 className="font-display text-3xl font-bold text-charcoal-800 mb-3">
