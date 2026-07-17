@@ -70,7 +70,7 @@ function Toggle({ value, onChange, options }: { value: string; onChange: (v: str
     <div className="flex flex-wrap gap-3">
       {options.map(([v, lbl]) => (
         <button type="button" key={v} onClick={() => onChange(v)}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${value === v ? 'bg-gold-500 text-white border-gold-500 shadow-sm' : 'bg-white text-charcoal-700 border-gold-200 hover:border-gold-300'}`}>
+          className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all active:scale-[0.96] ${value === v ? 'bg-gold-500 text-white border-gold-500 shadow-sm' : 'bg-white text-charcoal-700 border-gold-200 hover:border-gold-300 hover:-translate-y-px'}`}>
           {lbl}
         </button>
       ))}
@@ -208,7 +208,7 @@ export default function JoinForm() {
         {/* STEP 1 */}
         {step === 1 && (
           <form onSubmit={submitStep1} className="space-y-6">
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Eligibility</legend>
               <TextField label="Please enter your full name" value={d.fullName || ''} onChange={v => set('fullName', v)} required placeholder="Your full name" showError={tried1} />
               <div>
@@ -222,7 +222,7 @@ export default function JoinForm() {
               </div>
             </fieldset>
             <div className="sticky bottom-3 z-20 sm:static">
-              <button type="submit" className="w-full bg-gold-500 text-white py-4 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all inline-flex items-center justify-center gap-2 shadow-lg sm:shadow-none">Continue <ArrowRight size={18} /></button>
+              <button type="submit" className="w-full bg-gradient-to-b from-gold-400 to-gold-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-gold-500 hover:to-gold-700 active:scale-[0.99] transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-gold-500/20">Continue <ArrowRight size={18} /></button>
             </div>
           </form>
         )}
@@ -230,7 +230,7 @@ export default function JoinForm() {
         {/* STEP 2 */}
         {step === 2 && (
           <form ref={step2Ref} onSubmit={submitStep2} className="space-y-6">
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Your Details</legend>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
@@ -273,7 +273,7 @@ export default function JoinForm() {
             </fieldset>
 
             {d.howHeard === 'bild_member' && (
-              <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
+              <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
                 <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Referral Details</legend>
                 <div className="grid sm:grid-cols-2 gap-5">
                   <TextField label="Name of BILD member who recommended you" value={d.referrerName || ''} onChange={v => set('referrerName', v)} required showError={tried2} />
@@ -282,7 +282,7 @@ export default function JoinForm() {
               </fieldset>
             )}
 
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Family Information</legend>
               <div>
                 <label className={labelCls}>Marital Status {req}</label>
@@ -304,7 +304,7 @@ export default function JoinForm() {
               )}
             </fieldset>
 
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Professional &amp; Business</legend>
               <div>
                 <label className={labelCls}>Are you a British Indian business owner or professional in UAE? {req}</label>
@@ -327,7 +327,7 @@ export default function JoinForm() {
               )}
             </fieldset>
 
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Community Terms</legend>
               <p className="text-sm text-charcoal-600 mb-3">Do you confirm to abide by the BILD <Link href="/terms" className="text-gold-600 hover:underline">community terms</Link>, including UAE laws, and understand that providing false information will result in immediate removal? {req}</p>
               <Toggle value={d.termsConfirm || ''} onChange={v => set('termsConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} />
@@ -337,7 +337,7 @@ export default function JoinForm() {
 
             <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
               <button type="button" onClick={() => setStep(1)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-              <button type="submit" className="flex-1 bg-gold-500 text-white py-3 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all inline-flex items-center justify-center gap-2 shadow-lg sm:shadow-none">Review &amp; Pay <ArrowRight size={18} /></button>
+              <button type="submit" className="flex-1 bg-gradient-to-b from-gold-400 to-gold-600 text-white py-3 rounded-xl font-semibold text-lg hover:from-gold-500 hover:to-gold-700 active:scale-[0.99] transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-gold-500/20">Review &amp; Pay <ArrowRight size={18} /></button>
             </div>
           </form>
         )}
@@ -375,7 +375,7 @@ export default function JoinForm() {
 
             <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
               <button type="button" onClick={() => setStep(2)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-              <button onClick={pay} disabled={submitting} className="flex-1 bg-gold-500 text-white py-3 rounded-xl font-semibold text-lg hover:bg-gold-600 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-lg sm:shadow-none">
+              <button onClick={pay} disabled={submitting} className="flex-1 bg-gradient-to-b from-gold-400 to-gold-600 text-white py-3 rounded-xl font-semibold text-lg hover:from-gold-500 hover:to-gold-700 active:scale-[0.99] transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-lg shadow-gold-500/25">
                 <Lock size={16} /> {submitting ? 'Redirecting to payment…' : 'Pay 50 AED & Join'}
               </button>
             </div>
