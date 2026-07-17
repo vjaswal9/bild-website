@@ -5,9 +5,11 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  // Admin-cookie gated (same cookie as the directory admin)
-  const token = req.cookies.get('bild_admin')?.value
-  if (token !== 'authenticated') {
+  // Allowed via the admin cookie OR a cron secret (for the scheduled backup job)
+  const cookieOk = req.cookies.get('bild_admin')?.value === 'authenticated'
+  const cronSecret = process.env.CRON_SECRET
+  const cronOk = !!cronSecret && req.headers.get('x-cron-secret') === cronSecret
+  if (!cookieOk && !cronOk) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 

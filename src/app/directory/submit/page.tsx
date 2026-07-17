@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { CheckCircle, ArrowLeft, FileText, X } from 'lucide-react'
+import { CheckCircle, ArrowLeft, FileText, X, ImagePlus } from 'lucide-react'
 import Link from 'next/link'
 import PageHero from '@/components/ui/PageHero'
 import { supabase } from '@/lib/supabase'
@@ -20,6 +20,9 @@ export default function SubmitBusinessPage() {
   const [error, setError] = useState('')
   const [licenseFile, setLicenseFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string>('')
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -45,6 +48,21 @@ export default function SubmitBusinessPage() {
       licenseUrl = uploadData.path
     }
 
+    // Upload logo image to the public business-logos bucket (shown on the card)
+    let logoUrl: string | null = (fd.get('logo_url') as string) || null
+    if (logoFile) {
+      const fileName = `${Date.now()}-${logoFile.name.replace(/\s+/g, '-')}`
+      const { data: up, error: logoErr } = await supabase.storage
+        .from('business-logos')
+        .upload(fileName, logoFile, { contentType: logoFile.type, upsert: false })
+      if (logoErr) {
+        setError('Failed to upload logo. Please try a different image or paste a link instead.')
+        setSubmitting(false)
+        return
+      }
+      logoUrl = supabase.storage.from('business-logos').getPublicUrl(up.path).data.publicUrl
+    }
+
     const payload = {
       business_name: fd.get('business_name') as string,
       category: fd.get('category') as string,
@@ -56,7 +74,7 @@ export default function SubmitBusinessPage() {
       email: fd.get('email') as string,
       website: (fd.get('website') as string) || null,
       instagram: (fd.get('instagram') as string) || null,
-      logo_url: (fd.get('logo_url') as string) || null,
+      logo_url: logoUrl,
       established_year: (fd.get('established_year') as string) || null,
       bild_offer: (fd.get('bild_offer') as string) || null,
       extra_info: (fd.get('extra_info') as string) || null,
@@ -193,12 +211,37 @@ export default function SubmitBusinessPage() {
 
             {/* Logo */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
-              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Logo &amp; Branding</legend>
-              <div>
-                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Logo URL</label>
-                <input name="logo_url" type="url" placeholder="https://link-to-your-logo.com/logo.png"
-                  className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">Paste a direct link to your logo image.</p>
+              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business Logo</legend>
+              <p className="text-sm text-charcoal-500">Upload your logo — it appears on your directory card. A square image works best (PNG or JPG, max 3MB).</p>
+              <div className="flex items-center gap-5">
+                <div className="w-20 h-20 rounded-xl border border-gold-200 bg-white flex items-center justify-center overflow-hidden shrink-0">
+                  {logoPreview
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
+                    : <ImagePlus size={26} className="text-gold-300" />}
+                </div>
+                <div className="flex-1">
+                  {!logoFile ? (
+                    <label className="inline-flex items-center gap-2 bg-white border border-gold-300 text-charcoal-700 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer hover:bg-gold-50 transition-colors">
+                      <ImagePlus size={16} /> Choose logo image
+                      <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+                        onChange={e => {
+                          const f = e.target.files?.[0] || null
+                          setLogoFile(f)
+                          setLogoPreview(f ? URL.createObjectURL(f) : '')
+                        }} />
+                    </label>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-charcoal-700 truncate max-w-[180px]">{logoFile.name}</span>
+                      <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(''); if (logoInputRef.current) logoInputRef.current.value = '' }}
+                        className="text-charcoal-400 hover:text-ruby-500"><X size={16} /></button>
+                    </div>
+                  )}
+                  <p className="text-xs text-charcoal-400 mt-2">Or paste a link instead:</p>
+                  <input name="logo_url" type="url" placeholder="https://link-to-your-logo.com/logo.png"
+                    className="w-full mt-1 px-3 py-2 border border-gold-200 rounded-lg bg-white text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400" />
+                </div>
               </div>
             </fieldset>
 
