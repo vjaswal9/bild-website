@@ -262,7 +262,13 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
               <div key={sub.id} className="bg-charcoal-800 rounded-2xl border border-charcoal-700 overflow-hidden">
                 {/* Card header */}
                 <div className="flex items-start justify-between p-6 border-b border-charcoal-700">
-                  <div>
+                  <div className="flex items-start gap-4">
+                    {sub.logo_url && sub.logo_url.startsWith('http') && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sub.logo_url} alt={`${sub.business_name} logo`}
+                        className="w-14 h-14 rounded-xl object-cover border border-charcoal-600 bg-white shrink-0" />
+                    )}
+                    <div>
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h2 className="font-display text-xl font-bold text-white">{sub.business_name}</h2>
                       <span className="bg-gold-500/20 text-gold-400 text-xs font-medium px-2.5 py-0.5 rounded-full">{sub.category}</span>
@@ -274,6 +280,7 @@ export default function AdminDashboard({ submissions }: { submissions: BusinessS
                     </div>
                     <p className="text-gray-400 text-sm">{sub.owner_name} · {sub.location}</p>
                     <p className="text-gray-500 text-xs mt-1">Submitted {new Date(sub.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {/* Feature toggle — only for approved businesses */}
