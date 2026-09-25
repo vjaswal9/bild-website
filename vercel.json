@@ -1,5 +1,44 @@
 {
   "crons": [
-    { "path": "/api/health", "schedule": "0 6 * * *" }
+    {
+      "path": "/api/health",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/members-backup",
+      "schedule": "0 5 * * 1"
+    },
+    {
+      "path": "/api/cron/document-expiry",
+      "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/abandoned-join-report",
+      "schedule": "30 5 * * 1"
+    },
+    {
+      "path": "/api/cron/listing-renewal-reminder",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/link-check",
+      "schedule": "0 4 * * 1"
+    },
+    {
+      "path": "/api/cron/tidy-checkouts",
+      "schedule": "45 3 * * *"
+    },
+    {
+      "path": "/api/cron/event-sales-report",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-listing-stats",
+      "schedule": "0 8 1 * *"
+    },
+    {
+      "path": "/api/cron/directory-leads-report",
+      "schedule": "45 5 * * 1"
+    }
   ]
 }

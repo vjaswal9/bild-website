@@ -1,0 +1,18 @@
+Fonts in this folder
+--------------------
+PlayfairDisplay-Regular.ttf, PlayfairDisplay-Bold.ttf
+Montserrat-Regular.ttf, Montserrat-Medium.ttf, Montserrat-SemiBold.ttf
+Inter-Regular.ttf
+
+All are licensed under the SIL Open Font License, Version 1.1, which permits
+redistribution alongside this pack. Full text: https://scripts.sil.org/OFL
+
+They are vendored here so _guidelines.py builds an identical PDF on any
+machine, rather than depending on what happens to be installed. The same files
+are also installed to ~/Library/Fonts for everyday use.
+
+Playfair Display  - display face: headlines and feature titles
+Montserrat        - body face for the identity
+Inter             - body face the website actually uses; kept only so the
+                    typography page can show it as itself
+Georgia           - the logo wordmark; a system face, not vendored
