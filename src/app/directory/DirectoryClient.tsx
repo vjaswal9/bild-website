@@ -86,13 +86,34 @@ function OfferLabel({ dark }: { dark?: boolean }) {
   )
 }
 
-function OutboundLinks({ biz, className = '', dark }: { biz: DisplayBusiness; className?: string; dark?: boolean }) {
+// `stack` is for the compact row, whose actions column is 150px wide: side by
+// side, "WhatsApp" and "Website" overflowed the card and the second one hung
+// outside its right edge.
+//
+// relative z-10 matters: the whole row is a click target for the profile page
+// (see ListingRow), and without it these links sit underneath that overlay and
+// silently open the profile instead of WhatsApp.
+function OutboundLinks({
+  biz,
+  className = '',
+  dark,
+  stack,
+}: {
+  biz: DisplayBusiness
+  className?: string
+  dark?: boolean
+  stack?: boolean
+}) {
   const wa = whatsappHref(biz.contactPhone)
   const cls = `${linkUnderline} ${
     dark ? 'text-gray-300 hover:text-gold-400 decoration-gold-500/60' : 'text-charcoal-600 hover:text-gold-700'
   }`
   return (
-    <div className={`flex items-center gap-4 text-[13px] ${className}`}>
+    <div
+      className={`relative z-10 flex text-[13px] ${
+        stack ? 'flex-col items-start gap-1' : 'items-center gap-4'
+      } ${className}`}
+    >
       {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className={cls}>WhatsApp <ArrowUpRight size={12} /></a>}
       {biz.website && <a href={biz.website} target="_blank" rel="noopener noreferrer" className={cls}>Website <ArrowUpRight size={12} /></a>}
     </div>
@@ -144,11 +165,9 @@ function FeaturedRow({ biz }: { biz: DisplayBusiness }) {
   const href = biz.slug ? `/directory/${biz.slug}` : '#'
   const offer = splitOffer(biz.bildOffer)
   return (
-    <article className="bg-charcoal-800 border-l-4 border-l-gold-500 shadow-card">
+    <article className="group relative bg-charcoal-800 border-l-4 border-l-gold-500 shadow-card cursor-pointer transition-colors hover:bg-charcoal-700 focus-within:bg-charcoal-700">
       <div className="grid grid-cols-1 sm:grid-cols-[112px_1fr] xl:grid-cols-[112px_1fr_286px] gap-x-7 gap-y-5 p-6">
-        <Link href={href} className="shrink-0">
-          <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} size="tile" />
-        </Link>
+        <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} size="tile" />
 
         <div className="min-w-0">
           {/* charcoal-900 on gold, not white: white on gold-500 is about 3.2:1
@@ -158,7 +177,14 @@ function FeaturedRow({ biz }: { biz: DisplayBusiness }) {
           </p>
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-400 mb-1">{biz.category}</p>
           <h3 className="font-display text-[28px] leading-tight font-bold text-white">
-            <Link href={href} className="hover:text-gold-400 transition-colors">{biz.name}</Link>
+            {/* Stretched link - see ListingRow for why the `after` overlay and
+                the z-10 on the outbound links. */}
+            <Link
+              href={href}
+              className="after:content-[''] after:absolute after:inset-0 underline underline-offset-4 decoration-1 decoration-gold-500/50 group-hover:text-gold-400 group-hover:decoration-gold-400 transition-colors outline-none"
+            >
+              {biz.name}
+            </Link>
           </h3>
           {biz.ownerName && <p className="text-sm text-gray-400 mt-0.5">{biz.ownerName}</p>}
           {(biz.tagline || biz.description) && (
@@ -188,9 +214,10 @@ function FeaturedRow({ biz }: { biz: DisplayBusiness }) {
               <p className="text-[15px] text-gray-300 leading-snug mt-1.5">{offer.rest}</p>
             </div>
           )}
-          <Link href={href} className={`${btnPrimary} w-full py-2.5 text-sm justify-center`}>
-            View profile <ArrowRight size={15} />
-          </Link>
+          <p className={`${btnPrimary} w-full py-2.5 text-sm justify-center`}>
+            View profile
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+          </p>
           <OutboundLinks biz={biz} className="mt-3" dark />
         </div>
       </div>
@@ -206,16 +233,24 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
   const offer = splitOffer(biz.bildOffer)
   const rule = 'lg:border-l lg:border-gold-200/60 lg:pl-5'
   return (
-    <article className="bg-white border border-gold-200/60 flex gap-4 p-3 items-stretch hover:border-gold-300 transition-colors">
-      <Link href={href} className="shrink-0">
-        <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} size="tileSm" />
-      </Link>
+    <article className="group relative bg-white border border-gold-200/60 flex gap-4 p-3 items-stretch cursor-pointer transition-all hover:border-gold-400 hover:shadow-card focus-within:border-gold-500">
+      <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} size="tileSm" />
 
-      <div className="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-[1fr_190px_210px_140px] gap-x-5 gap-y-3 items-start">
+      <div className="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-[1fr_180px_200px_150px] gap-x-5 gap-y-3 items-start">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal-400 mb-0.5">{biz.category}</p>
           <h3 className="font-display text-[17px] leading-tight font-bold text-charcoal-800">
-            <Link href={href} className="hover:text-gold-700 transition-colors">{biz.name}</Link>
+            {/* The stretched link. `after` covers the whole card, so anywhere on
+                the row opens the profile, while the accessible name of the link
+                is still the business name rather than "this card". Anything that
+                must stay separately clickable - the WhatsApp and Website links -
+                is lifted above it with relative z-10. */}
+            <Link
+              href={href}
+              className="after:content-[''] after:absolute after:inset-0 underline underline-offset-4 decoration-1 decoration-gold-300 group-hover:text-gold-700 group-hover:decoration-gold-600 transition-colors outline-none"
+            >
+              {biz.name}
+            </Link>
           </h3>
           {biz.ownerName && <p className="text-xs text-charcoal-500">{biz.ownerName}</p>}
           {(biz.tagline || biz.description) && (
@@ -260,13 +295,11 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
         </div>
 
         <div className={`min-w-0 space-y-2 ${rule}`}>
-          <Link
-            href={href}
-            className={`${linkUnderline} text-[13px] font-medium text-gold-700`}
-          >
-            View profile <ArrowRight size={13} />
-          </Link>
-          <OutboundLinks biz={biz} />
+          <p className={`${linkUnderline} text-[13px] font-medium text-gold-700`}>
+            View profile
+            <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+          </p>
+          <OutboundLinks biz={biz} stack />
         </div>
       </div>
     </article>
@@ -517,13 +550,13 @@ export default function DirectoryClient({
             )}
 
             <section ref={resultsRef}>
-              <div className="flex items-end justify-between gap-4 border-t border-gold-200 pt-7 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-4 border-t border-gold-200 pt-7 mb-4">
                 <h2 className="font-display text-[32px] font-bold text-charcoal-800 leading-tight">
                   {isFiltering ? 'Results' : 'All businesses'}
                   <span className="text-charcoal-400 font-normal"> &middot; {filtered.length}</span>
                 </h2>
                 {remaining > 0 && (
-                  <p className="text-xs text-charcoal-500 shrink-0 pb-1.5">Showing {remaining} more businesses</p>
+                  <p className="text-xs text-charcoal-500 shrink-0 sm:pb-1.5">Showing {remaining} more businesses</p>
                 )}
               </div>
 
