@@ -1,19 +1,24 @@
 'use client'
 
+import { ELIGIBILITY_CONFIRMATION } from '@/lib/eligibility'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock, Check, Pencil, Clock, Save } from 'lucide-react'
+import { btnPrimary } from '@/lib/ui'
+import GoogleRatingBadge from '@/components/ui/GoogleRatingBadge'
+import type { GoogleReviewsData } from '@/lib/google-reviews'
+import { isValidEmail } from '@/lib/email-validate'
 
 const inputBase =
   'w-full px-4 py-2.5 border rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-colors'
 const labelCls = 'block text-sm font-semibold text-charcoal-700 mb-1.5'
 const req = <span className="text-ruby-500">*</span>
 const STORAGE_KEY = 'bild_join_v1'
+const LEAD_ID_KEY = 'bild_join_lead_id'
 
 type Data = Record<string, string>
 
-const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
+const isEmail = isValidEmail
 const isPhone = (v: string) => v.replace(/\D/g, '').length >= 9
 
 // ---- small field components ----
@@ -55,7 +60,13 @@ function PhoneField({ label, value, onChange, required, showError }: {
         <input
           type="tel" inputMode="numeric" value={local}
           placeholder="50 123 4567"
-          onChange={e => onChange('+971 ' + e.target.value.replace(/[^\d\s]/g, ''))}
+          onChange={e => {
+            // UAE numbers are naturally typed with a leading 0 (e.g. "055 608 8450"),
+            // but that 0 is a domestic trunk prefix and must be dropped once the
+            // +971 country code is prepended, or the stored number is malformed.
+            const digits = e.target.value.replace(/[^\d\s]/g, '').replace(/^\s+/, '').replace(/^0+/, '')
+            onChange('+971 ' + digits)
+          }}
           className="flex-1 px-3 py-2.5 bg-white text-charcoal-800 focus:outline-none"
         />
         {valid && <span className="px-3 flex items-center"><Check size={16} className="text-green-500" /></span>}
@@ -65,22 +76,32 @@ function PhoneField({ label, value, onChange, required, showError }: {
   )
 }
 
-function Toggle({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: [string, string][] }) {
+function Toggle({ value, onChange, options, invalid }: { value: string; onChange: (v: string) => void; options: [string, string][]; invalid?: boolean }) {
   return (
-    <div className="flex flex-wrap gap-3">
-      {options.map(([v, lbl]) => (
-        <button type="button" key={v} onClick={() => onChange(v)}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all active:scale-[0.96] ${value === v ? 'bg-gold-500 text-white border-gold-500 shadow-sm' : 'bg-white text-charcoal-700 border-gold-200 hover:border-gold-300 hover:-translate-y-px'}`}>
-          {lbl}
-        </button>
-      ))}
+    <div>
+      <div className="flex flex-wrap gap-3">
+        {options.map(([v, lbl]) => (
+          <button type="button" key={v} onClick={() => onChange(v)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all active:scale-[0.96] ${
+              value === v
+                ? 'bg-gold-500 text-white border-gold-500 shadow-sm'
+                : invalid
+                  ? 'bg-white text-charcoal-700 border-ruby-500 ring-1 ring-ruby-300'
+                  : 'bg-white text-charcoal-700 border-gold-200 hover:border-gold-300 hover:-translate-y-px'
+            }`}>
+            {lbl}
+          </button>
+        ))}
+      </div>
+      {invalid && <p className="text-xs text-ruby-500 mt-1">Please select an option.</p>}
     </div>
   )
 }
 
 const YEARS = Array.from({ length: 86 }, (_, i) => `${2010 - i}`)
+const EMIRATES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah']
 
-export default function JoinForm() {
+export default function JoinForm({ googleReviews }: { googleReviews?: GoogleReviewsData | null }) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [ineligible, setIneligible] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -90,8 +111,34 @@ export default function JoinForm() {
   const [d, setD] = useState<Data>({})
   const [loaded, setLoaded] = useState(false)
   const step2Ref = useRef<HTMLFormElement>(null)
+  const topAnchorRef = useRef<HTMLDivElement>(null)
+  const membershipRef = useRef<HTMLDivElement>(null)
+  const leadIdRef = useRef<string>('')
 
   const set = (k: string, v: string) => setD(prev => ({ ...prev, [k]: v }))
+
+  // Scrolls to a ref accounting for the site's fixed navbar (up to ~96px
+  // tall), which otherwise overlaps and cuts off whatever lands flush
+  // with the top of the viewport.
+  function scrollToRef(ref: React.RefObject<HTMLElement>, offset = 110) {
+    if (!ref.current) return
+    const top = ref.current.getBoundingClientRect().top + window.scrollY - offset
+    window.scrollTo({ top, behavior: 'smooth' })
+  }
+
+  // Sends whatever's been filled in so far to the backend as a lead, so
+  // someone who never reaches "Pay" is still captured (not just those who
+  // reach Stripe and abandon there).
+  function captureLead(data: Data) {
+    try {
+      fetch('/api/join/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId: leadIdRef.current, ...data }),
+        keepalive: true,
+      }).catch(() => {})
+    } catch {}
+  }
 
   // Autosave: restore on mount
   useEffect(() => {
@@ -102,6 +149,12 @@ export default function JoinForm() {
         if (saved.d) setD(saved.d)
         if (saved.step) setStep(saved.step)
       }
+      let leadId = localStorage.getItem(LEAD_ID_KEY)
+      if (!leadId) {
+        leadId = crypto.randomUUID()
+        localStorage.setItem(LEAD_ID_KEY, leadId)
+      }
+      leadIdRef.current = leadId
     } catch {}
     setLoaded(true)
   }, [])
@@ -114,17 +167,17 @@ export default function JoinForm() {
   }, [d, step, loaded])
 
   // ---- validation ----
-  const step1Valid = !!d.fullName?.trim() && !!d.heritageConfirm && !!d.falseInfoConfirm
+  const step1Valid = !!d.fullName?.trim() && isEmail(d.email || '') && !!d.heritageConfirm && !!d.falseInfoConfirm
   function step2Missing(): boolean {
     const need = ['gender', 'yearOfBirth', 'ukCity', 'indiaCity', 'emirate', 'maritalStatus', 'businessType', 'termsConfirm']
     for (const k of need) if (!d[k]?.trim()) return true
-    if (!isEmail(d.email || '')) return true
     if (!isPhone(d.uaeMobile || '')) return true
     if (d.howHeard === 'bild_member' && (!d.referrerName?.trim() || !isPhone(d.referrerMobile || ''))) return true
     if (d.maritalStatus === 'married') {
       if (!d.hasChildren) return true
       if (d.hasChildren === 'yes' && !d.childrenAges?.trim()) return true
-      if (!d.partnerName?.trim() || !isPhone(d.partnerMobile || '')) return true
+      if (!d.partnerIsBildMember) return true
+      if (d.partnerIsBildMember === 'yes' && (!d.partnerName?.trim() || !isPhone(d.partnerMobile || ''))) return true
     }
     if (d.businessType === 'business_owner' || d.businessType === 'professional') {
       for (const k of ['companyName', 'industry', 'jobTitle', 'linkedin', 'sponsorInterest', 'promoInterest']) if (!d[k]?.trim()) return true
@@ -136,30 +189,37 @@ export default function JoinForm() {
     e.preventDefault(); setTried1(true)
     if (d.heritageConfirm === 'no' || d.falseInfoConfirm === 'no') { setIneligible(true); return }
     if (!step1Valid) return
-    setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' })
+    captureLead(d)
+    setStep(2)
+    requestAnimationFrame(() => scrollToRef(membershipRef))
   }
   function submitStep2(e: React.FormEvent) {
     e.preventDefault(); setTried2(true)
     if (d.termsConfirm === 'no') { setIneligible(true); return }
     if (step2Missing()) {
-      // Scroll to the first highlighted (invalid) field
-      requestAnimationFrame(() => {
+      // Scroll to the first highlighted (invalid) field. setTimeout rather
+      // than requestAnimationFrame: rAF is throttled/paused for backgrounded
+      // or non-foreground tabs, which would silently drop this scroll for
+      // anyone not actively focused on the tab at that instant.
+      setTimeout(() => {
         const firstInvalid = step2Ref.current?.querySelector('.border-ruby-500')
         if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' })
         else step2Ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
+      }, 0)
       return
     }
-    setStep(3); window.scrollTo({ top: 0, behavior: 'smooth' })
+    captureLead(d)
+    setStep(3)
+    requestAnimationFrame(() => scrollToRef(topAnchorRef))
   }
 
   async function pay() {
     setSubmitting(true); setError('')
     try {
-      const res = await fetch('/api/join/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) })
+      const res = await fetch('/api/join/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadId: leadIdRef.current, ...d }) })
       const json = await res.json()
       if (res.ok && json.url) {
-        try { localStorage.removeItem(STORAGE_KEY) } catch {}
+        try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(LEAD_ID_KEY) } catch {}
         window.location.href = json.url
       } else { setError(json.error || 'Could not start payment. Please try again or email connect@bild.ae'); setSubmitting(false) }
     } catch { setError('Could not start payment. Please check your connection and try again.'); setSubmitting(false) }
@@ -179,7 +239,7 @@ export default function JoinForm() {
   return (
     <div>
       {/* Reassurance strip */}
-      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 mb-6 text-xs text-charcoal-500">
+      <div ref={topAnchorRef} className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 mb-6 text-xs text-charcoal-500">
         <span className="inline-flex items-center gap-1.5"><Clock size={13} className="text-gold-500" /> Takes about 2 minutes</span>
         <span className="inline-flex items-center gap-1.5"><Save size={13} className="text-gold-500" /> Progress saved automatically</span>
         <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} className="text-gold-500" /> Secure payment by Stripe</span>
@@ -203,40 +263,68 @@ export default function JoinForm() {
         <div className="h-full bg-gold-500 transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }} />
       </div>
 
-      <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+      {/* Remounting on step change replays the CSS entrance. */}
+      <div key={step} className="animate-step-in">
 
         {/* STEP 1 */}
         {step === 1 && (
           <form onSubmit={submitStep1} className="space-y-6">
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-card">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Eligibility</legend>
               <TextField label="Please enter your full name" value={d.fullName || ''} onChange={v => set('fullName', v)} required placeholder="Your full name" showError={tried1} />
+              <TextField label="Email Address" value={d.email || ''} onChange={v => set('email', v)} required type="email" placeholder="you@example.com" validate={isEmail} showError={tried1} />
               <div>
-                <p className={labelCls}>I confirm that I am of British Indian heritage (Indian origin + born, raised, or previously settled in the UK) or married to someone who is, and meet the eligibility criteria. {req}</p>
+                <p className={labelCls}>{ELIGIBILITY_CONFIRMATION} {req}</p>
                 <p className="text-xs text-charcoal-400 mb-2">Please review our <Link href="/community-rules" className="text-gold-600 hover:underline">membership rules</Link> before answering.</p>
-                <Toggle value={d.heritageConfirm || ''} onChange={v => set('heritageConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} />
+                <Toggle value={d.heritageConfirm || ''} onChange={v => set('heritageConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried1 && !d.heritageConfirm} />
               </div>
               <div>
                 <p className={labelCls}>I understand that providing false information will result in immediate removal. {req}</p>
-                <Toggle value={d.falseInfoConfirm || ''} onChange={v => set('falseInfoConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} />
+                <Toggle value={d.falseInfoConfirm || ''} onChange={v => set('falseInfoConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried1 && !d.falseInfoConfirm} />
               </div>
             </fieldset>
             <div className="sticky bottom-3 z-20 sm:static">
-              <button type="submit" className="w-full bg-gradient-to-b from-gold-400 to-gold-600 text-white py-4 rounded-xl font-semibold text-lg hover:from-gold-500 hover:to-gold-700 active:scale-[0.99] transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-gold-500/20">Continue <ArrowRight size={18} /></button>
+              <button type="submit" className={`${btnPrimary} w-full py-4 text-lg`}>Continue <ArrowRight size={18} /></button>
             </div>
           </form>
         )}
 
         {/* STEP 2 */}
         {step === 2 && (
+          <>
+            <div ref={membershipRef} className="relative overflow-hidden bg-charcoal-800 rounded-2xl p-7 sm:p-8 mb-6">
+              <div
+                className="absolute top-0 right-0 w-56 h-56 rounded-full blur-[90px] opacity-20 -translate-y-1/3 translate-x-1/4"
+                style={{ background: 'radial-gradient(circle, #C8861A 0%, transparent 70%)' }}
+              />
+              <div className="relative z-10">
+                <h2 className="text-white font-display text-2xl font-bold mb-4 text-center">Your BILD Membership ❤️</h2>
+                <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                  Welcome to the BILD family! <span className="text-gold-400 font-semibold">A membership fee of 50 AED</span> gives you access to our growing community
+                  of 2,000+ members, including 50+ WhatsApp groups, British Indian events and celebrations,
+                  networking opportunities, our BILD Business Directory and much more.
+                </p>
+                <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                  By becoming a member, you&rsquo;re helping us continue to bring people together, create memorable
+                  experiences, support connections and build a stronger British Indian community across the UAE.
+                </p>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  We can&rsquo;t wait to welcome you, connect with you and have you be part of the BILD journey! ✨
+                </p>
+                {googleReviews && (
+                  <div className="mt-6 pt-6 border-t border-white/10 flex justify-center">
+                    <GoogleRatingBadge rating={googleReviews.rating} totalReviews={googleReviews.totalReviews} mapsUrl={googleReviews.mapsUrl} />
+                  </div>
+                )}
+              </div>
+            </div>
           <form ref={step2Ref} onSubmit={submitStep2} className="space-y-6">
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-card">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Your Details</legend>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className={labelCls}>Gender {req}</label>
-                  <Toggle value={d.gender || ''} onChange={v => set('gender', v)} options={[['male', 'Male'], ['female', 'Female']]} />
-                  {tried2 && !d.gender && <p className="text-xs text-ruby-500 mt-1">Please select.</p>}
+                  <Toggle value={d.gender || ''} onChange={v => set('gender', v)} options={[['male', 'Male'], ['female', 'Female']]} invalid={tried2 && !d.gender} />
                 </div>
                 <div>
                   <label className={labelCls}>Year of Birth {req}</label>
@@ -250,21 +338,24 @@ export default function JoinForm() {
                 <TextField label="Where in the UK are you from? (City/Town)" value={d.ukCity || ''} onChange={v => set('ukCity', v)} required showError={tried2} />
                 <TextField label="City/Town of India you or your family are from" value={d.indiaCity || ''} onChange={v => set('indiaCity', v)} required showError={tried2} />
               </div>
-              <TextField label="Religion" value={d.religion || ''} onChange={v => set('religion', v)} hint="Optional — helps us celebrate your cultural events" />
+              <TextField label="Religion" value={d.religion || ''} onChange={v => set('religion', v)} hint="Optional - helps us celebrate your cultural events" />
               <div className="grid sm:grid-cols-2 gap-5">
                 <PhoneField label="UAE Mobile Number" value={d.uaeMobile || ''} onChange={v => set('uaeMobile', v)} required showError={tried2} />
                 <TextField label="WhatsApp Number" value={d.whatsappNumber || ''} onChange={v => set('whatsappNumber', v)} hint="If different from above" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-5">
-                <TextField label="Email Address" value={d.email || ''} onChange={v => set('email', v)} required type="email" placeholder="you@example.com" validate={isEmail} showError={tried2} />
-                <TextField label="Instagram" value={d.instagram || ''} onChange={v => set('instagram', v)} placeholder="@handle" hint="Optional" />
-              </div>
+              <TextField label="Instagram" value={d.instagram || ''} onChange={v => set('instagram', v)} placeholder="@handle" hint="Optional" />
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
                   <label className={labelCls}>Date you moved / will move to UAE {req}</label>
                   <input type="date" value={d.movedDate || ''} onChange={e => set('movedDate', e.target.value)} className={`${inputBase} ${tried2 && !d.movedDate ? 'border-ruby-500' : d.movedDate ? 'border-green-400' : 'border-gold-200'}`} />
                 </div>
-                <TextField label="Which UAE Emirate do you live in?" value={d.emirate || ''} onChange={v => set('emirate', v)} required placeholder="e.g. Dubai" showError={tried2} />
+                <div>
+                  <label className={labelCls}>Which UAE Emirate do you live in? {req}</label>
+                  <select value={d.emirate || ''} onChange={e => set('emirate', e.target.value)} className={`${inputBase} ${tried2 && !d.emirate ? 'border-ruby-500' : d.emirate ? 'border-green-400' : 'border-gold-200'}`}>
+                    <option value="">Select emirate</option>
+                    {EMIRATES.map(em => <option key={em} value={em}>{em}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className={labelCls}>How did you hear about us?</label>
@@ -273,7 +364,7 @@ export default function JoinForm() {
             </fieldset>
 
             {d.howHeard === 'bild_member' && (
-              <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
+              <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-card">
                 <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Referral Details</legend>
                 <div className="grid sm:grid-cols-2 gap-5">
                   <TextField label="Name of BILD member who recommended you" value={d.referrerName || ''} onChange={v => set('referrerName', v)} required showError={tried2} />
@@ -282,34 +373,43 @@ export default function JoinForm() {
               </fieldset>
             )}
 
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-card">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Family Information</legend>
               <div>
                 <label className={labelCls}>Marital Status {req}</label>
-                <Toggle value={d.maritalStatus || ''} onChange={v => set('maritalStatus', v)} options={[['single', 'Single'], ['married', 'Married']]} />
-                {tried2 && !d.maritalStatus && <p className="text-xs text-ruby-500 mt-1">Please select.</p>}
+                <Toggle value={d.maritalStatus || ''} onChange={v => set('maritalStatus', v)} options={[['single', 'Single'], ['married', 'Married']]} invalid={tried2 && !d.maritalStatus} />
               </div>
               {d.maritalStatus === 'married' && (
                 <>
                   <div>
                     <label className={labelCls}>Do you have children? {req}</label>
-                    <Toggle value={d.hasChildren || ''} onChange={v => set('hasChildren', v)} options={[['yes', 'Yes'], ['no', 'No']]} />
+                    <Toggle value={d.hasChildren || ''} onChange={v => set('hasChildren', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried2 && !d.hasChildren} />
                   </div>
                   {d.hasChildren === 'yes' && <TextField label="Your children's ages (helps us connect families)" value={d.childrenAges || ''} onChange={v => set('childrenAges', v)} required placeholder="e.g. 4, 7, 11" showError={tried2} />}
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <TextField label="Is your partner a BILD member? If so, their name" value={d.partnerName || ''} onChange={v => set('partnerName', v)} required placeholder="Name, or 'No'" showError={tried2} />
-                    <PhoneField label="Partner's mobile number" value={d.partnerMobile || ''} onChange={v => set('partnerMobile', v)} required showError={tried2} />
+                  <div>
+                    <label className={labelCls}>Is your partner a BILD member? {req}</label>
+                    <select value={d.partnerIsBildMember || ''} onChange={e => set('partnerIsBildMember', e.target.value)}
+                      className={`${inputBase} sm:max-w-[180px] ${tried2 && !d.partnerIsBildMember ? 'border-ruby-500' : d.partnerIsBildMember ? 'border-green-400' : 'border-gold-200'}`}>
+                      <option value="">Select an option</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
                   </div>
+                  {d.partnerIsBildMember === 'yes' && (
+                    <div className="grid sm:grid-cols-2 gap-5">
+                      <TextField label="Partner's name" value={d.partnerName || ''} onChange={v => set('partnerName', v)} required showError={tried2} />
+                      <PhoneField label="Partner's mobile number" value={d.partnerMobile || ''} onChange={v => set('partnerMobile', v)} required showError={tried2} />
+                    </div>
+                  )}
                 </>
               )}
             </fieldset>
 
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-card">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Professional &amp; Business</legend>
               <div>
                 <label className={labelCls}>Are you a British Indian business owner or professional in UAE? {req}</label>
-                <Toggle value={d.businessType || ''} onChange={v => set('businessType', v)} options={[['business_owner', 'Business Owner'], ['professional', 'Professional'], ['neither', 'Neither']]} />
-                {tried2 && !d.businessType && <p className="text-xs text-ruby-500 mt-1">Please select.</p>}
+                <Toggle value={d.businessType || ''} onChange={v => set('businessType', v)} options={[['business_owner', 'Business Owner'], ['professional', 'Professional'], ['neither', 'Neither']]} invalid={tried2 && !d.businessType} />
               </div>
               {(d.businessType === 'business_owner' || d.businessType === 'professional') && (
                 <>
@@ -320,42 +420,43 @@ export default function JoinForm() {
                   <TextField label="Job Title" value={d.jobTitle || ''} onChange={v => set('jobTitle', v)} required showError={tried2} />
                   <TextField label="LinkedIn Profile" value={d.linkedin || ''} onChange={v => set('linkedin', v)} required placeholder="https://linkedin.com/in/…" showError={tried2} />
                   <div className="grid sm:grid-cols-2 gap-5">
-                    <div><label className={labelCls}>Interested in sponsoring future BILD events? {req}</label><Toggle value={d.sponsorInterest || ''} onChange={v => set('sponsorInterest', v)} options={[['yes', 'Yes'], ['no', 'No']]} /></div>
-                    <div><label className={labelCls}>Interested in paid promotions/collaborations on BILD social? {req}</label><Toggle value={d.promoInterest || ''} onChange={v => set('promoInterest', v)} options={[['yes', 'Yes'], ['no', 'No']]} /></div>
+                    <div><label className={labelCls}>Interested in sponsoring future BILD events? {req}</label><Toggle value={d.sponsorInterest || ''} onChange={v => set('sponsorInterest', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried2 && !d.sponsorInterest} /></div>
+                    <div><label className={labelCls}>Interested in paid promotions/collaborations on BILD social? {req}</label><Toggle value={d.promoInterest || ''} onChange={v => set('promoInterest', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried2 && !d.promoInterest} /></div>
                   </div>
                 </>
               )}
             </fieldset>
 
-            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 shadow-[0_6px_24px_rgba(20,20,20,0.05)]">
+            <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 shadow-card">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Community Terms</legend>
               <p className="text-sm text-charcoal-600 mb-3">Do you confirm to abide by the BILD <Link href="/terms" className="text-gold-600 hover:underline">community terms</Link>, including UAE laws, and understand that providing false information will result in immediate removal? {req}</p>
-              <Toggle value={d.termsConfirm || ''} onChange={v => set('termsConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} />
+              <Toggle value={d.termsConfirm || ''} onChange={v => set('termsConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried2 && !d.termsConfirm} />
             </fieldset>
 
             {tried2 && step2Missing() && <p className="text-sm text-ruby-500 text-center bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">Please complete the highlighted fields above.</p>}
 
             <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
-              <button type="button" onClick={() => setStep(1)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-              <button type="submit" className="flex-1 bg-gradient-to-b from-gold-400 to-gold-600 text-white py-3 rounded-xl font-semibold text-lg hover:from-gold-500 hover:to-gold-700 active:scale-[0.99] transition-all inline-flex items-center justify-center gap-2 shadow-lg shadow-gold-500/20">Review &amp; Pay <ArrowRight size={18} /></button>
+              <button type="button" onClick={() => { setStep(1); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+              <button type="submit" className={`${btnPrimary} flex-1 py-3 text-lg`}>Review &amp; Pay <ArrowRight size={18} /></button>
             </div>
           </form>
+          </>
         )}
 
-        {/* STEP 3 — Review + Pay */}
+        {/* STEP 3 - Review + Pay */}
         {step === 3 && (
           <div className="space-y-6">
             <div className="bg-charcoal-800 rounded-2xl p-8 text-center">
-              <p className="text-gold-400 font-semibold text-sm uppercase tracking-widest mb-2">Lifetime Membership</p>
+              <p className="text-gold-400 font-semibold text-sm uppercase tracking-widest mb-2">BILD Membership</p>
               <p className="text-white font-display text-5xl font-bold">50 <span className="text-2xl">AED</span></p>
-              <p className="text-gray-400 text-sm mt-2">One-off contribution. Secure payment via Stripe.</p>
+              <p className="text-gray-400 text-sm mt-2">One-off fee. Secure payment via Stripe.</p>
             </div>
 
             {/* Review summary */}
             <div className="bg-cream border border-gold-200 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display font-bold text-charcoal-800 text-lg">Review your details</h3>
-                <button onClick={() => { setStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }) }} className="text-sm text-gold-600 hover:underline inline-flex items-center gap-1"><Pencil size={13} /> Edit</button>
+                <button onClick={() => { setStep(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="text-sm text-gold-600 hover:underline inline-flex items-center gap-1"><Pencil size={13} /> Edit</button>
               </div>
               <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 {([
@@ -374,15 +475,15 @@ export default function JoinForm() {
             {error && <p className="text-ruby-500 text-sm text-center bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">{error}</p>}
 
             <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
-              <button type="button" onClick={() => setStep(2)} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
-              <button onClick={pay} disabled={submitting} className="flex-1 bg-gradient-to-b from-gold-400 to-gold-600 text-white py-3 rounded-xl font-semibold text-lg hover:from-gold-500 hover:to-gold-700 active:scale-[0.99] transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2 shadow-lg shadow-gold-500/25">
+              <button type="button" onClick={() => { setStep(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+              <button onClick={pay} disabled={submitting} className={`${btnPrimary} flex-1 py-3 text-lg`}>
                 <Lock size={16} /> {submitting ? 'Redirecting to payment…' : 'Pay 50 AED & Join'}
               </button>
             </div>
             <p className="flex items-center justify-center gap-1.5 text-xs text-charcoal-400"><ShieldCheck size={13} className="text-gold-500" /> Secured by Stripe. We never see your card details.</p>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   )
 }

@@ -3,17 +3,26 @@ import Image from 'next/image'
 import { Mail } from 'lucide-react'
 import { FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa'
 import { SITE_CONFIG } from '@/data/config'
+import { isLivePath } from '@/lib/launch'
 
-const navLinks = [
+const allNavLinks = [
   { href: '/about', label: 'About BILD' },
   { href: '/events', label: 'Events' },
   { href: '/photo-vault', label: 'Photo Vault' },
   { href: '/faces-of-bild', label: 'Faces of BILD' },
   { href: '/directory', label: 'Business Directory' },
+  { href: '/testimonials', label: 'Testimonials' },
+  { href: '/knowledge-base', label: 'Knowledge Base' },
   { href: '/join', label: 'Join BILD' },
+  { href: '/contact', label: 'Contact' },
   { href: '/community-rules', label: 'Community Rules' },
   { href: '/terms', label: 'Terms & Conditions' },
+  { href: '/privacy', label: 'Privacy Policy' },
+  { href: '/refund-policy', label: 'Refund Policy' },
 ]
+
+// Hide links to pages that aren't live during soft launch.
+const navLinks = allNavLinks.filter((l) => isLivePath(l.href))
 
 export default function Footer() {
   return (
@@ -23,7 +32,7 @@ export default function Footer() {
           <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain mb-3 brightness-0 invert" />
           <p className="text-sm text-gray-400 mb-4">British Indians Living in Dubai</p>
           <p className="text-sm leading-relaxed text-gray-400">
-            A not-for-profit community connecting British Indians in the UAE through culture, connection, and commerce.
+            A membership network connecting British Indians in the UAE through culture, connection, and commerce.
           </p>
         </div>
 
@@ -83,7 +92,7 @@ export default function Footer() {
 
       <div className="border-t border-charcoal-700 py-5 text-center text-xs text-gray-500">
         <p>© {new Date().getFullYear()} BILD. British Indians Living in Dubai. All rights reserved.</p>
-        <p className="mt-1">A not-for-profit community organisation. Registered in UAE.</p>
+        <p className="mt-1">Licensed by the Dubai Department of Economy &amp; Tourism (B.I.L.D AE Events Organizing &amp; Managing).</p>
       </div>
     </footer>
   )

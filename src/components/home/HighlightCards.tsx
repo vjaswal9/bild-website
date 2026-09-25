@@ -12,7 +12,7 @@ const cards = [
   {
     icon: Building2,
     title: 'Business Directory',
-    description: 'Find and support British Indian businesses and professionals across the UAE.',
+    description: 'Find British Indian businesses and professionals across the UAE and UK.',
     href: '/directory',
     cta: 'Browse Directory',
   },
@@ -21,7 +21,7 @@ const cards = [
     title: 'Join the Community',
     description: 'Become a BILD member and connect with hundreds of British Indians living in Dubai and across the UAE.',
     href: '/join',
-    cta: 'Join BILD',
+    cta: 'Join BILD ⭐',
     highlight: true,
   },
 ]

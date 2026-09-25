@@ -1,5 +1,6 @@
 'use client'
 
+import { ELIGIBILITY_SUMMARY } from '@/lib/eligibility'
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -7,11 +8,11 @@ import { cn } from '@/lib/utils'
 const faqs = [
   {
     q: 'Who is eligible to join BILD?',
-    a: 'BILD is open to individuals of Indian origin who were born or raised in the United Kingdom, identify with both British and Indian culture, and are currently residing in the UAE. Spouses and partners of British Indians who meet these criteria are also welcome.',
+    a: ELIGIBILITY_SUMMARY,
   },
   {
     q: 'How much does membership cost?',
-    a: 'Lifetime membership is a one-off 50 AED fee: one simple payment for permanent access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
+    a: 'Membership is a one-off 50 AED fee: one simple payment for access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
   },
   {
     q: 'What happens after I sign up?',
@@ -23,11 +24,11 @@ const faqs = [
   },
   {
     q: 'Can I get a refund?',
-    a: 'As a not-for-profit community, membership fees go directly toward organising events and running the community. Refunds are not available, but if you have concerns please reach out to us directly.',
+    a: 'Membership fees go directly toward organising events and running the network. Refunds are not available, but if you have concerns please reach out to us directly.',
   },
   {
     q: 'Can I list my business in the BILD directory?',
-    a: 'Yes. BILD members can list their businesses in our Business Directory. This is included in your membership. Contact us after joining to submit your business details.',
+    a: 'Yes. BILD members can list their businesses in our Business Directory at a discounted member rate. Non-BILD businesses are also welcome to list, at a standard rate.',
   },
 ]
 
@@ -36,11 +37,26 @@ export default function FAQAccordion() {
 
   return (
     <div className="space-y-3">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqs.map(faq => ({
+              '@type': 'Question',
+              name: faq.q,
+              acceptedAnswer: { '@type': 'Answer', text: faq.a },
+            })),
+          }),
+        }}
+      />
       {faqs.map((faq, i) => (
         <div key={i} className="border border-gold-200 rounded-xl overflow-hidden">
           <button
             className="w-full flex items-center justify-between px-6 py-4 text-left font-semibold text-charcoal-800 hover:bg-gold-50 transition-colors"
             onClick={() => setOpen(open === i ? null : i)}
+            aria-expanded={open === i}
           >
             {faq.q}
             <ChevronDown
@@ -48,11 +64,18 @@ export default function FAQAccordion() {
               className={cn('shrink-0 text-gold-500 transition-transform', open === i && 'rotate-180')}
             />
           </button>
-          {open === i && (
-            <div className="px-6 pb-4 text-charcoal-600 text-sm leading-relaxed border-t border-gold-100">
-              <p className="pt-4">{faq.a}</p>
+          <div
+            className={cn(
+              'grid transition-all duration-300 ease-in-out',
+              open === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+            )}
+          >
+            <div className="overflow-hidden">
+              <div className="px-6 pb-4 text-charcoal-600 text-sm leading-relaxed border-t border-gold-100">
+                <p className="pt-4">{faq.a}</p>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       ))}
     </div>

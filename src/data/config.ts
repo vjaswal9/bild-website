@@ -8,12 +8,19 @@ export const SITE_CONFIG = {
   facebookUrl: 'https://www.facebook.com/groups/2465313657124373',
   linkedinUrl: 'https://www.linkedin.com/groups/10025041/',
   contactEmail: 'connect@bild.ae',
+  // Events have their own inbox: ticket questions, waitlists, transfers and
+  // refunds all go here rather than to general enquiries.
+  eventsEmail: 'events@bild.ae',
   membershipFeeAED: 50,
   // Get your free endpoint at formspree.io replace REPLACE_ME with your form ID
   businessFormEndpoint: 'https://formspree.io/f/REPLACE_ME',
   foundedYear: 2019,
+  // The number of specialist WhatsApp community groups. Written out in eight
+  // different places across the site before this, which is why updating it
+  // meant finding all eight. Change it here only.
+  whatsappCommunities: 55,
   siteName: 'BILD',
   siteTagline: 'British Indians Living in Dubai',
   siteDescription:
-    'A not-for-profit community connecting British Indians living in the UAE through cultural celebrations, social events, and business networking.',
+    'A membership network connecting British Indians living in the UAE through cultural celebrations, social events, and business networking.',
 }

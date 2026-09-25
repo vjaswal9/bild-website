@@ -6,7 +6,12 @@ import PageHero from '@/components/ui/PageHero'
 import SuccessCelebration from '@/components/join/SuccessCelebration'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-export const metadata: Metadata = { title: 'Welcome to BILD' }
+export const metadata: Metadata = {
+  // Just 'Welcome': the title template already appends '| BILD'.
+  title: 'Welcome',
+  description: 'Your BILD membership is confirmed - next steps to join the community.',
+  robots: { index: false, follow: true },
+}
 export const dynamic = 'force-dynamic'
 
 export default async function JoinSuccessPage({
@@ -16,18 +21,21 @@ export default async function JoinSuccessPage({
 }) {
   const { session_id } = await searchParams
 
-  type M = { full_name: string; status: string; invite_token: string }
+  type M = { full_name: string; status: string; invite_token: string; gender: string }
   let member: M | null = null
   if (session_id) {
     const { data } = await supabaseAdmin
       .from('members')
-      .select('full_name, status, invite_token')
+      .select('full_name, status, invite_token, gender')
       .eq('stripe_session_id', session_id)
       .maybeSingle()
     member = (data as M | null) ?? null
   }
 
   const paid = member?.status === 'paid'
+  // Everyone gets the automated invite link; it resolves to the correct
+  // (male/female) WhatsApp group based on the member's gender.
+  const manualAdd = !member?.invite_token
 
   return (
     <>
@@ -43,20 +51,41 @@ export default async function JoinSuccessPage({
               <h2 className="font-display text-3xl font-bold text-charcoal-800 mb-3">
                 You&apos;re in{member?.full_name ? `, ${member.full_name.split(' ')[0]}` : ''}! 🎉
               </h2>
-              <p className="text-charcoal-600 mb-8">
-                Your 50 AED lifetime membership is confirmed. One last step — tap below to join your BILD WhatsApp group.
-                This link is single-use and just for you.
-              </p>
-              <a
-                href={`/j/${member!.invite_token}`}
-                className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#1da851] transition-all"
-              >
-                <FaWhatsapp size={22} /> Join your BILD WhatsApp group
-              </a>
-              <p className="text-xs text-charcoal-400 mt-4">
-                The link expires in 48 hours and can only be used once. Trouble joining?{' '}
-                <a href="mailto:connect@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
-              </p>
+              {manualAdd ? (
+                <>
+                  <p className="text-charcoal-600 mb-6">
+                    Your 50 AED membership fee is confirmed. Welcome to the BILD family!
+                  </p>
+                  <div className="bg-gold-50 border border-gold-200 rounded-xl px-6 py-5 text-left max-w-md mx-auto">
+                    <p className="text-charcoal-700 font-medium mb-1">One last thing</p>
+                    <p className="text-charcoal-600 text-sm">
+                      One of our team will add you to your BILD WhatsApp group shortly.
+                      Please keep an eye on your WhatsApp over the next day or so. We&apos;ve also emailed you these details.
+                    </p>
+                  </div>
+                  <p className="text-xs text-charcoal-400 mt-5">
+                    Questions?{' '}
+                    <a href="mailto:connect@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-charcoal-600 mb-8">
+                    Your 50 AED membership fee is confirmed. One last step, tap below to join your BILD WhatsApp group.
+                    This link is single-use and just for you.
+                  </p>
+                  <a
+                    href={`/j/${member!.invite_token}`}
+                    className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-[#1da851] transition-all"
+                  >
+                    <FaWhatsapp size={22} /> Join your BILD WhatsApp group
+                  </a>
+                  <p className="text-xs text-charcoal-400 mt-4">
+                    The link expires in 48 hours and can only be used once. Trouble joining?{' '}
+                    <a href="mailto:connect@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
+                  </p>
+                </>
+              )}
             </>
           ) : (
             <>
@@ -65,7 +94,7 @@ export default async function JoinSuccessPage({
               </div>
               <h2 className="font-display text-3xl font-bold text-charcoal-800 mb-3">Confirming your payment…</h2>
               <p className="text-charcoal-600 mb-6">
-                Thanks for joining BILD! We&apos;re just confirming your payment — this can take a few seconds.
+                Thanks for joining BILD! We&apos;re just confirming your payment - this can take a few seconds.
                 Refresh this page shortly to get your WhatsApp group link.
               </p>
               <Link href="/join/success" className="text-gold-600 hover:underline font-medium">Refresh</Link>

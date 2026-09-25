@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { btnPrimary } from '@/lib/ui'
 
 export default function JoinCTA() {
   return (
@@ -10,11 +11,8 @@ export default function JoinCTA() {
         <p className="text-gray-300 text-lg mb-8">
           Connect with British Indians across Dubai and the UAE.
         </p>
-        <Link
-          href="/join"
-          className="inline-block bg-gold-500 text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-gold-600 transition-all hover:shadow-lg hover:-translate-y-0.5"
-        >
-          Become a Member Today
+        <Link href="/join" className={`${btnPrimary} px-10 py-4 text-lg hover:scale-105 transition-transform animate-pulse-glow`}>
+          Join BILD ⭐
         </Link>
       </div>
     </section>

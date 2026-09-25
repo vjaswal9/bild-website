@@ -10,19 +10,19 @@ const benefits = [
   'WhatsApp community group access',
   'Networking with British Indians across UAE',
   'Family-friendly events included',
-  'Support from a trusted British Indian community',
+  'Support from a British Indian community that has your back',
 ]
 
 export default function MembershipCard() {
   return (
     <div className="max-w-md mx-auto bg-gold-50 rounded-2xl shadow-xl border border-gold-100 overflow-hidden">
       <div className="bg-charcoal-800 p-8 text-center">
-        <p className="text-gold-400 font-semibold text-sm uppercase tracking-widest mb-2">Lifetime Membership</p>
+        <p className="text-gold-400 font-semibold text-sm uppercase tracking-widest mb-2">BILD Membership</p>
         <div className="flex items-end justify-center gap-1">
           <span className="text-white font-display text-6xl font-bold">{SITE_CONFIG.membershipFeeAED}</span>
           <span className="text-gray-300 text-xl mb-2">AED</span>
         </div>
-        <p className="text-gray-400 text-sm mt-2">One simple fee. Lifetime community access.</p>
+        <p className="text-gray-400 text-sm mt-2">One simple fee. Full community access.</p>
       </div>
 
       <div className="p-8">

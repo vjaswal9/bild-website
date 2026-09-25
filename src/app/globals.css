@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
+/* Fonts are loaded via next/font in src/app/layout.tsx, which self-hosts them
+   from our own domain. Importing them here instead would block the first
+   paint on a round trip to Google. */
 
 @tailwind base;
 @tailwind components;
@@ -19,8 +21,53 @@
   }
 }
 
+/* The "show all testimonials" toggle on a business profile. Written here
+   rather than with Tailwind's open: variant so the label swap is explicit. */
+.bt-more > summary::-webkit-details-marker { display: none; }
+.bt-more > summary { list-style: none; }
+.bt-more[open] > summary .bt-more-show { display: none; }
+.bt-more:not([open]) > summary .bt-more-less { display: none; }
+
 @keyframes pop {
   0% { transform: scale(0); opacity: 0; }
   60% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Ambient decoration. */
+  .animate-glow-drift-1,
+  .animate-glow-drift-2,
+  .animate-pulse-glow,
+  /* Content entrances. These were missing, which meant the two animations
+     that run on literally every page were still moving for people who had
+     asked the operating system for no motion: page-in translates and scales
+     the whole page on every navigation, and the fade-up delays stagger the
+     hero. Those are exactly the effects the setting exists to stop. */
+  .animate-page-in,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-fade-up-d1,
+  .animate-fade-up-d2,
+  .animate-fade-up-d3,
+  .animate-fade-up-d4,
+  .animate-slide-in,
+  .animate-step-in {
+    animation: none !important;
+  }
+
+  /* Anything that animates in must still end up visible, not stuck at the
+     keyframe's starting opacity. */
+  .animate-page-in,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-fade-up-d1,
+  .animate-fade-up-d2,
+  .animate-fade-up-d3,
+  .animate-fade-up-d4,
+  .animate-slide-in,
+  .animate-step-in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

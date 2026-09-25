@@ -27,8 +27,8 @@ export default function HeroPlexus() {
     let rafId = 0
 
     const LINK_DIST = 150 // px in CSS space
-    const GOLD = '198, 134, 26' // #C8861A rgb
-    const GOLD_LIGHT = '224, 161, 53' // #E0A135 rgb
+    const GOLD = '200, 166, 75' // #C8861A rgb
+    const GOLD_LIGHT = '224, 161, 53' // #e0a135 rgb
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2)
