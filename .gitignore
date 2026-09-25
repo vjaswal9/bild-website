@@ -35,3 +35,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# Local working material, not part of the site.
+#
+# documents/ is the drop folder for source files (spreadsheets, the original
+# hero photographs at full size). The versions the site actually serves live in
+# public/images/ and are committed; these are the 55MB of originals they were
+# made from, which would bloat the repository permanently for no benefit.
+/documents/
+
+# Dated backups taken by hand before a risky change.
+/.icon-backup-*
