@@ -35,7 +35,7 @@ const PER_DAY = Number(process.env.REVIEW_REQUESTS_PER_DAY) || 12
 // last ask will ignore this one too.
 const COOLDOWN_DAYS = 120
 
-type Candidate = { eventId: string; eventTitle: string; email: string; firstName: string | null }
+type Candidate = { eventId: string; eventTitle: string; email: string; firstName: string | null; endedAt: number }
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -88,6 +88,7 @@ export async function GET(req: NextRequest) {
 
   const eventIds = finished.map(e => e.id)
   const titleById = new Map(finished.map(e => [e.id, e.title as string]))
+  const endedById = new Map(finished.map(e => [e.id, new Date(e.end_date || e.event_date).getTime()]))
 
   // Everyone who actually attended: paid, not refunded.
   const { data: regs, error: regsErr } = await supabaseAdmin
@@ -150,8 +151,16 @@ export async function GET(req: NextRequest) {
       eventTitle: titleById.get(r.event_id) || 'a BILD event',
       email,
       firstName: r.first_name || null,
+      endedAt: endedById.get(r.event_id) || 0,
     })
   }
+
+  // Oldest event first, because eligibility expires. With two events live and
+  // 102 people to get through at twelve a day, ordering by booking time mixed
+  // the two together and left the older event's attendees to be sent last -
+  // exactly the ones whose 21-day window closes first. Sorting this way means
+  // nobody ages out while a less urgent ask goes ahead of them.
+  candidates.sort((a, b) => a.endedAt - b.endedAt)
 
   const batch = candidates.slice(0, PER_DAY)
 
