@@ -39,6 +39,10 @@
     {
       "path": "/api/cron/directory-leads-report",
       "schedule": "45 5 * * 1"
+    },
+    {
+      "path": "/api/cron/event-review-request",
+      "schedule": "30 6 * * *"
     }
   ]
 }

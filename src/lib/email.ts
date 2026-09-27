@@ -2367,3 +2367,53 @@ export async function sendGetFeaturedLinkEmail(opts: { to: string; businessName:
   await sendResendEmail(opts.to, `Your BILD Get Featured link`, html, 'Get Featured link email')
 }
 
+
+// Asks one attendee for a Google review, a couple of days after the event.
+//
+// The tone is deliberately low-pressure and the ask is for a SENTENCE, not a
+// star rating. Both of those are anti-spam-filter measures as much as they are
+// manners: Google's filter eats bare five-star ratings from accounts with no
+// history first, and a review that says something specific about the evening
+// is both more likely to survive and more use to anyone reading it.
+//
+// No incentive is offered and none ever should be. Trading anything for a
+// review breaches Google's policy and risks the whole profile, not just the
+// review.
+export async function sendEventReviewRequest(opts: {
+  to: string
+  firstName?: string
+  eventTitle: string
+  reviewUrl: string
+}) {
+  const first = esc(opts.firstName?.split(' ')[0] || 'there')
+  const html = bizEmailShell({
+    kicker: 'BILD Events',
+    contact: 'events@bild.ae',
+    heading: 'How was it?',
+    bodyHtml: `
+      <p>Hi ${first},</p>
+      <p>Thank you for coming to <strong>${esc(opts.eventTitle)}</strong>. We hope you had a good evening and met
+      some people worth knowing.</p>
+      <p>If you enjoyed it, would you mind leaving us a line on Google? It genuinely helps other British Indians
+      in Dubai find the community, and it is the main way people decide whether we are worth turning up to.</p>
+      <p style="text-align:center;margin:26px 0">
+        <a href="${esc(opts.reviewUrl)}"
+           style="display:inline-block;background:#C8861A;color:#ffffff;text-decoration:none;font-weight:700;
+                  font-size:16px;padding:14px 30px;border-radius:12px">Leave a review</a>
+      </p>
+      <p><strong>One small ask:</strong> a sentence about what you actually enjoyed is worth far more than a bare
+      star rating, both to the person reading it and to Google, which tends to hide reviews that say nothing.</p>
+      <p style="color:#9a9384;font-size:14px">
+        No pressure at all, and nothing is expected in return. If you would rather tell us something privately,
+        good or bad, just reply to this email and it comes straight to the people who ran the event.
+      </p>
+    `,
+  })
+  await sendResendEmailFrom(
+    EVENTS_FROM,
+    opts.to,
+    `How was ${opts.eventTitle}?`,
+    html,
+    'Event review request',
+  )
+}
