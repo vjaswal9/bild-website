@@ -4,6 +4,7 @@ import { Star } from 'lucide-react'
 import { btnPrimary } from '@/lib/ui'
 import { GoogleGMark } from '@/components/icons/GoogleLogo'
 import HeroExtraSlides from './HeroExtraSlides'
+import { heroScrim } from '@/lib/hero-photos'
 
 // Photograph-led hero, proposed to replace the particle-network one.
 //
@@ -31,7 +32,7 @@ export default function HeroPhoto({
   // a phone. A wide shot whose subject is off to one side survives the desktop
   // hero intact but is far too small to read on a phone; a tighter crop of the
   // part that matters is shown there instead.
-  images: { src: string; alt: string; position?: string; mobileSrc?: string }[]
+  images: { src: string; alt: string; position?: string; mobileSrc?: string; scrim?: number }[]
   googleRating?: { rating: number; totalReviews: number; mapsUrl: string } | null
   nextEvent?: { title: string; date: string; slug: string } | null
   memberCount?: string
@@ -164,6 +165,11 @@ export default function HeroPhoto({
                 style={{ objectPosition: img.position || 'center' }}
               />
             </div>
+            {/* This photograph's own scrim. Inside the slide so it cross-fades
+                with the photograph it belongs to, and outside the drift wrapper
+                so it stays anchored to the headline rather than panning with
+                the picture. */}
+            <div className="hidden sm:block absolute inset-0" style={{ background: heroScrim(img) }} />
           </div>
         ))}
 
@@ -178,13 +184,11 @@ export default function HeroPhoto({
         />
       </div>
 
-      {/* Scrim: heavy on the left where the words sit, clearing to the right so
-          the photograph is still a photograph. Only from small screens up, where
-          the words are over the photograph at all. */}
-      <div
-        className="hidden sm:block absolute inset-0 -z-10"
-        style={{ background: 'linear-gradient(100deg, rgba(10,8,6,0.94) 0%, rgba(10,8,6,0.86) 28%, rgba(10,8,6,0.45) 62%, rgba(10,8,6,0.25) 100%)' }}
-      />
+      {/* The one scrim that used to sit here, covering every photograph alike,
+          has moved inside each slide - see heroScrim in lib/hero-photos.ts. It
+          was set for the darkest photograph in the set and blacked out the
+          brightest. What stays here is the bottom fade, which is uniform and
+          owes nothing to which photograph is showing. */}
       <div
         className="hidden sm:block absolute inset-x-0 bottom-0 h-40 -z-10"
         style={{ background: 'linear-gradient(to top, rgba(10,8,6,0.8), transparent)' }}

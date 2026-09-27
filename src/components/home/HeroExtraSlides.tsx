@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import type { HeroPhoto as HeroPhotoType } from '@/lib/hero-photos'
+import { heroScrim, type HeroPhoto as HeroPhotoType } from '@/lib/hero-photos'
 
 // The photographs after the first one, mounted once the page has settled.
 //
@@ -87,6 +87,9 @@ export default function HeroExtraSlides({
                 style={{ objectPosition: img.position || 'center' }}
               />
             </div>
+            {/* Each photograph carries its own scrim, so it fades in and out
+                with the picture it was measured for. */}
+            <div className="hidden sm:block absolute inset-0" style={{ background: heroScrim(img) }} />
           </div>
         )
       })}
