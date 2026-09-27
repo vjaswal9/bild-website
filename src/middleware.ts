@@ -34,6 +34,26 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on all routes except API, Next internals, and static files.
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
+  // Deliberately NARROW. This used to run on every route except API, Next
+  // internals and static files, which meant a middleware invocation on every
+  // page view on the site - including fully prerendered pages that otherwise
+  // cost nothing to serve. On the Vercel usage chart that was 1h 6m of 3h 26m
+  // Fluid Active CPU over thirty days, a third of the total, spent almost
+  // entirely on concluding that a live page was live.
+  //
+  // Only two prefixes actually need middleware now:
+  //   /admin          - the auth check, which must run before the page does
+  //   /knowledge-base - the sole remaining COMING_SOON_PATHS entry
+  //
+  // Every other public page is in LIVE_PATHS, so isLivePath returned true and
+  // the middleware fell straight through to NextResponse.next(). Unknown URLs
+  // did the same and were left to Next's own 404, which is still what happens
+  // now that middleware never sees them.
+  //
+  // BEFORE WIDENING THIS AGAIN: if a page is added to COMING_SOON_PATHS in
+  // src/lib/launch.ts, add its prefix here too, or it will be reachable rather
+  // than showing the placeholder. Setting LAUNCH_MODE = false needs no change
+  // here. Both forms of each prefix are listed so the bare path matches as
+  // well as its children.
+  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*'],
 }
