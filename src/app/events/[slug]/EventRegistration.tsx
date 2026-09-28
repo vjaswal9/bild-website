@@ -120,6 +120,13 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
     )
   }
 
+  // Whether ANY ticket on this event could cost something - decided before a
+  // ticket is even chosen, so it can only look at what tickets exist, not what
+  // the buyer will pick. An event where every ticket is free never mentions
+  // payment at all; one with even a single priced ticket keeps the mention,
+  // since picking that one is still possible.
+  const eventCanCostMoney = tickets.some(t => t.price_aed > 0)
+
   const count = (id: string) => attendeesByTicket[id]?.length || 0
   const totalTickets = tickets.reduce((s, t) => s + count(t.id), 0)
   const subtotal = tickets.reduce((s, t) => s + t.price_aed * count(t.id), 0)
@@ -242,7 +249,9 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
       <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-1 flex items-center gap-2">
         <Ticket size={22} className="text-gold-500" /> Register for this event
       </h2>
-      <p className="text-charcoal-500 text-sm mb-6">Choose how many tickets you need, name each guest, and pay securely via Stripe.</p>
+      <p className="text-charcoal-500 text-sm mb-6">
+        Choose how many tickets you need, name each guest{eventCanCostMoney ? ', and pay securely via Stripe' : ''}.
+      </p>
 
       {/* Step 1 - choose tickets */}
       {/* The number of tickets left is deliberately not shown. It is still
