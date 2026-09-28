@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Mail, Phone, MapPin, CalendarDays, Store, Ticket, ExternalLink } from 'lucide-react'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import AdminNav from '@/components/admin/AdminNav'
+import ResendInviteButton from '@/components/admin/ResendInviteButton'
 import { formatEventDate } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -195,6 +196,7 @@ export default async function MemberDetailPage({ params }: { params: { id: strin
               <Row label="Invite link opened" value={shortDate(member.invite_opened_at)} />
               <Row label="Invite used (joined group)" value={shortDate(member.invite_used_at)} />
               <Row label="Invite expires" value={shortDate(member.invite_expires_at)} />
+              <ResendInviteButton memberId={member.id} />
             </Card>
           </div>
         )}

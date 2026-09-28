@@ -304,6 +304,37 @@ export async function sendAbandonedJoinReminder(opts: { to: string; name?: strin
   await sendResendEmail(opts.to, `We'd love to welcome you to BILD 💛`, html, 'Abandoned join reminder')
 }
 
+// A fresh single-use WhatsApp invite, sent when an admin reissues one from a
+// member's profile because the original expired unused.
+//
+// This is what backs up the promise the expired-invite page itself makes -
+// "email us and we will send you a fresh invite the same day" - which
+// nothing used to actually act on: there was no admin action anywhere on the
+// site that generated a new token, so that line was a promise with no button
+// behind it.
+export async function sendInviteReissuedEmail(opts: { to: string; name?: string; inviteUrl: string }) {
+  const first = esc(opts.name?.split(' ')[0] || 'there')
+  const html = bizEmailShell({
+    kicker: 'BILD Membership',
+    heading: 'Your fresh WhatsApp invite',
+    bodyHtml: `
+      <p style="margin:0 0 16px">Hi ${first},</p>
+      <p style="margin:0 0 16px">
+        Your previous WhatsApp invite link expired before you had a chance to use it - nothing to worry about,
+        your BILD membership is completely unaffected. Here is a fresh one.
+      </p>
+      <p style="margin:0">
+        Tap the button below, then WhatsApp will ask you to send a join request. An admin approves everyone by
+        hand, which can take up to 48 hours. This new link works once and is valid for 48 hours.
+      </p>
+    `,
+    ctaUrl: opts.inviteUrl,
+    ctaLabel: 'Join the BILD WhatsApp community',
+    contact: 'connect@bild.ae',
+  })
+  await sendResendEmail(opts.to, 'Your fresh BILD WhatsApp invite', html, 'Invite reissued')
+}
+
 // Admin alert whenever a new member joins (fires once payment is confirmed).
 export async function sendNewMemberAlert(opts: {
   name: string
