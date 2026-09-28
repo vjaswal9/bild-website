@@ -16,6 +16,7 @@ export async function uploadViaSignedUrl(opts: {
     | 'business-banner'
     | 'featured-photo'
     | 'event-flyer'
+    | 'event-ticket-menu'
     | 'event-media'
     | 'testimonial-proof'
   file: File | Blob

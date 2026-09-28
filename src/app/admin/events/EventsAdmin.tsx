@@ -12,7 +12,7 @@ import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
   ChevronDown, ChevronUp, Download, Loader2, ExternalLink, Undo2, Pencil,
   Wallet, Banknote, TrendingUp, TrendingDown, BarChart3, Salad, Lock, Mail,
-  ShieldCheck, AlertTriangle, Armchair,
+  ShieldCheck, AlertTriangle, Armchair, Upload,
 } from 'lucide-react'
 import { FaInstagram } from 'react-icons/fa'
 
@@ -1327,6 +1327,47 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
 // ---------------------------------------------------------------------------
 // Ticket manager
 // ---------------------------------------------------------------------------
+// The menu image field used by both the "add a ticket" row and the edit row:
+// a link, or a file that is compressed and uploaded, filling in the same link
+// underneath either way. Two ways to arrive at the same one piece of data,
+// rather than two separate fields to keep in sync.
+function MenuImageField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function pick(file: File | null) {
+    if (!file) return
+    setError('')
+    setUploading(true)
+    try {
+      const compressed = await compressImage(file)
+      const up = await uploadViaSignedUrl({ kind: 'event-ticket-menu', file: compressed })
+      if (up.publicUrl) onChange(up.publicUrl)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed. Try a different image or paste a link instead.')
+    }
+    setUploading(false)
+  }
+
+  return (
+    <div>
+      <label className="block text-xs text-gray-500 mb-1">Menu image (optional)</label>
+      <div className="flex items-center gap-2">
+        <Inp value={value} onChange={onChange} placeholder="Paste a link, or upload a file" />
+        <label className={`shrink-0 inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 h-[38px] rounded-lg text-xs font-semibold cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Upload
+          <input type="file" accept="image/*" className="hidden" disabled={uploading}
+            onChange={e => { pick(e.target.files?.[0] || null); e.target.value = '' }} />
+        </label>
+      </div>
+      {value && (
+        <a href={value} target="_blank" rel="noreferrer" className="text-gold-400 hover:underline text-xs mt-1 inline-block">Preview &rarr;</a>
+      )}
+      {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+    </div>
+  )
+}
+
 function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTicket[] }) {
   const router = useRouter()
   const [name, setName] = useState('')
@@ -1430,8 +1471,7 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
           <Inp type="number" value={costPrice} onChange={setCostPrice} placeholder="150" />
         </div>
         <div className="sm:col-span-11">
-          <label className="block text-xs text-gray-500 mb-1">Menu image link (optional)</label>
-          <Inp value={menuImageUrl} onChange={setMenuImageUrl} placeholder="https://... a photo of the menu for this package" />
+          <MenuImageField value={menuImageUrl} onChange={setMenuImageUrl} />
         </div>
         <div className="sm:col-span-1">
           <button onClick={add} disabled={busy}
@@ -1499,8 +1539,7 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
           <Inp type="number" value={costPrice} onChange={setCostPrice} placeholder="150" />
         </div>
         <div className="sm:col-span-12">
-          <label className="block text-xs text-gray-500 mb-1">Menu image link (optional)</label>
-          <Inp value={menuImageUrl} onChange={setMenuImageUrl} placeholder="https://... a photo of the menu for this package" />
+          <MenuImageField value={menuImageUrl} onChange={setMenuImageUrl} />
         </div>
       </div>
       <label className="inline-flex items-center gap-2 mt-3 text-sm text-gray-300 cursor-pointer">

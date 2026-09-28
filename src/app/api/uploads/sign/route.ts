@@ -30,6 +30,7 @@ type Kind =
   | 'business-banner'
   | 'featured-photo'
   | 'event-flyer'
+  | 'event-ticket-menu'
   | 'event-media'
   | 'testimonial-proof'
 
@@ -82,6 +83,17 @@ const KINDS: Record<Kind, {
   'event-flyer': {
     bucket: 'event-flyers',
     prefix: '',
+    maxBytes: 8 * MB,
+    types: { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' },
+    auth: ['admin'],
+    isPublicBucket: true,
+  },
+  'event-ticket-menu': {
+    // Reuses the flyer bucket rather than a new one - same visibility (public,
+    // it is shown on the booking page), same size, same owner. A distinct
+    // prefix is enough to tell the files apart in storage.
+    bucket: 'event-flyers',
+    prefix: 'ticket-menu-',
     maxBytes: 8 * MB,
     types: { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' },
     auth: ['admin'],
