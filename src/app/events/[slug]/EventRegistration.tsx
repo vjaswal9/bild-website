@@ -221,12 +221,14 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
       }
     }
     const missingName = attendees.some(a => !a.name)
+    const missingTitle = attendees.some(a => !a.title)
     const missingAge = tickets.some(t => t.is_child && (attendeesByTicket[t.id] || []).some(a => ageInvalid(a.age)))
     const missingEmail = !isEmail(email)
     const badSeatingCode = seatingEnabled && seatingCheck === 'notfound'
-    if (missingName || missingAge || missingEmail || badSeatingCode) {
+    if (missingName || missingTitle || missingAge || missingEmail || badSeatingCode) {
       setError(
         missingName ? 'Please enter the full name of every attendee.'
+          : missingTitle ? 'Please choose a title (Mr./Mrs./Miss) for every attendee.'
           : missingAge ? `Please enter an age between 0 and ${MAX_CHILD_AGE} for every child ticket.`
           : missingEmail ? 'Please enter a valid email address for your confirmation.'
           : 'That table code was not found. Please check it or clear the field.',
@@ -403,7 +405,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
         <>
           <p className="text-xs font-semibold uppercase tracking-wide text-gold-600 mb-2">Step 2 · Who&rsquo;s attending?</p>
           <p className="text-sm text-charcoal-500 mb-4">
-            We check everyone in by name at the door, so please give the full name of each person attending{selectedTickets.some(t => t.is_child) ? ', and the age of each child' : ''}{dietaryRequired ? ', and let us know of any dietary requirements' : ''}.
+            We check everyone in by name at the door, so please choose a title and give the full name of each person attending{selectedTickets.some(t => t.is_child) ? ', and the age of each child' : ''}{dietaryRequired ? ', and let us know of any dietary requirements' : ''}.
           </p>
           <div className="space-y-5 mb-8">
             {selectedTickets.map(t => (
@@ -416,6 +418,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                     attendeeNo += 1
                     const isLead = attendeeNo === 1
                     const invalid = tried && !a.name.trim()
+                    const missingTitle = tried && !a.title
                     const badAge = tried && t.is_child && ageInvalid(a.age)
                     return (
                       <div key={i} className={`space-y-2 ${count(t.id) > 1 ? 'pb-4 border-b border-charcoal-100 last:pb-0 last:border-0' : ''}`}>
@@ -424,9 +427,9 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                             value={a.title}
                             onChange={e => setTitle(t.id, i, e.target.value)}
                             aria-label={`Title for ${isLead ? 'you' : `guest ${i + 1}`}`}
-                            className="px-3 py-3 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-24 shrink-0"
+                            className={`px-3 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-24 shrink-0 ${missingTitle ? errBorder : 'border-charcoal-200'}`}
                           >
-                            <option value="">Title</option>
+                            <option value="" disabled>Title</option>
                             <option value="Mr.">Mr.</option>
                             <option value="Mrs.">Mrs.</option>
                             <option value="Miss">Miss</option>

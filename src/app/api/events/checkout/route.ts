@@ -65,6 +65,13 @@ export async function POST(req: NextRequest) {
     if (!eventId || !ticketId || !firstName || !email) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
     }
+    // Re-checked here, not just in the browser: a title is required for every
+    // attendee (see TITLE_OPTIONS above), so an empty or invalid value must be
+    // rejected rather than silently stored as no title at all.
+    const buyerTitle = normalizeTitle(buyerTitleRaw)
+    if (!buyerTitle) {
+      return NextResponse.json({ error: 'Please choose a title (Mr./Mrs./Miss).' }, { status: 400 })
+    }
     // Re-checked here, not just in the browser. A ticket confirmation that
     // cannot be delivered is worse than a rejected booking: the buyer has
     // paid and has nothing to show for it.
@@ -85,6 +92,9 @@ export async function POST(req: NextRequest) {
     }
     if (incomingGuests.some(g => !g?.name || !String(g.name).trim())) {
       return NextResponse.json({ error: 'Please provide a name for each extra ticket.' }, { status: 400 })
+    }
+    if (incomingGuests.some(g => !normalizeTitle(g.title))) {
+      return NextResponse.json({ error: 'Please choose a title (Mr./Mrs./Miss) for each extra ticket.' }, { status: 400 })
     }
     if (incomingGuests.some(g => !g?.ticketId)) {
       return NextResponse.json({ error: 'Please choose a ticket package for each guest.' }, { status: 400 })
@@ -206,7 +216,7 @@ export async function POST(req: NextRequest) {
         ticket_name: buyerTicket.name,
         first_name: firstName,
         last_name: lastName || '',
-        title: normalizeTitle(buyerTitleRaw) || null,
+        title: buyerTitle,
         email: buyerEmail,
         phone: phone || null,
         quantity: qty,
@@ -238,7 +248,7 @@ export async function POST(req: NextRequest) {
         to: buyerEmail,
         firstName,
         lastName,
-        title: normalizeTitle(buyerTitleRaw) || null,
+        title: buyerTitle,
         eventTitle: event.title,
         ticketName: buyerTicket.name,
         eventDate: event.event_date,
