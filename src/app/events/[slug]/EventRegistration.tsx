@@ -62,6 +62,13 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
   // a normal thing to do, not typed themselves so it never applies to a code
   // somebody entered on purpose.
   const [codeFromLink, setCodeFromLink] = useState(false)
+  // Cosmetic only: collapses the "did you mean to join this table?" question
+  // once someone has confirmed they want to stay, so it does not keep asking.
+  const [referralAnsweredStaying, setReferralAnsweredStaying] = useState(false)
+  // Shown once, as a small acknowledgement, the first time someone arrives via
+  // a table link and then chooses to leave it - without this the referral
+  // banner would simply vanish with no confirmation that the choice was heard.
+  const [justLeftTable, setJustLeftTable] = useState(false)
 
   // A code arriving on the link an organiser shared (?table=AC4NR) pre-fills
   // the box, so a friend who follows that link never has to type or copy
@@ -102,6 +109,26 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
     return () => clearTimeout(t)
   }, [seatingCode, event.id])
 
+  // Two entirely different forms live in this one component, chosen by how
+  // the visitor arrived, not by anything they fill in. Someone who followed a
+  // table-invite link already knows why they are here - the banner leads with
+  // that, and the ordinary ticket-buying copy stays out of their way entirely.
+  // Everyone else (nobody sent them a link, or they said they would rather
+  // not join it) gets the plain form, unchanged. A code that turned out not to
+  // exist falls through to the plain form too, so a broken or mistyped link
+  // still leaves someone able to book rather than stuck looking at a banner
+  // for a table that is not real.
+  const isReferralFlow = !!seatingEnabled && codeFromLink && seatingCheck !== 'notfound'
+
+  function stayOnTable() {
+    setReferralAnsweredStaying(true)
+  }
+  function leaveTable() {
+    setSeatingCode('')
+    setCodeFromLink(false)
+    setReferralAnsweredStaying(false)
+    setJustLeftTable(true)
+  }
 
   if (tickets.length === 0) {
     return (
@@ -253,6 +280,57 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
 
   return (
     <div ref={formRef} className="p-6 sm:p-8 bg-white rounded-2xl border border-gold-100 shadow-card">
+      {/* The referral form. Only for someone who arrived on a table-invite
+          link, and only while their code still checks out - see isReferralFlow
+          above. Leads with why they are here rather than making them find it
+          part-way down an ordinary ticket form. */}
+      {isReferralFlow && (
+        <div className="mb-6 p-4 rounded-xl border border-gold-200 bg-gold-50/50">
+          {seatingCheck === 'checking' && <p className="text-sm text-charcoal-500">Checking your invite...</p>}
+          {seatingCheck === 'found' && (
+            <>
+              <p className="flex items-center gap-1.5 text-base font-semibold text-green-700">
+                <Users size={16} className="text-gold-600 shrink-0" /> You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.
+              </p>
+              {seatingHeadcount != null && seatsPerTable != null && (
+                <p className="text-charcoal-500 text-xs mt-1.5">
+                  {seatingHeadcount >= seatsPerTable
+                    ? `This table already has its full ${seatsPerTable} seats claimed - you can still book, but you may be seated at a nearby table instead.`
+                    : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
+                </p>
+              )}
+              {referralAnsweredStaying ? (
+                <p className="text-charcoal-500 text-xs mt-3 pt-3 border-t border-gold-200">
+                  Great - carry on below and you&rsquo;ll be seated with them.
+                </p>
+              ) : (
+                <div className="mt-3 pt-3 border-t border-gold-200">
+                  <p className="text-sm text-charcoal-700 mb-2">
+                    Didn&rsquo;t mean to join this table, or would rather sit elsewhere?
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={stayOnTable}
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-gold-500 text-white hover:bg-gold-600 transition-colors"
+                    >
+                      No, keep me here
+                    </button>
+                    <button
+                      type="button"
+                      onClick={leaveTable}
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-white border border-charcoal-300 text-charcoal-700 hover:bg-charcoal-100 transition-colors"
+                    >
+                      Yes, seat me elsewhere
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-1 flex items-center gap-2">
         <Ticket size={22} className="text-gold-500" /> Register for this event
       </h2>
@@ -395,12 +473,20 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
             <Field label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+971 50 000 0000" />
           </div>
 
-          {seatingEnabled && (
+          {/* The ordinary form: nobody sent this visitor a table link, or they
+              were sent one and chose not to join it. Never shown at the same
+              time as the referral banner above - see isReferralFlow. */}
+          {seatingEnabled && !isReferralFlow && (
             <div className="mt-4 p-4 rounded-xl border border-gold-200 bg-gold-50/50">
               <p className="flex items-center gap-1.5 text-sm font-semibold text-charcoal-800 mb-2">
                 <Users size={15} className="text-gold-600" /> This event has table seating
               </p>
               <div className="text-xs text-charcoal-600 leading-relaxed space-y-1.5 mb-3">
+                {justLeftTable && (
+                  <p className="font-medium text-charcoal-700">
+                    No problem - you&rsquo;ll be booked in as normal and seated wherever there&rsquo;s room.
+                  </p>
+                )}
                 <p>
                   Here&rsquo;s how it works: if you&rsquo;re the first in your group to book, leave the box below
                   empty and we&rsquo;ll send you a short code by email once you&rsquo;ve paid. Share that code with
@@ -440,16 +526,15 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                           : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
                       </p>
                     )}
-                    {codeFromLink && (
-                      <p className="text-charcoal-500 mt-1.5">
-                        Didn&rsquo;t mean to join this table, or would rather sit elsewhere? Just clear the box
-                        above - you&rsquo;ll be booked in as normal and seated wherever there&rsquo;s room. No need
-                        to say anything to anyone.
-                      </p>
-                    )}
                   </>
                 )}
-                {seatingCheck === 'notfound' && <span className="text-ruby-600">We can&rsquo;t find that code for this event. Check it with your friend, or leave it blank.</span>}
+                {seatingCheck === 'notfound' && (
+                  <span className="text-ruby-600">
+                    {codeFromLink
+                      ? 'The invite link you used does not match a table we recognise for this event. Check it with your friend, or leave it blank.'
+                      : 'We can’t find that code for this event. Check it with your friend, or leave it blank.'}
+                  </span>
+                )}
               </div>
             </div>
           )}
