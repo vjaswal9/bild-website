@@ -232,12 +232,29 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
   const href = biz.slug ? `/directory/${biz.slug}` : '#'
   const offer = splitOffer(biz.bildOffer)
   const rule = 'lg:border-l lg:border-gold-200/60 lg:pl-5'
+  // Searching hides the Featured section above, so without this a paid
+  // placement would arrive in the results looking like every other listing.
+  // The gold rail and badge are the same language as the dark panels, kept
+  // light here because a row of charcoal blocks mid-results reads as an advert
+  // rather than a result.
+  const featured = !!biz.featured
   return (
-    <article className="group relative bg-white border border-gold-200/60 flex gap-4 p-3 items-stretch cursor-pointer transition-all hover:border-gold-400 hover:shadow-card focus-within:border-gold-500">
+    <article
+      className={`group relative flex gap-4 p-3 items-stretch cursor-pointer transition-all hover:border-gold-400 hover:shadow-card focus-within:border-gold-500 ${
+        featured
+          ? 'bg-gold-100/50 border border-gold-300 border-l-4 border-l-gold-500'
+          : 'bg-white border border-gold-200/60'
+      }`}
+    >
       <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} size="tileSm" />
 
       <div className="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-[1fr_180px_200px_150px] gap-x-5 gap-y-3 items-start">
         <div className="min-w-0">
+          {featured && (
+            <p className="inline-flex items-center gap-1 bg-gold-500 text-charcoal-900 text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 mb-1.5">
+              <Crown size={10} className="fill-charcoal-900 text-charcoal-900" /> Featured
+            </p>
+          )}
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal-400 mb-0.5">{biz.category}</p>
           <h3 className="font-display text-[17px] leading-tight font-bold text-charcoal-800">
             {/* The stretched link. `after` covers the whole card, so anywhere on
@@ -364,7 +381,11 @@ export default function DirectoryClient({
         const matchesOffer = !offersOnly || !!b.bildOffer?.trim()
         return matchesSearch && matchesCategory && matchesOffer
       })
-      .sort((a, b) => a.name.localeCompare(b.name))
+      // Featured first, then alphabetical. A Featured listing is a paid
+      // placement, so it has to hold its position once someone searches - which
+      // is the moment it is worth the most. Alphabetical within each group, so
+      // the order is still predictable rather than arbitrary.
+      .sort((a, b) => Number(!!b.featured) - Number(!!a.featured) || a.name.localeCompare(b.name))
   }, [businesses, debouncedSearch, activeCategory, offersOnly])
 
   // Only the first page is put in the DOM. Every listing stays in memory, so
