@@ -23,11 +23,14 @@ export async function GET(req: NextRequest) {
 
   const { data: event } = await supabaseAdmin
     .from('events')
-    .select('seating_enabled')
+    .select('seating_enabled, seats_per_table')
     .eq('id', eventId)
     .maybeSingle()
   if (!event?.seating_enabled) return NextResponse.json({ found: false })
 
   const result = await findSeatingGroupOrganiser(eventId, code)
-  return NextResponse.json(result)
+  // seatsPerTable travels alongside the headcount so the booking form can say
+  // "6 of 10 seats already claimed" - only meaningful once an admin has set a
+  // table size, so it is simply absent until then rather than shown as 0.
+  return NextResponse.json({ ...result, seatsPerTable: event.seats_per_table ?? null })
 }

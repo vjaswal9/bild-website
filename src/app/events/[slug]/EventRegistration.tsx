@@ -53,6 +53,18 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
   const [seatingCode, setSeatingCode] = useState('')
   const [seatingCheck, setSeatingCheck] = useState<'idle' | 'checking' | 'found' | 'notfound'>('idle')
   const [seatingOrganiser, setSeatingOrganiser] = useState('')
+  const [seatingHeadcount, setSeatingHeadcount] = useState<number | null>(null)
+  const [seatsPerTable, setSeatsPerTable] = useState<number | null>(null)
+
+  // A code arriving on the link an organiser shared (?table=AC4NR) pre-fills
+  // the box, so a friend who follows that link never has to type or copy
+  // anything - the whole point of giving them a link rather than just a code.
+  // Plain browser APIs on mount rather than useSearchParams, which would need
+  // a Suspense boundary around this component for no real benefit here.
+  useEffect(() => {
+    const fromLink = new URLSearchParams(window.location.search).get('table')
+    if (fromLink) setSeatingCode(fromLink.toUpperCase())
+  }, [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [tried, setTried] = useState(false)
@@ -68,8 +80,14 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
       try {
         const res = await fetch(`/api/events/seating-check?eventId=${event.id}&code=${encodeURIComponent(code)}`)
         const data = await res.json()
-        if (data.found) { setSeatingOrganiser(data.organiserFirstName); setSeatingCheck('found') }
-        else setSeatingCheck('notfound')
+        if (data.found) {
+          setSeatingOrganiser(data.organiserFirstName)
+          setSeatingHeadcount(typeof data.headcount === 'number' ? data.headcount : null)
+          setSeatsPerTable(typeof data.seatsPerTable === 'number' ? data.seatsPerTable : null)
+          setSeatingCheck('found')
+        } else {
+          setSeatingCheck('notfound')
+        }
       } catch {
         setSeatingCheck('idle')
       }
@@ -394,11 +412,22 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                   seatingCheck === 'notfound' ? errBorder : 'border-charcoal-200'
                 }`}
               />
-              <p className="text-xs mt-1.5">
+              <div className="text-xs mt-1.5">
                 {seatingCheck === 'checking' && <span className="text-charcoal-400">Checking...</span>}
-                {seatingCheck === 'found' && <span className="text-green-700 font-medium">You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.</span>}
+                {seatingCheck === 'found' && (
+                  <>
+                    <p className="text-green-700 font-medium">You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.</p>
+                    {seatingHeadcount != null && seatsPerTable != null && (
+                      <p className="text-charcoal-500 mt-0.5">
+                        {seatingHeadcount >= seatsPerTable
+                          ? `This table already has its full ${seatsPerTable} seats claimed - you can still book, but you may be seated at a nearby table instead.`
+                          : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
+                      </p>
+                    )}
+                  </>
+                )}
                 {seatingCheck === 'notfound' && <span className="text-ruby-600">We can&rsquo;t find that code for this event. Check it with your friend, or leave it blank.</span>}
-              </p>
+              </div>
             </div>
           )}
         </>

@@ -29,16 +29,19 @@ export function normalizeSeatingCode(v: unknown): string {
  * live "check as you type" endpoint and, again, inside checkout itself -
  * never trust the client's word that a code it showed the buyer is genuine.
  *
- * Matches against any registration regardless of status. A code shared before
- * the first person's payment has cleared must still work for their friends;
- * the admin seating view only ever groups PAID bookings, so an organiser whose
- * own payment never completes simply leaves their friends as a smaller group,
- * which is the right outcome rather than a hard failure.
+ * Matches against any registration regardless of status, for finding the
+ * organiser: a code shared before the first person's payment has cleared must
+ * still work for their friends. Headcount is PAID only, because it exists to
+ * tell somebody about to pay how many seats are genuinely already spoken for -
+ * counting a pending checkout that might never complete would overstate that.
  */
 export async function findSeatingGroupOrganiser(
   eventId: string,
   code: string,
-): Promise<{ found: true; organiserFirstName: string } | { found: false }> {
+): Promise<
+  | { found: true; organiserFirstName: string; headcount: number }
+  | { found: false }
+> {
   const normalized = normalizeSeatingCode(code)
   if (!normalized) return { found: false }
   const { data } = await supabaseAdmin
@@ -50,5 +53,14 @@ export async function findSeatingGroupOrganiser(
     .limit(1)
     .maybeSingle()
   if (!data) return { found: false }
-  return { found: true, organiserFirstName: data.first_name || 'a member' }
+
+  const { data: paid } = await supabaseAdmin
+    .from('event_registrations')
+    .select('quantity')
+    .eq('event_id', eventId)
+    .eq('seating_code', normalized)
+    .eq('status', 'paid')
+  const headcount = (paid || []).reduce((s, r) => s + (Number(r.quantity) || 1), 0)
+
+  return { found: true, organiserFirstName: data.first_name || 'a member', headcount }
 }

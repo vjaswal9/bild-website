@@ -423,6 +423,21 @@ export async function sendEventConfirmation(opts: {
   // already shared - "here is your code to share" reads oddly to the second
   // person in a group who already has one, so both read the same either way:
   // the code, and an instruction to share it further.
+  // A link, not just the bare code, so a friend never has to type or copy
+  // anything by hand: it arrives on the booking form already filled in and
+  // already checked. Built only when the event slug is known, which every
+  // caller has passed since the calendar links further down need it too.
+  const seatingInviteUrl = opts.eventSlug
+    ? `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bild.ae'}/events/${opts.eventSlug}?table=${encodeURIComponent(opts.seatingCode || '')}`
+    : null
+  // wa.me/?text=... opens the sender's OWN WhatsApp with this message already
+  // typed in, for them to pick a contact and send - it is a plain link, not an
+  // integration. BILD's servers are not involved in what happens after this
+  // is tapped, and never see who it is sent to.
+  const whatsappShareText = seatingInviteUrl
+    ? `Join me at ${opts.eventTitle}! I've got us a table - tap this link to get your ticket and we'll be seated together: ${seatingInviteUrl}`
+    : ''
+  const whatsappShareUrl = whatsappShareText ? `https://wa.me/?text=${encodeURIComponent(whatsappShareText)}` : null
   const seatingBlock = opts.seatingEnabled && opts.seatingCode
     ? `<p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 4px">Sitting with friends?</p>
        <p style="color:#cfcabd;font-size:15px;margin:0 0 10px">
@@ -432,6 +447,15 @@ export async function sendEventConfirmation(opts: {
        <p style="margin:0 0 10px">
          <span style="color:#F4F1EC;font-size:22px;font-weight:bold;letter-spacing:3px;display:inline-block">${esc(opts.seatingCode)}</span>
        </p>
+       ${whatsappShareUrl && seatingInviteUrl ? `
+       <p style="margin:0 0 8px">
+         <a href="${whatsappShareUrl}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;
+            font-weight:700;font-size:14px;padding:10px 18px;border-radius:10px">Share with your table on WhatsApp</a>
+       </p>
+       <p style="color:#8a857a;font-size:12px;margin:0 0 10px">
+         Not on WhatsApp? Send them this link instead:
+         <br><a href="${seatingInviteUrl}" style="color:#C8861A;word-break:break-all">${seatingInviteUrl}</a>
+       </p>` : ''}
        <p style="color:#8a857a;font-size:13px;margin:0">
          No code needed if you are happy to be seated wherever there is room. Seating with friends can be requested,
          and while we will try our best, it cannot be guaranteed.
