@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import { str, uuid, oneOf } from '@/lib/validate'
 import { sendBusinessTestimonialApproved, sendBusinessTestimonialDeclined } from '@/lib/email'
+import { revalidatePublic, directoryPaths } from '@/lib/revalidate-public'
 
 export const dynamic = 'force-dynamic'
 
@@ -101,6 +102,12 @@ export async function POST(req: NextRequest) {
     .select('business_name, slug, email, featured_manage_token')
     .eq('id', data.business_id)
     .maybeSingle()
+
+  // The profile page is prerendered on a 30-minute timer, so without this an
+  // approved testimonial sat invisible for up to half an hour while the admin
+  // screen said it was live. Done with the slug when there is one, so a single
+  // page is rebuilt rather than all of them.
+  revalidatePublic(directoryPaths(biz?.slug))
 
   if (biz?.email) {
     if (action === 'approved') {

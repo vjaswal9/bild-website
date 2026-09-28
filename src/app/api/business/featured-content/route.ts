@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 import { stripDashes } from '@/lib/utils'
+import { revalidatePublic, directoryPaths } from '@/lib/revalidate-public'
 
 // Public, token-gated: the business's standing "manage Featured content"
 // link posts here to update their extended profile content. Only usable
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { data: biz } = await supabaseAdmin
     .from('business_submissions')
-    .select('id, featured, featured_paid_until')
+    .select('id, slug, featured, featured_paid_until')
     .eq('featured_manage_token', body.token)
     .maybeSingle()
 
@@ -41,5 +42,9 @@ export async function POST(req: NextRequest) {
     .eq('id', biz.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Same reason as the testimonial route: this writes the extended bio, gallery
+  // and video that a Featured profile shows, and that page is prerendered.
+  revalidatePublic(directoryPaths(biz?.slug))
   return NextResponse.json({ ok: true })
 }
