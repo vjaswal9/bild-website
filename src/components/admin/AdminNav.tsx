@@ -11,7 +11,7 @@ const links = [
   { href: '/admin/directory', label: 'Directory', icon: Store },
   { href: '/admin/members', label: 'Members', icon: Users },
   { href: '/admin/events', label: 'Events', icon: PartyPopper },
-  { href: '/admin/reviews', label: 'Reviews', icon: Star },
+  { href: '/admin/reviews', label: 'Post Event Google Review Request', icon: Star },
   { href: '/admin/faces', label: 'Faces', icon: Images },
   { href: '/admin/milestones', label: 'Milestones', icon: Milestone },
   { href: '/admin/testimonials', label: 'BILD Testimonials', icon: Quote },
