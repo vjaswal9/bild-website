@@ -12,7 +12,7 @@ import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser } 
 
 export const dynamic = 'force-dynamic'
 
-type IncomingGuest = { name?: string; ticketId?: string; dietary?: string; dietaryNote?: string; age?: unknown }
+type IncomingGuest = { name?: string; title?: string; ticketId?: string; dietary?: string; dietaryNote?: string; age?: unknown }
 
 // Child tickets carry an age. Checked here as well as in the browser: the
 // booking form is the only thing asking for it, and anything posting straight
@@ -39,6 +39,14 @@ function normalizeDietary(v: unknown): Dietary {
   return (DIETARY_OPTIONS.has(s) ? s : '') as Dietary
 }
 
+// A fixed set, not free text: this ends up on a door list read out loud and
+// printed on a confirmation email, so anything typed by a script rather than
+// chosen from the three real options is simply dropped rather than stored.
+const TITLE_OPTIONS = new Set(['Mr.', 'Mrs.', 'Miss'])
+function normalizeTitle(v: unknown): string {
+  return typeof v === 'string' && TITLE_OPTIONS.has(v) ? v : ''
+}
+
 // Returned when the database could not be read, after one retry. Deliberately
 // not "Event not available": that told a buyer a live event had gone.
 const tryAgain = () => NextResponse.json(
@@ -52,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
     }
 
-    const { eventId, ticketId, firstName, lastName, email, phone, dietary, dietaryNote, age: buyerAgeRaw, guests: rawGuests, seatingCode: rawSeatingCode } = await req.json()
+    const { eventId, ticketId, firstName, lastName, title: buyerTitleRaw, email, phone, dietary, dietaryNote, age: buyerAgeRaw, guests: rawGuests, seatingCode: rawSeatingCode } = await req.json()
 
     if (!eventId || !ticketId || !firstName || !email) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
@@ -122,6 +130,7 @@ export async function POST(req: NextRequest) {
       if (!t) return NextResponse.json({ error: 'A selected guest ticket is not available.' }, { status: 400 })
       const guestAge = t.is_child ? normalizeAge(g.age) : null
       if (t.is_child && guestAge == null) return ageRequired()
+      const guestTitle = normalizeTitle(g.title)
       guestEntries.push({
         name: String(g.name).trim(),
         ticket_name: t.name,
@@ -129,6 +138,7 @@ export async function POST(req: NextRequest) {
         dietary: normalizeDietary(g.dietary),
         dietary_note: normalizeDietaryNote(g.dietaryNote),
         ...(guestAge != null ? { age: guestAge } : {}),
+        ...(guestTitle ? { title: guestTitle } : {}),
       })
     }
 
@@ -196,6 +206,7 @@ export async function POST(req: NextRequest) {
         ticket_name: buyerTicket.name,
         first_name: firstName,
         last_name: lastName || '',
+        title: normalizeTitle(buyerTitleRaw) || null,
         email: buyerEmail,
         phone: phone || null,
         quantity: qty,
@@ -227,6 +238,7 @@ export async function POST(req: NextRequest) {
         to: buyerEmail,
         firstName,
         lastName,
+        title: normalizeTitle(buyerTitleRaw) || null,
         eventTitle: event.title,
         ticketName: buyerTicket.name,
         eventDate: event.event_date,

@@ -18,7 +18,7 @@ const MAX_TICKETS_PER_BOOKING = 20
 const errBorder = 'border-ruby-500 ring-1 ring-ruby-300'
 
 type MiniEvent = { id: string; slug: string; title: string }
-type Attendee = { name: string; dietary: Dietary; dietaryNote: string; age: string }
+type Attendee = { name: string; title: string; dietary: Dietary; dietaryNote: string; age: string }
 
 // A child ticket asks for the child's age. Kept as a string in state so the
 // field can be genuinely empty rather than defaulting to 0, which would let a
@@ -173,7 +173,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
       const cur = prev[id] || []
       const total = Object.values(prev).reduce((n, a) => n + a.length, 0)
       if (total >= MAX_TICKETS_PER_BOOKING) return prev
-      return { ...prev, [id]: [...cur, { name: '', dietary: '', dietaryNote: '', age: '' }] }
+      return { ...prev, [id]: [...cur, { name: '', title: '', dietary: '', dietaryNote: '', age: '' }] }
     })
   }
   function dec(id: string) {
@@ -185,6 +185,9 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
   }
   function setName(id: string, i: number, v: string) {
     setAttendeesByTicket(prev => ({ ...prev, [id]: (prev[id] || []).map((a, idx) => (idx === i ? { ...a, name: v } : a)) }))
+  }
+  function setTitle(id: string, i: number, v: string) {
+    setAttendeesByTicket(prev => ({ ...prev, [id]: (prev[id] || []).map((a, idx) => (idx === i ? { ...a, title: v } : a)) }))
   }
   function setDietary(id: string, i: number, v: Dietary) {
     setAttendeesByTicket(prev => ({ ...prev, [id]: (prev[id] || []).map((a, idx) => (idx === i ? { ...a, dietary: v, dietaryNote: v === 'other' ? a.dietaryNote : '' } : a)) }))
@@ -204,11 +207,12 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
     if (totalTickets === 0) return setError('Please add at least one ticket.')
 
     // Flatten to an ordered attendee list: [{ name, dietary, dietaryNote, ticketId }]
-    const attendees: { name: string; dietary: Dietary; dietaryNote: string; ticketId: string; age: number | null }[] = []
+    const attendees: { name: string; title: string; dietary: Dietary; dietaryNote: string; ticketId: string; age: number | null }[] = []
     for (const t of tickets) {
       for (const a of attendeesByTicket[t.id] || []) {
         attendees.push({
           name: a.name.trim(),
+          title: a.title,
           dietary: a.dietary,
           dietaryNote: a.dietaryNote.trim(),
           ticketId: t.id,
@@ -253,12 +257,13 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
           ticketId: lead.ticketId,
           firstName,
           lastName,
+          title: lead.title || undefined,
           email: email.trim(),
           phone: phone.trim(),
           dietary: lead.dietary,
           dietaryNote: lead.dietaryNote,
           age: lead.age,
-          guests: attendees.slice(1).map(a => ({ name: a.name, ticketId: a.ticketId, dietary: a.dietary, dietaryNote: a.dietaryNote, age: a.age })),
+          guests: attendees.slice(1).map(a => ({ name: a.name, title: a.title || undefined, ticketId: a.ticketId, dietary: a.dietary, dietaryNote: a.dietaryNote, age: a.age })),
           seatingCode: seatingEnabled ? seatingCode.trim() : undefined,
         }),
       })
@@ -415,6 +420,17 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                     return (
                       <div key={i} className={`space-y-2 ${count(t.id) > 1 ? 'pb-4 border-b border-charcoal-100 last:pb-0 last:border-0' : ''}`}>
                         <div className="flex flex-col sm:flex-row gap-2">
+                          <select
+                            value={a.title}
+                            onChange={e => setTitle(t.id, i, e.target.value)}
+                            aria-label={`Title for ${isLead ? 'you' : `guest ${i + 1}`}`}
+                            className="px-3 py-3 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-24 shrink-0"
+                          >
+                            <option value="">Title</option>
+                            <option value="Mr.">Mr.</option>
+                            <option value="Mrs.">Mrs.</option>
+                            <option value="Miss">Miss</option>
+                          </select>
                           <input
                             type="text"
                             value={a.name}

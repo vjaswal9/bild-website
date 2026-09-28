@@ -120,13 +120,14 @@ export async function buildEventsWorkbook(): Promise<{
         'Event date': e.event_date,
         Status: r.status,
         Booked: r.created_at,
+        Title: r.title || '',
         'Buyer first name': r.first_name,
         'Buyer last name': r.last_name,
         Email: r.email,
         Phone: r.phone || '',
         'Buyer ticket': r.ticket_name || '',
         People: r.quantity,
-        Guests: guests.map(g => `${g.name}${g.ticket_name ? ` (${g.ticket_name})` : ''}`).join('; '),
+        Guests: guests.map(g => `${g.title ? `${g.title} ` : ''}${g.name}${g.ticket_name ? ` (${g.ticket_name})` : ''}`).join('; '),
         'Amount AED': r.amount_aed,
         'Refunded AED': r.refunded_amount_aed || 0,
         Dietary: dietaryLabel(r.dietary, r.dietary_note),
@@ -137,7 +138,7 @@ export async function buildEventsWorkbook(): Promise<{
       // already produces, so the backup copy and the live one cannot disagree.
       if (r.status !== 'paid') continue
       const table = seatingOn ? { Table: r.seating_table != null ? `Table ${r.seating_table}` : 'Unassigned' } : {}
-      const buyer = `${r.first_name || ''} ${r.last_name || ''}`.trim()
+      const buyer = `${r.title ? `${r.title} ` : ''}${r.first_name || ''} ${r.last_name || ''}`.trim()
       if (buyer) {
         door.push({
           Name: buyer,
@@ -148,8 +149,9 @@ export async function buildEventsWorkbook(): Promise<{
         })
       }
       for (const g of guests) {
-        const name = typeof g === 'string' ? g : g?.name || ''
-        if (!name) continue
+        const rawName = typeof g === 'string' ? g : g?.name || ''
+        if (!rawName) continue
+        const name = typeof g === 'string' ? rawName : (g.title ? `${g.title} ${rawName}` : rawName)
         door.push({
           Name: name,
           Phone: '',

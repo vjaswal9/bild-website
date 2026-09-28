@@ -105,7 +105,7 @@ async function recordPayment(row: {
 }
 
 // The booking columns every ticket flow below reads.
-const BOOKING_COLUMNS = 'email, first_name, last_name, ticket_name, amount_aed, event_id, quantity, guest_names, attendee_age, seating_code'
+const BOOKING_COLUMNS = 'email, first_name, last_name, title, ticket_name, amount_aed, event_id, quantity, guest_names, attendee_age, seating_code'
 
 type Booking = {
   email: string
@@ -118,6 +118,7 @@ type Booking = {
   guest_names?: import('@/lib/events').GuestEntry[]
   attendee_age?: number | null
   seating_code?: string | null
+  title?: string | null
 }
 
 // Decides what a webhook delivery that marked zero rows paid actually means.
@@ -334,6 +335,7 @@ export async function POST(req: NextRequest) {
             to: reg.email,
             firstName: reg.first_name,
             lastName: reg.last_name,
+            title: reg.title,
             eventTitle,
             ticketName: reg.ticket_name,
             eventDate: (ev as { event_date?: string })?.event_date || new Date().toISOString(),

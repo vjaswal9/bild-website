@@ -403,6 +403,10 @@ export async function sendEventConfirmation(opts: {
   // Used so the buyer appears in the attendee list by full name, like everyone
   // else on the booking.
   lastName?: string | null
+  // Courtesy title (Mr./Mrs./Miss), if given. Prepended to the buyer's name
+  // wherever it is shown in this email; a guest's own title, if any, already
+  // lives inside their GuestEntry.
+  title?: string | null
   eventTitle: string
   ticketName?: string | null
   eventDate: string
@@ -517,9 +521,10 @@ export async function sendEventConfirmation(opts: {
   // anywhere. A member who had paid for two adults, a child and an infant read
   // the first line as her whole order and thought only one ticket had come
   // through. The count now leads, and the buyer is listed with everyone else.
+  const withTitle = (title: string | null | undefined, name: string) => (title ? `${title} ${name}` : name).trim()
   const attendees = [
-    { name: `${opts.firstName || ''} ${opts.lastName || ''}`.trim(), ticket: opts.ticketName || '', isBuyer: true, age: opts.attendeeAge ?? null },
-    ...guests.map(g => ({ name: g.name, ticket: g.ticket_name || '', isBuyer: false, age: g.age ?? null })),
+    { name: withTitle(opts.title, `${opts.firstName || ''} ${opts.lastName || ''}`), ticket: opts.ticketName || '', isBuyer: true, age: opts.attendeeAge ?? null },
+    ...guests.map(g => ({ name: withTitle(g.title, g.name), ticket: g.ticket_name || '', isBuyer: false, age: g.age ?? null })),
   ].filter(a => a.name)
 
   const counts = new Map<string, number>()

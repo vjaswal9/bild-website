@@ -352,15 +352,16 @@ function flattenAttendees(registrations: EventRegistration[]): FlatAttendee[] {
   const sorted = [...registrations].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const rows: FlatAttendee[] = []
   sorted.forEach(reg => {
-    const buyerName = `${reg.first_name} ${reg.last_name}`.trim()
+    const buyerName = `${reg.title ? reg.title + ' ' : ''}${reg.first_name} ${reg.last_name}`.trim()
     rows.push({
       key: reg.id, name: buyerName, ticketName: reg.ticket_name || 'Ticket',
       status: reg.status, isGuest: false, email: reg.email, amountAed: reg.amount_aed,
       age: reg.attendee_age ?? null,
     })
     ;(reg.guest_names || []).forEach((g, i) => {
-      const name = typeof g === 'string' ? g : (g?.name || '')
-      if (!name) return
+      const rawName = typeof g === 'string' ? g : (g?.name || '')
+      if (!rawName) return
+      const name = typeof g === 'string' ? rawName : (g.title ? `${g.title} ${rawName}` : rawName)
       const ticketName = typeof g === 'string' ? reg.ticket_name : (g.ticket_name || reg.ticket_name)
       rows.push({
         key: `${reg.id}-g${i}`, name, ticketName: ticketName || 'Ticket',

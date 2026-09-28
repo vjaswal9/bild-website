@@ -30,7 +30,7 @@ export type Dietary = '' | 'vegetarian' | 'vegan' | 'other'
 // A named guest on an extra ticket, with the package they chose.
 // A named guest on an extra ticket, with the package they chose. `age` is
 // present only for a guest on a ticket marked as a child ticket.
-export type GuestEntry = { name: string; ticket_name?: string; price_aed?: number; dietary?: Dietary; dietary_note?: string; age?: number }
+export type GuestEntry = { name: string; title?: string; ticket_name?: string; price_aed?: number; dietary?: Dietary; dietary_note?: string; age?: number }
 
 export type EventRow = {
   id: string
@@ -89,6 +89,9 @@ export type EventRegistration = {
   // Only set when the lead booker is themselves on a child ticket. Every other
   // attendee's age lives in their guest_names entry.
   attendee_age?: number | null
+  // Optional courtesy title (Mr./Mrs./Miss) for the lead booker. A guest's
+  // title, if any, lives inside their own guest_names entry instead.
+  title?: string | null
   // Table seating: the code that groups this booking with others sharing it,
   // and the table an admin has placed the whole group at. Both null on an
   // event with seating_enabled off, or before an admin has run seating.

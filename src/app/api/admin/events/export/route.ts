@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
   // into the primary buyer plus a row for every named guest on the extra tickets.
   const rows: Record<string, unknown>[] = []
   regs.forEach((r: Record<string, unknown>) => {
-    const buyer = `${r.first_name} ${r.last_name}`.trim()
+    const buyer = `${r.title ? `${r.title} ` : ''}${r.first_name} ${r.last_name}`.trim()
     // Everyone on one booking sits together - the table lives on the booking,
     // not the person, so every row below carries the same value.
     const table = seatingOn && r.seating_table != null ? `Table ${r.seating_table}` : seatingOn ? 'Unassigned' : ''
@@ -65,11 +65,13 @@ export async function GET(req: NextRequest) {
     const guests = Array.isArray(r.guest_names) ? r.guest_names : []
     guests.forEach((g: unknown) => {
       // Guests are stored as { name, ticket_name, dietary, dietary_note } objects (older rows may be plain strings).
-      const name = typeof g === 'string' ? g : ((g as { name?: string })?.name || '')
+      const rawName = typeof g === 'string' ? g : ((g as { name?: string })?.name || '')
+      const gTitle = typeof g === 'string' ? '' : ((g as { title?: string })?.title || '')
+      const name = gTitle ? `${gTitle} ${rawName}` : rawName
       const pkg = typeof g === 'string' ? (r.ticket_name || '') : ((g as { ticket_name?: string })?.ticket_name || '')
       const dietary = typeof g === 'string' ? '' : dietaryLabel((g as { dietary?: string })?.dietary, (g as { dietary_note?: string })?.dietary_note)
       const age = typeof g === 'string' ? '' : ((g as { age?: number })?.age ?? '')
-      if (!name) return
+      if (!rawName) return
       rows.push({
         Name: name,
         Phone: '',
