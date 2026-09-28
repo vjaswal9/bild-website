@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, ArrowLeft } from 'lucide-react'
+import { Calendar, MapPin, ArrowLeft, HelpCircle } from 'lucide-react'
 import { getEventBySlug } from '@/lib/events-server'
-import { isPastEvent } from '@/lib/events'
+import { EventRow, EventTicket, isPastEvent } from '@/lib/events'
 import { formatEventDate, formatEventTime } from '@/lib/utils'
 import EventRegistration from './EventRegistration'
 import EventGallery from './EventGallery'
@@ -30,20 +30,100 @@ function plainDescription(raw: string): string {
     .slice(0, 900)
 }
 
+// Short form for a title tag and the fact-first lead of a meta description -
+// "14 Nov 2026" rather than formatEventDate's full "Saturday, 14 November
+// 2026", which alone would eat most of a search result's title budget.
+function shortEventDate(isoString: string): string {
+  return new Date(isoString).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai',
+  })
+}
+
+function priceLine(tickets: EventTicket[]): string {
+  const prices = tickets.filter(t => t.active).map(t => t.price_aed)
+  if (prices.length === 0) return ''
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  if (min === 0 && max === 0) return 'Free entry.'
+  if (min === max) return `Tickets ${min} AED.`
+  return `Tickets from ${min} AED.`
+}
+
+// A search snippet or an answer engine both do better reading concrete facts
+// first - what, when, where, how much - with the announcement's own flavour
+// text only filling whatever room is left, rather than a blind character
+// slice of that copy that can cut off mid-word with no facts in it at all.
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const data = await getEventBySlug(params.slug)
   if (!data) return { title: 'Event' }
-  const { event } = data
-  const description = event.description
-    ? plainDescription(event.description).slice(0, 155)
-    : `${event.title} - a BILD event for British Indians in Dubai and the UAE. ${formatEventDate(event.event_date)}.`
+  const { event, tickets } = data
+  const dateStr = shortEventDate(event.event_date)
+  const venueStr = event.venue || event.location || ''
+  const facts = [`${event.title} - ${dateStr}${venueStr ? ` at ${venueStr}` : ''}.`, priceLine(tickets)].filter(Boolean).join(' ')
+
+  const flavour = event.description
+    ? plainDescription(event.description)
+    : 'A BILD event for British Indians in Dubai and the UAE.'
+  const budget = 158 - facts.length - 1
+  let description = facts
+  if (budget > 20) {
+    let snippet = flavour.slice(0, budget)
+    const lastSpace = snippet.lastIndexOf(' ')
+    if (lastSpace > 20) snippet = snippet.slice(0, lastSpace)
+    description = `${facts} ${snippet}${flavour.length > snippet.length ? '…' : ''}`
+  }
+
+  const title = `${event.title} - ${dateStr}`
   const images = event.flyer_url && event.flyer_url.startsWith('http') ? [event.flyer_url] : undefined
   return {
-    title: event.title,
+    title,
     description,
-    openGraph: { title: event.title, description, images },
-    twitter: { title: event.title, description, images },
+    openGraph: { title, description, images },
+    twitter: { title, description, images },
   }
+}
+
+type FaqItem = { question: string; answer: string }
+
+// Facts an answer engine (or a person skimming) most often wants and that
+// this page can state with total confidence, because they come straight from
+// the same fields already shown elsewhere on the page - never a guess at
+// something only the admin knows, like a refund policy, which stays prose-only.
+function buildFaq(event: EventRow, tickets: EventTicket[]): FaqItem[] {
+  const faqs: FaqItem[] = []
+  const venueStr = [event.venue, event.location].filter(Boolean).join(', ')
+
+  faqs.push({
+    question: `What time does ${event.title} start?`,
+    answer: `${event.title} starts at ${formatEventTime(event.event_date)} on ${formatEventDate(event.event_date)}${venueStr ? ` at ${venueStr}` : ''}.`,
+  })
+
+  if (venueStr) {
+    faqs.push({
+      question: `Where is ${event.title} held?`,
+      answer: `${event.title} takes place at ${venueStr}.`,
+    })
+  }
+
+  const prices = tickets.filter(t => t.active).map(t => t.price_aed)
+  if (prices.length > 0) {
+    const min = Math.min(...prices)
+    const max = Math.max(...prices)
+    const answer =
+      min === 0 && max === 0 ? 'Tickets to this event are free.'
+        : min === max ? `Tickets are ${min} AED.`
+        : `Tickets range from ${min} AED to ${max} AED, depending on the package.`
+    faqs.push({ question: `How much are tickets for ${event.title}?`, answer })
+  }
+
+  if (event.seating_enabled) {
+    faqs.push({
+      question: `Can I sit with my friends at ${event.title}?`,
+      answer: 'Yes - book together and share a table code when registering, so everyone who enters the same code is seated together. Seating with friends can be requested, and while we will try our best, it cannot be guaranteed.',
+    })
+  }
+
+  return faqs
 }
 
 export default async function EventDetailPage({ params }: { params: { slug: string } }) {
@@ -75,14 +155,21 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
     ...(event.created_at ? { validFrom: event.created_at } : {}),
   }))
 
+  // A stored end_date before the start is a data-entry mistake, not a fact to
+  // publish - Google's Rich Results check flags (and can disqualify) an Event
+  // whose endDate precedes its startDate, so an invalid one is left out
+  // entirely rather than passed through.
+  const validEndDate = event.end_date && new Date(event.end_date) > new Date(event.event_date) ? event.end_date : null
+
   const eventJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.title,
     startDate: event.event_date,
-    ...(event.end_date ? { endDate: event.end_date } : {}),
+    ...(validEndDate ? { endDate: validEndDate } : {}),
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    inLanguage: 'en',
     url: eventUrl,
     // The stored description is the WhatsApp announcement, complete with
     // *asterisk* emphasis. Search engines show it verbatim, so the markers
@@ -92,13 +179,30 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
     location: {
       '@type': 'Place',
       name: event.venue || event.location || 'Dubai, UAE',
-      address: event.location || 'Dubai, United Arab Emirates',
+      // A structured address, not a bare string - Google's own Event markup
+      // guidelines ask for a PostalAddress object here.
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: event.location || 'Dubai',
+        addressCountry: 'AE',
+      },
       ...(event.google_maps_url ? { hasMap: event.google_maps_url } : {}),
     },
     organizer: { '@type': 'Organization', name: 'BILD', url: SITE_URL },
     performer: { '@type': 'Organization', name: 'BILD' },
     ...(offers.length ? { offers } : {}),
   }
+
+  const faqs = buildFaq(event, tickets)
+  const faqJsonLd = faqs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(f => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  } : null
 
   return (
     <div className="py-16">
@@ -107,6 +211,12 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
         />
+        {faqJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          />
+        )}
         <Link href="/events" className="inline-flex items-center gap-2 text-charcoal-600 hover:text-gold-600 mb-8 text-sm font-medium">
           <ArrowLeft size={16} /> Back to Events
         </Link>
@@ -168,6 +278,22 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
         {event.description && (
           <div className="prose prose-lg text-charcoal-700 mb-10 whitespace-pre-line">
             {event.description}
+          </div>
+        )}
+
+        {!isPast && faqs.length > 0 && (
+          <div className="mb-10">
+            <h2 className="font-display text-xl font-bold text-charcoal-800 mb-4 flex items-center gap-2">
+              <HelpCircle size={20} className="text-gold-500" /> Good to know
+            </h2>
+            <div className="space-y-4">
+              {faqs.map(f => (
+                <div key={f.question}>
+                  <h3 className="text-base font-semibold text-charcoal-800 mb-1">{f.question}</h3>
+                  <p className="text-sm text-charcoal-600">{f.answer}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
