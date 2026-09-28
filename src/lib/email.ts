@@ -425,11 +425,16 @@ export async function sendEventConfirmation(opts: {
   // the code, and an instruction to share it further.
   const seatingBlock = opts.seatingEnabled && opts.seatingCode
     ? `<p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 4px">Sitting with friends?</p>
-       <p style="color:#cfcabd;font-size:15px;margin:0">
-         Share this code with anyone you would like at your table - they enter it when they book, and everyone who
-         does is seated together:
-         <br><span style="color:#F4F1EC;font-size:22px;font-weight:bold;letter-spacing:3px;display:inline-block;margin-top:6px">${esc(opts.seatingCode)}</span>
-         <br><span style="color:#8a857a;font-size:13px">No code needed if you are happy to be seated wherever there is room.</span>
+       <p style="color:#cfcabd;font-size:15px;margin:0 0 10px">
+         Here&rsquo;s your table code. Share it with anyone you would like at your table - when they book, they enter
+         it in the same place you did, and everyone who enters the same code is seated together:
+       </p>
+       <p style="margin:0 0 10px">
+         <span style="color:#F4F1EC;font-size:22px;font-weight:bold;letter-spacing:3px;display:inline-block">${esc(opts.seatingCode)}</span>
+       </p>
+       <p style="color:#8a857a;font-size:13px;margin:0">
+         No code needed if you are happy to be seated wherever there is room. Seating with friends can be requested,
+         and while we will try our best, it cannot be guaranteed.
        </p>`
     : ''
 

@@ -363,14 +363,32 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
 
           {seatingEnabled && (
             <div className="mt-4 p-4 rounded-xl border border-gold-200 bg-gold-50/50">
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-charcoal-800 mb-2">
+                <Users size={15} className="text-gold-600" /> This event has table seating
+              </p>
+              <div className="text-xs text-charcoal-600 leading-relaxed space-y-1.5 mb-3">
+                <p>
+                  Here&rsquo;s how it works: if you&rsquo;re the first in your group to book, leave the box below
+                  empty and we&rsquo;ll send you a short code by email once you&rsquo;ve paid. Share that code with
+                  whoever you want at your table - when they book, they enter it in the same box. Everyone who
+                  enters the same code is seated together.
+                </p>
+                <p>
+                  Already have a code from a friend who booked first? Enter it below instead of leaving it empty,
+                  and you&rsquo;ll join their table rather than starting a new one.
+                </p>
+                <p className="italic text-charcoal-500">
+                  Seating with friends can be requested, and while we will try our best, it cannot be guaranteed.
+                </p>
+              </div>
               <label className="flex items-center gap-1.5 text-xs text-charcoal-500 uppercase tracking-wide mb-1 font-medium">
-                <Users size={13} /> Table code (optional)
+                Table code (optional)
               </label>
               <input
                 type="text"
                 value={seatingCode}
                 onChange={e => setSeatingCode(e.target.value.toUpperCase())}
-                placeholder="e.g. AC4NR"
+                placeholder="e.g. AC4NR - leave blank if you don't have one"
                 maxLength={12}
                 className={`w-full px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-gold-500 ${
                   seatingCheck === 'notfound' ? errBorder : 'border-charcoal-200'
@@ -380,11 +398,6 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                 {seatingCheck === 'checking' && <span className="text-charcoal-400">Checking...</span>}
                 {seatingCheck === 'found' && <span className="text-green-700 font-medium">You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.</span>}
                 {seatingCheck === 'notfound' && <span className="text-ruby-600">We can&rsquo;t find that code for this event. Check it with your friend, or leave it blank.</span>}
-                {seatingCheck === 'idle' && (
-                  <span className="text-charcoal-500">
-                    Sitting with friends? Enter their table code here. Leave it blank and we&rsquo;ll give you one after payment to share with anyone booking after you.
-                  </span>
-                )}
               </p>
             </div>
           )}
