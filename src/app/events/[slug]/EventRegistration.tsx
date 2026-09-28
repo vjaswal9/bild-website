@@ -306,6 +306,9 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                     : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
                 </p>
               )}
+              <p className="text-charcoal-500 text-xs italic mt-1.5">
+                Seating with friends can be requested, and while we will try our best, it cannot be guaranteed.
+              </p>
               {referralAnsweredStaying ? (
                 <p className="text-charcoal-500 text-xs mt-3 pt-3 border-t border-gold-200">
                   Great - carry on below and you&rsquo;ll be seated with them.
