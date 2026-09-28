@@ -156,11 +156,26 @@ export async function POST(req: NextRequest) {
     for (const key of groupKeys) {
       const query = supabaseAdmin
         .from('event_registrations')
-        .update({ seating_code: targetCode, seating_table: null })
+        .update({ seating_code: targetCode })
         .eq('event_id', eventId)
       const { error } = isSolo(key) ? await query.eq('id', soloId(key)) : await query.eq('seating_code', key)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Clear the table for EVERY registration now on this code, not just the
+    // ones that just moved. A merge changes the destination group's headcount
+    // too, so its previous table - sized for however many people it held
+    // before - is no longer a fact about the new, larger party. Found this the
+    // hard way while testing: clearing only the movers left the destination
+    // group still showing its old table number, silently wrong the moment the
+    // merge made it too big to fit there.
+    const { error: clearErr } = await supabaseAdmin
+      .from('event_registrations')
+      .update({ seating_table: null })
+      .eq('event_id', eventId)
+      .eq('seating_code', targetCode)
+    if (clearErr) return NextResponse.json({ error: clearErr.message }, { status: 500 })
+
     return NextResponse.json({ ok: true, code: targetCode })
   }
 
