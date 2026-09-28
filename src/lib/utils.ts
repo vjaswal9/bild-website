@@ -24,6 +24,7 @@ export function formatMonthYear(isoString: string): string {
   return new Date(isoString).toLocaleDateString('en-GB', {
     month: 'long',
     year: 'numeric',
+    timeZone: EVENT_TIMEZONE,
   })
 }
 

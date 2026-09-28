@@ -275,7 +275,7 @@ export default function DashboardClient({ data: d }: { data: DashboardData }) {
                     >
                       <td className="px-5 py-3 text-white font-medium">{e.title}</td>
                       <td className="px-5 py-3 text-gray-400">
-                        {new Date(e.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(e.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' })}
                       </td>
                       <td className="px-5 py-3 text-gray-400 text-right">{e.bookings}</td>
                       <td className="px-5 py-3 text-right"><span className="text-gold-400 font-semibold text-base">{e.tickets}</span></td>
