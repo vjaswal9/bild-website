@@ -49,9 +49,12 @@ export async function GET(req: NextRequest) {
   const rows: Record<string, unknown>[] = []
   regs.forEach((r: Record<string, unknown>) => {
     const buyer = `${r.title ? `${r.title} ` : ''}${r.first_name} ${r.last_name}`.trim()
-    // Everyone on one booking sits together - the table lives on the booking,
-    // not the person, so every row below carries the same value.
-    const table = seatingOn && r.seating_table != null ? `Table ${r.seating_table}` : seatingOn ? 'Unassigned' : ''
+    // Everyone on one booking sits together - the table(s) live on the
+    // booking, not the person, so every row below carries the same value. A
+    // group too big for one table can carry several; which of those seats
+    // each person actually takes is sorted out on the night, not tracked here.
+    const tables = Array.isArray(r.seating_table) ? (r.seating_table as number[]) : []
+    const table = seatingOn ? (tables.length ? `Table${tables.length > 1 ? 's' : ''} ${[...tables].sort((a, b) => a - b).join(', ')}` : 'Unassigned') : ''
     const tableCol = seatingOn ? { Table: table } : {}
     rows.push({
       Name: buyer,

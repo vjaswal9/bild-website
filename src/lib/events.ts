@@ -93,10 +93,12 @@ export type EventRegistration = {
   // title, if any, lives inside their own guest_names entry instead.
   title?: string | null
   // Table seating: the code that groups this booking with others sharing it,
-  // and the table an admin has placed the whole group at. Both null on an
-  // event with seating_enabled off, or before an admin has run seating.
+  // and the table(s) an admin has placed the whole group at. A group too big
+  // for one table can be given several - which seat within those tables is
+  // left for the group to sort out themselves. Both null on an event with
+  // seating_enabled off, or before an admin has run seating.
   seating_code?: string | null
-  seating_table?: number | null
+  seating_table?: number[] | null
 }
 
 // An event is "past" once its end (or start, if no end) is behind us.

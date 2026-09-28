@@ -23,8 +23,18 @@ type Reg = {
   last_name: string | null
   quantity: number | null
   seating_code: string | null
-  seating_table: number | null
+  seating_table: number[] | null
   created_at: string
+}
+
+// Two table lists count as "the same assignment" regardless of order - used
+// to tell whether every booking under a merged code still agrees on where
+// the group sits.
+function sameTables(a: number[], b: number[]) {
+  if (a.length !== b.length) return false
+  const sa = [...a].sort((x, y) => x - y)
+  const sb = [...b].sort((x, y) => x - y)
+  return sa.every((v, i) => v === sb[i])
 }
 
 function groupRegs(regs: Reg[]) {
@@ -66,17 +76,21 @@ export async function GET(req: NextRequest) {
     const headcount = list.reduce((s, r) => s + (r.quantity || 1), 0)
     // Whoever booked first under this code is who friends would name it after.
     const organiser = list[0]
-    const tables = new Set(list.map(r => r.seating_table).filter(t => t != null))
+    const tableLists = list.map(r => r.seating_table || [])
+    // Every booking under a merged code should carry the same table list - it
+    // is only set as one group action (set_table) below. If they disagree, a
+    // merge happened after tables were assigned and this group has never been
+    // re-placed since, so it is shown as unassigned rather than picking one
+    // arbitrarily.
+    const agree = tableLists.every(t => sameTables(t, tableLists[0]))
+    const tables = agree ? tableLists[0] : []
     return {
       key,
       code: isSolo(key) ? null : key,
       organiserName: `${organiser.first_name} ${organiser.last_name || ''}`.trim(),
       headcount,
       oversized: seatsPerTable != null && headcount > seatsPerTable,
-      // More than one distinct table means a merge happened after tables were
-      // assigned and this group has never been re-placed - shown as
-      // unassigned rather than picking one arbitrarily.
-      table: tables.size === 1 ? Array.from(tables)[0] : null,
+      tables,
       bookings: list.map(r => ({ id: r.id, name: `${r.first_name} ${r.last_name || ''}`.trim(), quantity: r.quantity || 1 })),
     }
   })
@@ -130,10 +144,15 @@ export async function POST(req: NextRequest) {
 
   if (b.action === 'set_table') {
     // groupKey identifies a merged code or a single solo booking - see soloKey.
-    const { groupKey, table } = b
+    // tables is the full replacement list for the group - a group too big for
+    // one table can be given several, and it is up to the group to sort out
+    // who sits where once they're there; nothing here tracks individual seats.
+    const { groupKey, tables: rawTables } = b
     if (!groupKey) return NextResponse.json({ error: 'Missing groupKey.' }, { status: 400 })
-    const tableNum = table === null || table === '' ? null : Math.max(1, Math.round(Number(table)))
-    const query = supabaseAdmin.from('event_registrations').update({ seating_table: tableNum }).eq('event_id', eventId)
+    const tables = Array.isArray(rawTables)
+      ? Array.from(new Set(rawTables.map(Number).filter(n => Number.isInteger(n) && n >= 1)))
+      : []
+    const query = supabaseAdmin.from('event_registrations').update({ seating_table: tables.length ? tables : null }).eq('event_id', eventId)
     const { error } = isSolo(groupKey)
       ? await query.eq('id', soloId(groupKey))
       : await query.eq('seating_code', groupKey)
@@ -242,7 +261,7 @@ export async function POST(req: NextRequest) {
     for (const p of placements) {
       const { error } = await supabaseAdmin
         .from('event_registrations')
-        .update({ seating_table: p.table })
+        .update({ seating_table: [p.table] })
         .in('id', p.ids)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }

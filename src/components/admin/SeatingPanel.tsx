@@ -9,7 +9,7 @@ type Group = {
   organiserName: string
   headcount: number
   oversized: boolean
-  table: number | null
+  tables: number[]
   bookings: { id: string; name: string; quantity: number }[]
 }
 
@@ -36,6 +36,8 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
   // Checkbox selection for the merge action, keyed by group.key.
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [mergeTarget, setMergeTarget] = useState('')
+  // Which group's table picker is expanded, if any - only one at a time.
+  const [openPicker, setOpenPicker] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -105,8 +107,14 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
   }
 
   const { groups, tableCount, seatsPerTable, totalHeadcount, totalCapacity, locked } = data
-  const unassigned = groups.filter(g => g.table == null)
-  const oversized = groups.filter(g => g.oversized)
+  const unassigned = groups.filter(g => g.tables.length === 0)
+  // Still needs attention: either it has no table(s) yet, or the table(s)
+  // picked so far don't add up to enough seats for the headcount. Once an
+  // admin has given a big group enough tables, it drops off this list even
+  // though it will always structurally be "too big for one table".
+  const needsTables = groups.filter(g =>
+    g.oversized && (g.tables.length === 0 || (seatsPerTable != null && g.tables.length * seatsPerTable < g.headcount)),
+  )
 
   function toggleSelect(key: string) {
     setSelected(prev => {
@@ -115,6 +123,11 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
       else next.add(key)
       return next
     })
+  }
+
+  function toggleGroupTable(g: Group, n: number) {
+    const next = g.tables.includes(n) ? g.tables.filter(t => t !== n) : [...g.tables, n]
+    act({ action: 'set_table', groupKey: g.key, tables: next })
   }
 
   async function doMerge() {
@@ -156,7 +169,7 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
           <span className="flex items-center gap-1.5"><Users size={14} /> {totalHeadcount} people{totalCapacity != null ? ` / ${totalCapacity} seats` : ''}</span>
           <span>{tableCount} tables &times; {seatsPerTable} seats</span>
           {unassigned.length > 0 && <span className="text-amber-400">{unassigned.length} groups unassigned</span>}
-          {oversized.length > 0 && <span className="text-red-400 flex items-center gap-1"><AlertTriangle size={13} /> {oversized.length} too big for one table</span>}
+          {needsTables.length > 0 && <span className="text-red-400 flex items-center gap-1"><AlertTriangle size={13} /> {needsTables.length} need more than one table</span>}
         </div>
         <div className="flex items-center gap-2">
           {locked ? (
@@ -205,8 +218,12 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
       )}
 
       <div className="space-y-2">
-        {groups.map(g => (
-          <div key={g.key} className={`rounded-xl border px-4 py-3 ${g.oversized ? 'border-red-500/40 bg-red-500/5' : 'border-charcoal-700 bg-charcoal-700/30'}`}>
+        {groups.map(g => {
+          const seatsCovered = seatsPerTable != null ? g.tables.length * seatsPerTable : null
+          const stillTight = g.oversized && (g.tables.length === 0 || (seatsCovered != null && seatsCovered < g.headcount))
+          const pickerOpen = openPicker === g.key
+          return (
+          <div key={g.key} className={`rounded-xl border px-4 py-3 ${stillTight ? 'border-red-500/40 bg-red-500/5' : 'border-charcoal-700 bg-charcoal-700/30'}`}>
             <div className="flex items-start gap-3">
               {!locked && (
                 <input
@@ -222,32 +239,60 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
                   {g.code && <span className="text-gray-500 text-xs font-mono">{g.code}</span>}
                   {!g.code && <span className="text-gray-500 text-xs italic">no code</span>}
                   <span className="text-gray-400 text-xs">{g.headcount} {g.headcount === 1 ? 'person' : 'people'}</span>
-                  {g.oversized && <span className="text-red-400 text-xs flex items-center gap-1"><AlertTriangle size={11} /> bigger than a table</span>}
+                  {g.oversized && (
+                    <span className={`text-xs flex items-center gap-1 ${stillTight ? 'text-red-400' : 'text-green-400'}`}>
+                      <AlertTriangle size={11} />
+                      {stillTight
+                        ? `needs more than one table${seatsCovered != null && g.tables.length > 0 ? ` (${seatsCovered} of ${g.headcount} seats so far)` : ''}`
+                        : `split across ${g.tables.length} tables - they can sort out who sits where`}
+                    </span>
+                  )}
                 </div>
                 <p className="text-gray-500 text-xs mt-0.5 truncate">
                   {g.bookings.map(b => `${b.name} (${b.quantity})`).join(', ')}
                 </p>
               </div>
-              <div className="shrink-0">
-                <select
-                  value={g.table ?? ''}
+              <div className="shrink-0 relative">
+                <button
+                  type="button"
                   disabled={locked || busy}
-                  onChange={e => act({ action: 'set_table', groupKey: g.key, table: e.target.value || null })}
-                  className={`border rounded-lg text-xs px-2 py-1.5 font-semibold ${
-                    g.table != null ? 'bg-green-600/20 border-green-600/40 text-green-300' : 'bg-charcoal-700 border-charcoal-600 text-gray-300'
+                  onClick={() => setOpenPicker(pickerOpen ? null : g.key)}
+                  className={`border rounded-lg text-xs px-2 py-1.5 font-semibold disabled:opacity-50 ${
+                    g.tables.length > 0 ? 'bg-green-600/20 border-green-600/40 text-green-300' : 'bg-charcoal-700 border-charcoal-600 text-gray-300'
                   }`}
                 >
-                  <option value="">Unassigned</option>
-                  {Array.from({ length: tableCount }, (_, i) => i + 1).map(n => (
-                    <option key={n} value={n}>Table {n}</option>
-                  ))}
-                </select>
+                  {g.tables.length === 0 ? 'Unassigned' : `Table${g.tables.length > 1 ? 's' : ''} ${g.tables.slice().sort((a, b) => a - b).join(', ')}`}
+                </button>
+                {pickerOpen && !locked && (
+                  <div className="absolute right-0 top-full mt-1 z-20 bg-charcoal-800 border border-charcoal-600 rounded-lg p-2 shadow-xl w-40 max-h-56 overflow-y-auto">
+                    <p className="text-gray-500 text-[10px] uppercase tracking-wide px-1 mb-1">
+                      Tick as many as this group needs
+                    </p>
+                    {Array.from({ length: tableCount }, (_, i) => i + 1).map(n => (
+                      <label key={n} className="flex items-center gap-2 px-1 py-1 rounded hover:bg-charcoal-700 cursor-pointer text-xs text-gray-200">
+                        <input
+                          type="checkbox"
+                          checked={g.tables.includes(n)}
+                          disabled={busy}
+                          onChange={() => toggleGroupTable(g, n)}
+                          className="h-3.5 w-3.5 accent-gold-500"
+                        />
+                        Table {n}
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        ))}
+          )
+        })}
         {groups.length === 0 && <p className="text-gray-500 text-sm">No paid bookings yet.</p>}
       </div>
+      {openPicker && (
+        // Click-away backdrop for the table picker popover, below it in z-order.
+        <div className="fixed inset-0 z-10" onClick={() => setOpenPicker(null)} />
+      )}
     </div>
   )
 }
