@@ -443,7 +443,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                     {codeFromLink && (
                       <p className="text-charcoal-500 mt-1.5">
                         Didn&rsquo;t mean to join this table, or would rather sit elsewhere? Just clear the box
-                        below - you&rsquo;ll be booked in as normal and seated wherever there&rsquo;s room. No need
+                        above - you&rsquo;ll be booked in as normal and seated wherever there&rsquo;s room. No need
                         to say anything to anyone.
                       </p>
                     )}
