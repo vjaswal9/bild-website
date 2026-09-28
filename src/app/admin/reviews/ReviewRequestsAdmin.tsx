@@ -101,11 +101,27 @@ export default function ReviewRequestsAdmin({ groups }: { groups: EventGroup[] }
           <Star size={22} className="text-gold-400 fill-gold-400" /> Send Google Review Requests
         </h1>
       </div>
-      <p className="text-gray-400 text-sm mb-6 max-w-2xl">
+      <p className="text-gray-400 text-sm mb-4 max-w-2xl">
         Tick whoever you want to ask, per event, and send. Each booking is one email address, so a party of six
         booked together sends one email to whoever booked it - there is no separate address for each guest.
         The automated version of this is currently paused; this page is the manual replacement.
       </p>
+
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={send}
+          disabled={sending || selected.size === 0}
+          className="inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {sending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+          {sending ? 'Sending...' : `Send review request${selected.size > 0 ? ` (${selected.size})` : ''}`}
+        </button>
+        {selected.size > 0 && !sending && (
+          <button onClick={() => setSelected(new Set())} className="text-gray-400 hover:text-white text-sm">
+            Clear selection
+          </button>
+        )}
+      </div>
 
       {result && (
         <div className="mb-6 rounded-xl border border-green-600/40 bg-green-600/10 px-4 py-3">
@@ -191,22 +207,6 @@ export default function ReviewRequestsAdmin({ groups }: { groups: EventGroup[] }
           )
         })}
       </div>
-
-      {selected.size > 0 && (
-        <div className="fixed bottom-0 inset-x-0 bg-charcoal-800 border-t border-charcoal-700 px-4 py-3 flex items-center justify-center gap-3 z-10">
-          <span className="text-white text-sm">{selected.size} {selected.size === 1 ? 'person' : 'people'} selected</span>
-          <button
-            onClick={send}
-            disabled={sending}
-            className="inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
-          >
-            {sending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} Send review request
-          </button>
-          <button onClick={() => setSelected(new Set())} disabled={sending} className="text-gray-400 hover:text-white text-sm">
-            Clear
-          </button>
-        </div>
-      )}
     </div>
   )
 }
