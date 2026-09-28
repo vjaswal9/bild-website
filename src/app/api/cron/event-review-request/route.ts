@@ -50,6 +50,18 @@ export async function GET(req: NextRequest) {
   // This one sends to real members, so it should be easy to look first.
   const dryRun = adminOk && req.nextUrl.searchParams.get('dry') === '1'
 
+  // PAUSED on 28 September 2026, on request, after one batch of 12 had
+  // already gone out that morning. Vijay wants to ask individually rather than
+  // have this run automatically. The vercel.json cron entry was removed too,
+  // so this only matters if the URL is ever hit by hand or a secret leaks -
+  // belt and braces, not the primary switch.
+  //
+  // To resume: delete this block, and re-add the cron entry to vercel.json:
+  //   { "path": "/api/cron/event-review-request", "schedule": "30 6 * * *" }
+  if (!dryRun) {
+    return NextResponse.json({ ok: true, sent: 0, reason: 'Paused - event review requests are turned off.' })
+  }
+
   const placeId = process.env.GOOGLE_PLACE_ID
   if (!placeId) {
     return NextResponse.json({ error: 'GOOGLE_PLACE_ID is not set, so there is no review link to send' }, { status: 500 })
