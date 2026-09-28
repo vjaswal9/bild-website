@@ -111,12 +111,15 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
           <ArrowLeft size={16} /> Back to Events
         </Link>
 
-        <div className="rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-charcoal-700 to-charcoal-900">
+        <div className="mb-8">
           {hasFlyer ? (
+            // Sized to the flyer's own aspect ratio rather than stretched to
+            // the page width, so a portrait poster is never letterboxed with
+            // background bars down each side.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={event.flyer_url!} alt={event.title} className="w-full max-h-[520px] object-contain bg-charcoal-900" />
+            <img src={event.flyer_url!} alt={event.title} className="max-w-full max-h-[720px] w-auto h-auto mx-auto rounded-2xl" />
           ) : (
-            <div className="h-64 flex items-center justify-center">
+            <div className="h-64 flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-br from-charcoal-700 to-charcoal-900">
               <span className="font-display text-white/10 text-8xl font-bold">BILD</span>
             </div>
           )}
