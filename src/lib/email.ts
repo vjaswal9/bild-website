@@ -388,6 +388,9 @@ export async function sendEventConfirmation(opts: {
   // which case the calendar row is simply left out.
   eventSlug?: string | null
   eventEndDate?: string | null
+  // Table seating. Present only on an event with seating switched on.
+  seatingEnabled?: boolean
+  seatingCode?: string | null
 }) {
   if (!apiKey) {
     console.warn('Email skipped: RESEND_API_KEY not set')
@@ -414,6 +417,20 @@ export async function sendEventConfirmation(opts: {
         : `<p style="color:#C8861A;font-size:15px;font-weight:bold;margin:0">Free registration</p>`
   const receiptLine = opts.receiptUrl
     ? `<p style="margin:16px 0 0"><a href="${opts.receiptUrl}" style="color:#C8861A;font-size:13px;text-decoration:underline">View your Stripe receipt &rarr;</a></p>`
+    : ''
+  // Copy differs depending on whether this booking generated a fresh code
+  // (they are the first from their group to book) or joined one somebody else
+  // already shared - "here is your code to share" reads oddly to the second
+  // person in a group who already has one, so both read the same either way:
+  // the code, and an instruction to share it further.
+  const seatingBlock = opts.seatingEnabled && opts.seatingCode
+    ? `<p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 4px">Sitting with friends?</p>
+       <p style="color:#cfcabd;font-size:15px;margin:0">
+         Share this code with anyone you would like at your table - they enter it when they book, and everyone who
+         does is seated together:
+         <br><span style="color:#F4F1EC;font-size:22px;font-weight:bold;letter-spacing:3px;display:inline-block;margin-top:6px">${esc(opts.seatingCode)}</span>
+         <br><span style="color:#8a857a;font-size:13px">No code needed if you are happy to be seated wherever there is room.</span>
+       </p>`
     : ''
 
   // "Add to calendar" links, anchored to Dubai time like the event page.
@@ -483,6 +500,7 @@ export async function sendEventConfirmation(opts: {
         <p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 4px">Payment</p>
         ${paymentBlock}
         ${receiptLine}
+        ${seatingBlock}
         ${calendarBlock}
       </div>
       <p style="color:#8a857a;font-size:12px;text-align:center;margin:0">

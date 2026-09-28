@@ -20,9 +20,10 @@ export async function GET(req: NextRequest) {
 
   const { data: event } = await supabaseAdmin
     .from('events')
-    .select('title, slug')
+    .select('title, slug, seating_enabled')
     .eq('id', eventId)
     .maybeSingle()
+  const seatingOn = !!(event as { seating_enabled?: boolean })?.seating_enabled
 
   const { data } = await supabaseAdmin
     .from('event_registrations')
@@ -48,6 +49,10 @@ export async function GET(req: NextRequest) {
   const rows: Record<string, unknown>[] = []
   regs.forEach((r: Record<string, unknown>) => {
     const buyer = `${r.first_name} ${r.last_name}`.trim()
+    // Everyone on one booking sits together - the table lives on the booking,
+    // not the person, so every row below carries the same value.
+    const table = seatingOn && r.seating_table != null ? `Table ${r.seating_table}` : seatingOn ? 'Unassigned' : ''
+    const tableCol = seatingOn ? { Table: table } : {}
     rows.push({
       Name: buyer,
       Phone: r.phone || '',
@@ -55,6 +60,7 @@ export async function GET(req: NextRequest) {
       // Blank on every adult ticket. Only child tickets are asked for an age.
       Age: r.attendee_age ?? '',
       Dietary: dietaryLabel(r.dietary, r.dietary_note),
+      ...tableCol,
     })
     const guests = Array.isArray(r.guest_names) ? r.guest_names : []
     guests.forEach((g: unknown) => {
@@ -70,6 +76,7 @@ export async function GET(req: NextRequest) {
         'Ticket type': pkg,
         Age: age,
         Dietary: dietary,
+        ...tableCol,
       })
     })
   })

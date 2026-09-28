@@ -8,6 +8,7 @@ import { cardFeeFils } from '@/lib/fees'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { readWithRetry } from '@/lib/db-retry'
+import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser } from '@/lib/seating-code'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
     }
 
-    const { eventId, ticketId, firstName, lastName, email, phone, dietary, dietaryNote, age: buyerAgeRaw, guests: rawGuests } = await req.json()
+    const { eventId, ticketId, firstName, lastName, email, phone, dietary, dietaryNote, age: buyerAgeRaw, guests: rawGuests, seatingCode: rawSeatingCode } = await req.json()
 
     if (!eventId || !ticketId || !firstName || !email) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
     const { data: event, error: eventError } = await readWithRetry('checkout: load event', () =>
       supabaseAdmin
         .from('events')
-        .select('id, slug, title, status, event_date, end_date, venue, google_maps_url, capacity_limit')
+        .select('id, slug, title, status, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled')
         .eq('id', eventId)
         .maybeSingle(),
     )
@@ -165,6 +166,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Table seating. A fresh code for whoever books first in a group; anyone
+    // who enters a friend's code is re-validated here rather than trusting
+    // whatever the browser's live check said moments earlier. An event with
+    // seating switched off never touches this at all, so a booking on a
+    // regular event carries no code.
+    let seatingCode: string | null = null
+    if (event.seating_enabled) {
+      const entered = normalizeSeatingCode(rawSeatingCode)
+      if (entered) {
+        const check = await findSeatingGroupOrganiser(eventId, entered)
+        if (!check.found) {
+          return NextResponse.json({
+            error: 'We could not find that table code for this event. Check it with your friend, or leave it blank to get your own.',
+          }, { status: 400 })
+        }
+        seatingCode = entered
+      } else {
+        seatingCode = generateSeatingCode()
+      }
+    }
+
     // Record the registration up front (pending until payment confirms).
     const { data: reg, error: regErr } = await supabaseAdmin
       .from('event_registrations')
@@ -183,6 +205,7 @@ export async function POST(req: NextRequest) {
         dietary: normalizeDietary(dietary),
         dietary_note: normalizeDietaryNote(dietaryNote),
         attendee_age: buyerAge,
+        seating_code: seatingCode,
       }])
       .select('id')
       .single()
@@ -215,6 +238,8 @@ export async function POST(req: NextRequest) {
         googleMapsUrl: event.google_maps_url,
         eventSlug: event.slug,
         eventEndDate: event.end_date,
+        seatingEnabled: event.seating_enabled,
+        seatingCode,
       })
       // Same guard as the paid path: a failed count must not be reported as
       // zero on an event that has sold plenty.

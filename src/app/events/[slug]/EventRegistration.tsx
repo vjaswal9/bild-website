@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Ticket, Loader2, Minus, Plus } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Ticket, Loader2, Minus, Plus, Users } from 'lucide-react'
 import { EventTicket, Dietary } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
@@ -39,17 +39,44 @@ function priceLabel(t: EventTicket) {
 // so sending the number would have left it readable by anyone viewing source
 // even though nothing displayed it. Capacity is enforced on the server at
 // checkout, which is the only place it can be enforced anyway.
-export default function EventRegistration({ event, tickets, soldOut, waitlistOpen, dietaryRequired }: {
-  event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean
+export default function EventRegistration({ event, tickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled }: {
+  event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean
 }) {
   // attendees[ticketId] = array of { name, dietary } for that package (length = qty)
   const [attendeesByTicket, setAttendeesByTicket] = useState<Record<string, Attendee[]>>({})
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  // Table seating: an optional code that groups this booking with a friend's.
+  // Checked live against the server as it is typed, debounced, so a typo is
+  // caught before payment rather than the admin team discovering it a day
+  // before the event.
+  const [seatingCode, setSeatingCode] = useState('')
+  const [seatingCheck, setSeatingCheck] = useState<'idle' | 'checking' | 'found' | 'notfound'>('idle')
+  const [seatingOrganiser, setSeatingOrganiser] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [tried, setTried] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
+
+  // Debounced: a check on every keystroke would hit the endpoint constantly
+  // while someone is still mid-code.
+  useEffect(() => {
+    const code = seatingCode.trim()
+    if (!code) { setSeatingCheck('idle'); return }
+    setSeatingCheck('checking')
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/events/seating-check?eventId=${event.id}&code=${encodeURIComponent(code)}`)
+        const data = await res.json()
+        if (data.found) { setSeatingOrganiser(data.organiserFirstName); setSeatingCheck('found') }
+        else setSeatingCheck('notfound')
+      } catch {
+        setSeatingCheck('idle')
+      }
+    }, 500)
+    return () => clearTimeout(t)
+  }, [seatingCode, event.id])
+
 
   if (tickets.length === 0) {
     return (
@@ -133,11 +160,13 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
     const missingName = attendees.some(a => !a.name)
     const missingAge = tickets.some(t => t.is_child && (attendeesByTicket[t.id] || []).some(a => ageInvalid(a.age)))
     const missingEmail = !isEmail(email)
-    if (missingName || missingAge || missingEmail) {
+    const badSeatingCode = seatingEnabled && seatingCheck === 'notfound'
+    if (missingName || missingAge || missingEmail || badSeatingCode) {
       setError(
         missingName ? 'Please enter the full name of every attendee.'
           : missingAge ? `Please enter an age between 0 and ${MAX_CHILD_AGE} for every child ticket.`
-          : 'Please enter a valid email address for your confirmation.',
+          : missingEmail ? 'Please enter a valid email address for your confirmation.'
+          : 'That table code was not found. Please check it or clear the field.',
       )
       // setTimeout rather than requestAnimationFrame: rAF is throttled/paused
       // for backgrounded or non-foreground tabs, which would silently drop
@@ -171,6 +200,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
           dietaryNote: lead.dietaryNote,
           age: lead.age,
           guests: attendees.slice(1).map(a => ({ name: a.name, ticketId: a.ticketId, dietary: a.dietary, dietaryNote: a.dietaryNote, age: a.age })),
+          seatingCode: seatingEnabled ? seatingCode.trim() : undefined,
         }),
       })
       const data = await res.json()
@@ -320,6 +350,34 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
             <Field label="Email" value={email} onChange={setEmail} placeholder="you@email.com" type="email" invalid={tried && !isEmail(email)} />
             <Field label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+971 50 000 0000" />
           </div>
+
+          {seatingEnabled && (
+            <div className="mt-4 p-4 rounded-xl border border-gold-200 bg-gold-50/50">
+              <label className="flex items-center gap-1.5 text-xs text-charcoal-500 uppercase tracking-wide mb-1 font-medium">
+                <Users size={13} /> Table code (optional)
+              </label>
+              <input
+                type="text"
+                value={seatingCode}
+                onChange={e => setSeatingCode(e.target.value.toUpperCase())}
+                placeholder="e.g. AC4NR"
+                maxLength={12}
+                className={`w-full px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-gold-500 ${
+                  seatingCheck === 'notfound' ? errBorder : 'border-charcoal-200'
+                }`}
+              />
+              <p className="text-xs mt-1.5">
+                {seatingCheck === 'checking' && <span className="text-charcoal-400">Checking...</span>}
+                {seatingCheck === 'found' && <span className="text-green-700 font-medium">You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.</span>}
+                {seatingCheck === 'notfound' && <span className="text-ruby-600">We can&rsquo;t find that code for this event. Check it with your friend, or leave it blank.</span>}
+                {seatingCheck === 'idle' && (
+                  <span className="text-charcoal-500">
+                    Sitting with friends? Enter their table code here. Leave it blank and we&rsquo;ll give you one after payment to share with anyone booking after you.
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
         </>
       )}
 

@@ -49,6 +49,14 @@ export type EventRow = {
   waitlist_open?: boolean
   // Only ask attendees for dietary requirements when this event actually needs it.
   dietary_required: boolean
+  // Table seating. Off for most events (a padel morning has no tables to
+  // assign); on for a sit-down dinner or gala. table_count and seats_per_table
+  // are only meaningful once this is true, and both stay null until an admin
+  // sets them - there is no site-wide default table size.
+  seating_enabled?: boolean
+  table_count?: number | null
+  seats_per_table?: number | null
+  seating_locked_at?: string | null
 }
 
 export type EventRegistration = {
@@ -77,6 +85,11 @@ export type EventRegistration = {
   // Only set when the lead booker is themselves on a child ticket. Every other
   // attendee's age lives in their guest_names entry.
   attendee_age?: number | null
+  // Table seating: the code that groups this booking with others sharing it,
+  // and the table an admin has placed the whole group at. Both null on an
+  // event with seating_enabled off, or before an admin has run seating.
+  seating_code?: string | null
+  seating_table?: number | null
 }
 
 // An event is "past" once its end (or start, if no end) is behind us.

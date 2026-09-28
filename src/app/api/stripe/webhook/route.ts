@@ -105,7 +105,7 @@ async function recordPayment(row: {
 }
 
 // The booking columns every ticket flow below reads.
-const BOOKING_COLUMNS = 'email, first_name, last_name, ticket_name, amount_aed, event_id, quantity, guest_names, attendee_age'
+const BOOKING_COLUMNS = 'email, first_name, last_name, ticket_name, amount_aed, event_id, quantity, guest_names, attendee_age, seating_code'
 
 type Booking = {
   email: string
@@ -117,6 +117,7 @@ type Booking = {
   quantity?: number
   guest_names?: import('@/lib/events').GuestEntry[]
   attendee_age?: number | null
+  seating_code?: string | null
 }
 
 // Decides what a webhook delivery that marked zero rows paid actually means.
@@ -238,7 +239,7 @@ export async function POST(req: NextRequest) {
         if (reg) {
           const { data: ev } = await supabaseAdmin
             .from('events')
-            .select('title, slug, event_date, end_date, venue, google_maps_url, capacity_limit')
+            .select('title, slug, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled')
             .eq('id', reg.event_id)
             .maybeSingle()
           const eventTitle = (ev as { title?: string })?.title || 'BILD Event'
@@ -346,6 +347,8 @@ export async function POST(req: NextRequest) {
             googleMapsUrl: (ev as { google_maps_url?: string })?.google_maps_url,
             eventSlug: (ev as { slug?: string })?.slug,
             eventEndDate: (ev as { end_date?: string | null })?.end_date,
+            seatingEnabled: (ev as { seating_enabled?: boolean })?.seating_enabled,
+            seatingCode: reg.seating_code,
           })
           // Alert the admin that a ticket was sold.
           //

@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
     tags,
     capacity_limit: b.capacity_limit != null && b.capacity_limit !== '' ? Math.max(0, Math.round(Number(b.capacity_limit))) : null,
     dietary_required: b.dietary_required === true,
+    seating_enabled: b.seating_enabled === true,
+    table_count: b.seating_enabled === true && b.table_count != null && b.table_count !== '' ? Math.max(1, Math.round(Number(b.table_count))) : null,
+    seats_per_table: b.seating_enabled === true && b.seats_per_table != null && b.seats_per_table !== '' ? Math.max(1, Math.round(Number(b.seats_per_table))) : null,
   }
 
   if (b.id) {

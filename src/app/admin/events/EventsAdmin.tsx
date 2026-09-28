@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { uploadViaSignedUrl } from '@/lib/upload-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
+import SeatingPanel from '@/components/admin/SeatingPanel'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent } from '@/lib/events'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
@@ -11,7 +12,7 @@ import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
   ChevronDown, ChevronUp, Download, Loader2, ExternalLink, Undo2, Pencil,
   Wallet, Banknote, TrendingUp, TrendingDown, BarChart3, Salad, Lock, Mail,
-  ShieldCheck, AlertTriangle,
+  ShieldCheck, AlertTriangle, Armchair,
 } from 'lucide-react'
 import { FaInstagram } from 'react-icons/fa'
 
@@ -40,6 +41,7 @@ export default function EventsAdmin({
   const [creating, setCreating] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [attendeesOpenId, setAttendeesOpenId] = useState<string | null>(null)
+  const [seatingOpenId, setSeatingOpenId] = useState<string | null>(null)
   const [dataOpenId, setDataOpenId] = useState<string | null>(linkedEventId)
   const [showPast, setShowPast] = useState(() => !!linkedEventId && events.some(ev => ev.id === linkedEventId && isPastEvent(ev)))
   const linkedRef = useRef<HTMLDivElement>(null)
@@ -68,6 +70,8 @@ export default function EventsAdmin({
       onToggleExpand: () => { setExpandedId(expandedId === ev.id ? null : ev.id); setCreating(false) },
       attendeesOpen: attendeesOpenId === ev.id,
       onToggleAttendees: () => setAttendeesOpenId(attendeesOpenId === ev.id ? null : ev.id),
+      seatingOpen: seatingOpenId === ev.id,
+      onToggleSeating: () => setSeatingOpenId(seatingOpenId === ev.id ? null : ev.id),
       dataOpen: dataOpenId === ev.id,
       onToggleData: () => setDataOpenId(dataOpenId === ev.id ? null : ev.id),
       stats: regStats[ev.id] || { total: 0, paid: 0, tickets: 0, refunded: 0 },
@@ -144,13 +148,15 @@ export default function EventsAdmin({
 }
 
 function EventListCard({
-  ev, expanded, onToggleExpand, attendeesOpen, onToggleAttendees, dataOpen, onToggleData, stats, tickets, registrations, scrollRef,
+  ev, expanded, onToggleExpand, attendeesOpen, onToggleAttendees, seatingOpen, onToggleSeating, dataOpen, onToggleData, stats, tickets, registrations, scrollRef,
 }: {
   ev: EventRow
   expanded: boolean
   onToggleExpand: () => void
   attendeesOpen: boolean
   onToggleAttendees: () => void
+  seatingOpen: boolean
+  onToggleSeating: () => void
   dataOpen: boolean
   onToggleData: () => void
   stats: { total: number; paid: number; tickets: number; refunded: number }
@@ -228,6 +234,14 @@ function EventListCard({
             >
               {attendeesOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />} Attendees
             </button>
+            {ev.seating_enabled && (
+              <button
+                onClick={onToggleSeating}
+                className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+              >
+                {seatingOpen ? <ChevronUp size={15} /> : <Armchair size={15} />} Seating
+              </button>
+            )}
             <button
               onClick={handleManageClick}
               className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
@@ -280,6 +294,12 @@ function EventListCard({
       {attendeesOpen && (
         <div className="border-t border-charcoal-700">
           <ReadOnlyAttendeesList eventId={ev.id} registrations={registrations} />
+        </div>
+      )}
+
+      {seatingOpen && (
+        <div className="border-t border-charcoal-700">
+          <SeatingPanel eventId={ev.id} />
         </div>
       )}
 
@@ -1125,6 +1145,9 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
   const [limitTickets, setLimitTickets] = useState(event?.capacity_limit != null)
   const [capacityLimit, setCapacityLimit] = useState(event?.capacity_limit != null ? String(event.capacity_limit) : '')
   const [dietaryRequired, setDietaryRequired] = useState(event?.dietary_required ?? false)
+  const [seatingEnabled, setSeatingEnabled] = useState(event?.seating_enabled ?? false)
+  const [tableCount, setTableCount] = useState(event?.table_count != null ? String(event.table_count) : '')
+  const [seatsPerTable, setSeatsPerTable] = useState(event?.seats_per_table != null ? String(event.seats_per_table) : '')
   const [flyerFile, setFlyerFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -1136,6 +1159,9 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
     if (!form.title.trim()) return setError('Please enter a title.')
     if (!form.event_date) return setError('Please choose a date and time.')
     if (limitTickets && !capacityLimit.trim()) return setError('Please enter a ticket limit, or untick the box.')
+    if (seatingEnabled && (!tableCount.trim() || !seatsPerTable.trim())) {
+      return setError('Please enter the number of tables and seats per table, or untick table seating.')
+    }
     setSaving(true)
     try {
       let flyerUrl = form.flyer_url
@@ -1167,6 +1193,9 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
           flyer_url: flyerUrl,
           capacity_limit: limitTickets ? capacityLimit : null,
           dietary_required: dietaryRequired,
+          seating_enabled: seatingEnabled,
+          table_count: seatingEnabled ? tableCount : null,
+          seats_per_table: seatingEnabled ? seatsPerTable : null,
         }),
       })
       if (res.ok) {
@@ -1227,6 +1256,35 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
             />
             Ask each attendee for dietary requirements when booking (Vegetarian / Vegan / Other)
           </label>
+        </FField>
+        <FField label="Table seating?" className="md:col-span-2">
+          <label className="inline-flex items-center gap-2 text-sm text-gray-200 mb-2">
+            <input
+              type="checkbox"
+              checked={seatingEnabled}
+              onChange={e => setSeatingEnabled(e.target.checked)}
+              className="h-4 w-4 accent-gold-500"
+            />
+            This event has assigned tables (a gala, Garba, or sit-down dinner)
+          </label>
+          {seatingEnabled && (
+            <div className="flex gap-3">
+              <div className="max-w-[160px]">
+                <label className="block text-xs text-gray-400 mb-1">Number of tables</label>
+                <Inp type="number" value={tableCount} onChange={setTableCount} placeholder="e.g. 10" />
+              </div>
+              <div className="max-w-[160px]">
+                <label className="block text-xs text-gray-400 mb-1">Seats per table</label>
+                <Inp type="number" value={seatsPerTable} onChange={setSeatsPerTable} placeholder="e.g. 10" />
+              </div>
+            </div>
+          )}
+          {seatingEnabled && (
+            <p className="text-gray-500 text-xs mt-2">
+              Buyers can share a code so their bookings are seated together. Assign tables from the Seating panel
+              once bookings are in.
+            </p>
+          )}
         </FField>
         <FField label="Flyer image" className="md:col-span-2">
           <input type="file" accept="image/*" onChange={e => setFlyerFile(e.target.files?.[0] || null)}

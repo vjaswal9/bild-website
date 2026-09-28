@@ -110,6 +110,7 @@ export async function buildEventsWorkbook(): Promise<{
     const e = ev as Record<string, unknown>
     const regs = byEvent.get(String(e.id)) || []
     const door: Record<string, unknown>[] = []
+    const seatingOn = !!e.seating_enabled
 
     for (const r of regs) {
       bookings += 1
@@ -135,6 +136,7 @@ export async function buildEventsWorkbook(): Promise<{
       // The door list is paid bookings only, matching the export the admin
       // already produces, so the backup copy and the live one cannot disagree.
       if (r.status !== 'paid') continue
+      const table = seatingOn ? { Table: r.seating_table != null ? `Table ${r.seating_table}` : 'Unassigned' } : {}
       const buyer = `${r.first_name || ''} ${r.last_name || ''}`.trim()
       if (buyer) {
         door.push({
@@ -142,6 +144,7 @@ export async function buildEventsWorkbook(): Promise<{
           Phone: r.phone || '',
           'Ticket type': r.ticket_name || '',
           Dietary: dietaryLabel(r.dietary, r.dietary_note),
+          ...table,
         })
       }
       for (const g of guests) {
@@ -152,6 +155,7 @@ export async function buildEventsWorkbook(): Promise<{
           Phone: '',
           'Ticket type': (typeof g === 'string' ? (r.ticket_name as string) : g.ticket_name) || '',
           Dietary: typeof g === 'string' ? '' : dietaryLabel(g.dietary, g.dietary_note),
+          ...table,
         })
       }
     }
