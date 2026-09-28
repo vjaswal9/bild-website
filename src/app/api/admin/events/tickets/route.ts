@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
+import { httpUrl } from '@/lib/validate'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,9 @@ export async function POST(req: NextRequest) {
     is_child: b.is_child === true,
     sort_order: Number(b.sort_order) || 0,
     active: b.active === false ? false : true,
+    // Only http(s) is ever stored: a javascript: or data: URL here would
+    // become a live link on the public booking page the moment it renders.
+    menu_image_url: b.menu_image_url ? httpUrl(b.menu_image_url) ?? null : null,
   }
 
   if (b.id) {

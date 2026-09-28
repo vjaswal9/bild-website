@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Ticket, Loader2, Minus, Plus, Users } from 'lucide-react'
+import { Ticket, Loader2, Minus, Plus, Users, Image as ImageIcon } from 'lucide-react'
 import { EventTicket, Dietary } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
@@ -249,6 +249,16 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                 <span className="font-display font-bold text-charcoal-800">{priceLabel(t)}</span>
               </div>
               {t.description && <p className="text-sm text-charcoal-500 mt-0.5">{t.description}</p>}
+              {t.menu_image_url && (
+                <a
+                  href={t.menu_image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-gold-600 hover:underline text-xs font-medium mt-1"
+                >
+                  <ImageIcon size={12} /> View menu
+                </a>
+              )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button

@@ -1333,6 +1333,7 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
   const [desc, setDesc] = useState('')
   const [price, setPrice] = useState('')
   const [costPrice, setCostPrice] = useState('')
+  const [menuImageUrl, setMenuImageUrl] = useState('')
   const [isChild, setIsChild] = useState(false)
   const [busy, setBusy] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -1343,11 +1344,11 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id: eventId, name, description: desc, price_aed: price, cost_price_aed: costPrice, is_child: isChild, sort_order: tickets.length }),
+      body: JSON.stringify({ event_id: eventId, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, is_child: isChild, sort_order: tickets.length }),
     })
     if (res.ok) {
       // Refresh server data in place - keeps the Manage panel open.
-      setName(''); setDesc(''); setPrice(''); setCostPrice(''); setIsChild(false)
+      setName(''); setDesc(''); setPrice(''); setCostPrice(''); setMenuImageUrl(''); setIsChild(false)
       router.refresh()
     } else {
       const d = await res.json().catch(() => ({}))
@@ -1389,6 +1390,9 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
                     {t.is_child && (
                       <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">Child - asks for age</span>
                     )}
+                    {t.menu_image_url && (
+                      <a href={t.menu_image_url} target="_blank" rel="noreferrer" className="text-gold-400 hover:underline text-xs font-normal">Menu image &rarr;</a>
+                    )}
                   </p>
                   {t.description && <p className="text-gray-500 text-xs mt-0.5 ml-6">{t.description}</p>}
                 </div>
@@ -1425,6 +1429,10 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
           <label className="block text-xs text-gray-500 mb-1">Cost (AED)</label>
           <Inp type="number" value={costPrice} onChange={setCostPrice} placeholder="150" />
         </div>
+        <div className="sm:col-span-11">
+          <label className="block text-xs text-gray-500 mb-1">Menu image link (optional)</label>
+          <Inp value={menuImageUrl} onChange={setMenuImageUrl} placeholder="https://... a photo of the menu for this package" />
+        </div>
         <div className="sm:col-span-1">
           <button onClick={add} disabled={busy}
             className="w-full inline-flex items-center justify-center bg-gold-500 hover:bg-gold-600 text-white h-[38px] rounded-lg font-semibold disabled:opacity-50" title="Add ticket">
@@ -1448,6 +1456,7 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
   const [desc, setDesc] = useState(ticket.description || '')
   const [price, setPrice] = useState(String(ticket.price_aed))
   const [costPrice, setCostPrice] = useState(ticket.cost_price_aed != null ? String(ticket.cost_price_aed) : '')
+  const [menuImageUrl, setMenuImageUrl] = useState(ticket.menu_image_url || '')
   const [isChild, setIsChild] = useState(!!ticket.is_child)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -1459,7 +1468,7 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, is_child: isChild }),
+      body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, is_child: isChild }),
     })
     if (res.ok) {
       onSaved()
@@ -1488,6 +1497,10 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
         <div className="sm:col-span-2">
           <label className="block text-xs text-gray-500 mb-1">Cost (AED)</label>
           <Inp type="number" value={costPrice} onChange={setCostPrice} placeholder="150" />
+        </div>
+        <div className="sm:col-span-12">
+          <label className="block text-xs text-gray-500 mb-1">Menu image link (optional)</label>
+          <Inp value={menuImageUrl} onChange={setMenuImageUrl} placeholder="https://... a photo of the menu for this package" />
         </div>
       </div>
       <label className="inline-flex items-center gap-2 mt-3 text-sm text-gray-300 cursor-pointer">
