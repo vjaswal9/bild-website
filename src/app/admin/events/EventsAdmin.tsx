@@ -18,15 +18,27 @@ import { FaInstagram } from 'react-icons/fa'
 
 type Stats = Record<string, { total: number; paid: number; tickets: number; refunded: number }>
 
-// ISO string -> value for <input type="datetime-local"> in local time
+// Dubai is fixed at UTC+4 year-round, no daylight saving (same assumption
+// src/lib/calendar.ts makes) - so converting to and from its wall-clock time
+// is a plain 4-hour shift, deliberately not the admin's own browser
+// timezone. Using Date's local getters/setters here used to mean the "Date &
+// time" field showed - and saved - the admin's own local time instead of
+// Dubai's: correct only for an admin physically in Dubai, silently wrong by
+// exactly the time-zone gap for anyone editing from anywhere else.
+const DUBAI_OFFSET_MS = 4 * 60 * 60 * 1000
+
+// ISO string (UTC) -> value for <input type="datetime-local">, shown in
+// Dubai wall-clock time no matter where the admin editing it is.
 function toLocalInput(iso?: string | null) {
   if (!iso) return ''
-  const d = new Date(iso)
+  const d = new Date(new Date(iso).getTime() + DUBAI_OFFSET_MS)
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`
 }
+// <input type="datetime-local"> value (entered as Dubai wall-clock time) -> ISO string (UTC).
 function fromLocalInput(v: string) {
-  return v ? new Date(v).toISOString() : ''
+  if (!v) return ''
+  return new Date(new Date(`${v}:00Z`).getTime() - DUBAI_OFFSET_MS).toISOString()
 }
 
 export default function EventsAdmin({
