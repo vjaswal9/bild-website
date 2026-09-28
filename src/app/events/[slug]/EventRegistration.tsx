@@ -55,6 +55,13 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
   const [seatingOrganiser, setSeatingOrganiser] = useState('')
   const [seatingHeadcount, setSeatingHeadcount] = useState<number | null>(null)
   const [seatsPerTable, setSeatsPerTable] = useState<number | null>(null)
+  // True only while the code in the box is the one that arrived on a shared
+  // link, untouched. It exists so somebody who did not choose to be grouped -
+  // the link was forwarded further than the organiser intended, or they would
+  // simply rather sit elsewhere - can be told plainly that clearing the box is
+  // a normal thing to do, not typed themselves so it never applies to a code
+  // somebody entered on purpose.
+  const [codeFromLink, setCodeFromLink] = useState(false)
 
   // A code arriving on the link an organiser shared (?table=AC4NR) pre-fills
   // the box, so a friend who follows that link never has to type or copy
@@ -63,7 +70,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
   // a Suspense boundary around this component for no real benefit here.
   useEffect(() => {
     const fromLink = new URLSearchParams(window.location.search).get('table')
-    if (fromLink) setSeatingCode(fromLink.toUpperCase())
+    if (fromLink) { setSeatingCode(fromLink.toUpperCase()); setCodeFromLink(true) }
   }, [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -414,7 +421,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
               <input
                 type="text"
                 value={seatingCode}
-                onChange={e => setSeatingCode(e.target.value.toUpperCase())}
+                onChange={e => { setSeatingCode(e.target.value.toUpperCase()); setCodeFromLink(false) }}
                 placeholder="e.g. AC4NR - leave blank if you don't have one"
                 maxLength={12}
                 className={`w-full px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-gold-500 ${
@@ -431,6 +438,13 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                         {seatingHeadcount >= seatsPerTable
                           ? `This table already has its full ${seatsPerTable} seats claimed - you can still book, but you may be seated at a nearby table instead.`
                           : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
+                      </p>
+                    )}
+                    {codeFromLink && (
+                      <p className="text-charcoal-500 mt-1.5">
+                        Didn&rsquo;t mean to join this table, or would rather sit elsewhere? Just clear the box
+                        below - you&rsquo;ll be booked in as normal and seated wherever there&rsquo;s room. No need
+                        to say anything to anyone.
                       </p>
                     )}
                   </>
