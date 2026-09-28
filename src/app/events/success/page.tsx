@@ -14,19 +14,25 @@ export const fetchCache = 'force-no-store'
 export default async function EventSuccessPage({
   searchParams,
 }: {
-  searchParams: { session_id?: string }
+  searchParams: { session_id?: string; free?: string }
 }) {
   const sessionId = searchParams.session_id
+  // Free tickets skip Stripe entirely (see the checkout route), so they never
+  // get a session_id to look themselves up by - the registration's own id is
+  // passed instead. Without this, a free booking always missed the lookup
+  // below and fell through to the paid fallback message, which is how a
+  // ticket nobody paid for ended up telling someone their payment was received.
+  const freeId = searchParams.free
   type Reg = { first_name: string; ticket_name: string | null; email: string; event_id: string }
   let reg: Reg | null = null
   let eventTitle = ''
   let eventSlug = ''
 
-  if (sessionId) {
+  if (sessionId || freeId) {
     const { data } = await supabaseAdmin
       .from('event_registrations')
       .select('first_name, ticket_name, email, event_id')
-      .eq('stripe_session_id', sessionId)
+      .eq(sessionId ? 'stripe_session_id' : 'id', sessionId || freeId)
       .maybeSingle()
     reg = (data as Reg | null) ?? null
     if (reg) {
@@ -66,7 +72,10 @@ export default async function EventSuccessPage({
           </>
         ) : (
           <p className="text-charcoal-600 mb-8">
-            Your payment was received. A confirmation email is on its way. If it does not arrive, email{' '}
+            {sessionId
+              ? 'Your payment was received. '
+              : 'Your registration is confirmed. '}
+            A confirmation email is on its way. If it does not arrive, email{' '}
             <a href="mailto:events@bild.ae" className="text-gold-600 hover:underline">events@bild.ae</a>.
           </p>
         )}
