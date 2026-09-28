@@ -575,6 +575,9 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
             <span>Card processing fee</span>
             <span>{money(cardFee)} AED</span>
           </div>
+          <p className="text-charcoal-400 text-xs italic mt-1">
+            Card processing fee - charged by the payment provider. BILD does not receive this fee.
+          </p>
           <div className="flex justify-between font-semibold text-charcoal-800 border-t border-charcoal-200 mt-2.5 pt-2.5">
             <span>Total</span>
             <span>{money(grandTotal)} AED</span>
