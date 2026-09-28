@@ -459,14 +459,20 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
         className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-b from-gold-400 to-gold-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:brightness-105 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? (
-          <><Loader2 size={20} className="animate-spin" /> Redirecting to payment...</>
+          grandTotal > 0
+            ? <><Loader2 size={20} className="animate-spin" /> Redirecting to payment...</>
+            : <><Loader2 size={20} className="animate-spin" /> Registering...</>
         ) : totalTickets === 0 ? (
           <>Add a ticket to continue</>
+        ) : grandTotal > 0 ? (
+          <>Pay {money(grandTotal)} AED &amp; register{totalTickets > 1 ? ` · ${totalTickets} tickets` : ''}</>
         ) : (
-          <>Pay {grandTotal > 0 ? `${money(grandTotal)} AED` : ''} &amp; register{totalTickets > 1 ? ` · ${totalTickets} tickets` : ''}</>
+          <>Register{totalTickets > 1 ? ` · ${totalTickets} tickets` : ''}</>
         )}
       </button>
-      <p className="text-center text-charcoal-400 text-xs mt-3">Secure payment powered by Stripe. A confirmation is emailed to you.</p>
+      <p className="text-center text-charcoal-400 text-xs mt-3">
+        {grandTotal > 0 ? 'Secure payment powered by Stripe. A confirmation is emailed to you.' : 'A confirmation is emailed to you.'}
+      </p>
     </div>
   )
 }
