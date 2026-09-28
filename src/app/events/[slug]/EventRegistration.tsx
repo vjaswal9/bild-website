@@ -508,9 +508,10 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                 )}
                 <p>
                   Here&rsquo;s how it works: if you&rsquo;re the first in your group to book, leave the box below
-                  empty and we&rsquo;ll send you a short code by email once you&rsquo;ve paid. Share that code with
-                  whoever you want at your table - when they book, they enter it in the same box. Everyone who
-                  enters the same code is seated together.
+                  empty. Once you&rsquo;ve paid, we&rsquo;ll email you a short table code, along with a ready-made
+                  WhatsApp message you can send straight to anyone you&rsquo;d like at your table - just tap to
+                  share, no copying or typing needed. When they book, they enter the same code in this box, and
+                  everyone who enters it is seated together.
                 </p>
                 <p>
                   Already have a code from a friend who booked first? Enter it below instead of leaving it empty,
