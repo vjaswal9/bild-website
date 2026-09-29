@@ -192,6 +192,11 @@ export async function POST(req: NextRequest) {
     // seating switched off never touches this at all, so a booking on a
     // regular event carries no code.
     let seatingCode: string | null = null
+    // Set only when this booking's own new code exists because the one they
+    // actually typed was full - lets the admin panel show "this group
+    // overflowed from X, seat them near that table" instead of two
+    // unrelated-looking groups.
+    let overflowFromCode: string | null = null
     if (event.seating_enabled) {
       const entered = normalizeSeatingCode(rawSeatingCode)
       if (entered) {
@@ -207,9 +212,12 @@ export async function POST(req: NextRequest) {
         // their own instead, silently, the same as if they had left the box
         // blank. Only enforced once an admin has actually set a table size.
         const seatsPerTable = event.seats_per_table as number | null
-        seatingCode = seatsPerTable != null && check.headcount + qty > seatsPerTable
-          ? generateSeatingCode()
-          : entered
+        if (seatsPerTable != null && check.headcount + qty > seatsPerTable) {
+          seatingCode = generateSeatingCode()
+          overflowFromCode = entered
+        } else {
+          seatingCode = entered
+        }
       } else {
         seatingCode = generateSeatingCode()
       }
@@ -235,6 +243,7 @@ export async function POST(req: NextRequest) {
         dietary_note: normalizeDietaryNote(dietaryNote),
         attendee_age: buyerAge,
         seating_code: seatingCode,
+        overflow_from_code: overflowFromCode,
       }])
       .select('id, created_at')
       .single()

@@ -55,7 +55,11 @@ export async function GET(req: NextRequest) {
     // each person actually takes is sorted out on the night, not tracked here.
     const tables = Array.isArray(r.seating_table) ? (r.seating_table as number[]) : []
     const table = seatingOn ? (tables.length ? `Table${tables.length > 1 ? 's' : ''} ${[...tables].sort((a, b) => a - b).join(', ')}` : 'Unassigned') : ''
-    const tableCol = seatingOn ? { Table: table } : {}
+    // The raw table code, alongside the table number(s) an admin has actually
+    // assigned - a paper backup so seating can still be sorted out by hand on
+    // the night if the assignment tool is unavailable or a table needs
+    // reshuffling on the spot.
+    const tableCol = seatingOn ? { 'Table code': r.seating_code || '', Table: table } : {}
     rows.push({
       Name: buyer,
       Phone: r.phone || '',

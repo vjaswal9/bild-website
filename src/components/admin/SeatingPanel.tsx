@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Lock, Unlock, Wand2, Users, AlertTriangle, Merge } from 'lucide-react'
+import { Loader2, Lock, Unlock, Wand2, Users, AlertTriangle, Merge, ArrowRightLeft } from 'lucide-react'
 
 type Group = {
   key: string
@@ -10,6 +10,13 @@ type Group = {
   headcount: number
   oversized: boolean
   tables: number[]
+  // This group exists only because `overflowFromCode`'s table was already
+  // full when they tried to join it - null for an ordinary group.
+  overflowFromCode: string | null
+  // Codes of other groups that spilled out of THIS group's table, if any -
+  // the reverse of overflowFromCode, shown so a full table's own row also
+  // flags who should be seated nearby.
+  overflowsInto: string[]
   bookings: { id: string; name: string; quantity: number }[]
 }
 
@@ -245,6 +252,16 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
                       {stillTight
                         ? `needs more than one table${seatsCovered != null && g.tables.length > 0 ? ` (${seatsCovered} of ${g.headcount} seats so far)` : ''}`
                         : `split across ${g.tables.length} tables - they can sort out who sits where`}
+                    </span>
+                  )}
+                  {g.overflowFromCode && (
+                    <span className="text-xs flex items-center gap-1 text-amber-400" title={`This group only exists because ${g.overflowFromCode} was already full when they tried to join it`}>
+                      <ArrowRightLeft size={11} /> overflowed from {g.overflowFromCode} - seat near that table
+                    </span>
+                  )}
+                  {g.overflowsInto.length > 0 && (
+                    <span className="text-xs flex items-center gap-1 text-amber-400" title="These groups spilled out of this table because it was full - worth seating them nearby">
+                      <ArrowRightLeft size={11} /> overflow at {g.overflowsInto.join(', ')} - seat nearby
                     </span>
                   )}
                 </div>

@@ -138,7 +138,11 @@ export async function buildEventsWorkbook(): Promise<{
       // already produces, so the backup copy and the live one cannot disagree.
       if (r.status !== 'paid') continue
       const tables = Array.isArray(r.seating_table) ? (r.seating_table as number[]) : []
-      const table = seatingOn ? { Table: tables.length ? `Table${tables.length > 1 ? 's' : ''} ${[...tables].sort((a, b) => a - b).join(', ')}` : 'Unassigned' } : {}
+      // The raw code travels alongside the assigned table number(s) - a paper
+      // backup so seating can be sorted out by hand on the night if needed.
+      const table = seatingOn
+        ? { 'Table code': r.seating_code || '', Table: tables.length ? `Table${tables.length > 1 ? 's' : ''} ${[...tables].sort((a, b) => a - b).join(', ')}` : 'Unassigned' }
+        : {}
       const buyer = `${r.title ? `${r.title} ` : ''}${r.first_name || ''} ${r.last_name || ''}`.trim()
       if (buyer) {
         door.push({

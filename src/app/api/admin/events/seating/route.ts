@@ -24,6 +24,7 @@ type Reg = {
   quantity: number | null
   seating_code: string | null
   seating_table: number[] | null
+  overflow_from_code: string | null
   created_at: string
 }
 
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
 
   const { data: regs, error: regsErr } = await supabaseAdmin
     .from('event_registrations')
-    .select('id, first_name, last_name, quantity, seating_code, seating_table, created_at')
+    .select('id, first_name, last_name, quantity, seating_code, seating_table, overflow_from_code, created_at')
     .eq('event_id', eventId)
     .eq('status', 'paid')
     .order('created_at', { ascending: true })
@@ -84,6 +85,11 @@ export async function GET(req: NextRequest) {
     // arbitrarily.
     const agree = tableLists.every(t => sameTables(t, tableLists[0]))
     const tables = agree ? tableLists[0] : []
+    // Set on whichever booking triggered a fresh code because the one they
+    // typed was already full - only ever one row per group, but every row is
+    // checked since it is always the group's own founding booking, not
+    // necessarily list[0] once bookings share a code some other way (a merge).
+    const overflowFromCode = list.map(r => r.overflow_from_code).find(c => !!c) || null
     return {
       key,
       code: isSolo(key) ? null : key,
@@ -91,10 +97,27 @@ export async function GET(req: NextRequest) {
       headcount,
       oversized: seatsPerTable != null && headcount > seatsPerTable,
       tables,
+      overflowFromCode,
       bookings: list.map(r => ({ id: r.id, name: `${r.first_name} ${r.last_name || ''}`.trim(), quantity: r.quantity || 1 })),
     }
   })
   groups.sort((a, b) => b.headcount - a.headcount)
+
+  // Reverse of overflowFromCode: which other groups spilled out of this one,
+  // so a full table's own row can say "seat these people nearby" without the
+  // admin having to notice a mention of this code buried in another group.
+  const overflowsIntoByCode = new Map<string, string[]>()
+  for (const g of groups) {
+    if (g.overflowFromCode) {
+      const list = overflowsIntoByCode.get(g.overflowFromCode) || []
+      if (g.code) list.push(g.code)
+      overflowsIntoByCode.set(g.overflowFromCode, list)
+    }
+  }
+  const groupsWithOverflow = groups.map(g => ({
+    ...g,
+    overflowsInto: (g.code && overflowsIntoByCode.get(g.code)) || [],
+  }))
 
   const totalHeadcount = groups.reduce((s, g) => s + g.headcount, 0)
   const totalCapacity = event.table_count != null && seatsPerTable != null ? event.table_count * seatsPerTable : null
@@ -107,7 +130,7 @@ export async function GET(req: NextRequest) {
     lockedAt: event.seating_locked_at,
     totalHeadcount,
     totalCapacity,
-    groups,
+    groups: groupsWithOverflow,
   })
 }
 
