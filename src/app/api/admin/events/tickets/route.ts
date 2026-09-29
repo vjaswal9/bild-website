@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     // Only http(s) is ever stored: a javascript: or data: URL here would
     // become a live link on the public booking page the moment it renders.
     menu_image_url: b.menu_image_url ? httpUrl(b.menu_image_url) ?? null : null,
+    food_menu_image_url: b.food_menu_image_url ? httpUrl(b.food_menu_image_url) ?? null : null,
   }
 
   if (b.id) {

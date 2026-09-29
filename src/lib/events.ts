@@ -17,10 +17,14 @@ export type EventTicket = {
   // When true, the booking form asks for each person's age on this ticket and
   // will not submit without it. Set per ticket by an admin.
   is_child?: boolean
-  // A menu, drinks list or similar - shown as a "View menu" link next to the
-  // ticket on the booking form, so a buyer can see what a package includes
-  // before paying for it. Optional; most tickets have none.
+  // Two independent, optional attachments shown as "View drinks menu" /
+  // "View food menu" links next to the ticket on the booking form, so a
+  // buyer can see what a package includes before paying for it. Either,
+  // both, or neither may be set - a link only ever appears for the one(s)
+  // that are. menu_image_url is the drinks menu; the column name predates
+  // there being a second one, so it was left as-is rather than renamed.
   menu_image_url?: string | null
+  food_menu_image_url?: string | null
 }
 
 export type GalleryItem = { url: string; type: 'image' | 'video' | 'instagram' }

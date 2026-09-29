@@ -28,7 +28,7 @@ export async function getAllEvents(): Promise<EventRow[]> {
 
 // Fields safe to expose publicly - deliberately excludes cost_price_aed,
 // which must never reach a client component's props/HTML.
-const PUBLIC_TICKET_FIELDS = 'id, event_id, name, description, price_aed, sort_order, active, is_child, menu_image_url'
+const PUBLIC_TICKET_FIELDS = 'id, event_id, name, description, price_aed, sort_order, active, is_child, menu_image_url, food_menu_image_url'
 
 // Wrapped in React's cache() so the event page does not load everything twice.
 //

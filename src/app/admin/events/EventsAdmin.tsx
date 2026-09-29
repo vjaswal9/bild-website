@@ -1340,11 +1340,13 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
 // ---------------------------------------------------------------------------
 // Ticket manager
 // ---------------------------------------------------------------------------
-// The menu image field used by both the "add a ticket" row and the edit row:
-// a link, or a file that is compressed and uploaded, filling in the same link
-// underneath either way. Two ways to arrive at the same one piece of data,
-// rather than two separate fields to keep in sync.
-function MenuImageField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+// The menu image field used by both the "add a ticket" row and the edit row,
+// for either the drinks menu or the food menu: a link, or a file that is
+// compressed and uploaded, filling in the same link underneath either way.
+// Two ways to arrive at the same one piece of data, rather than two separate
+// fields to keep in sync. The two menus are otherwise identical, just each
+// bound to their own value/onChange and given their own label.
+function MenuImageField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
@@ -1364,7 +1366,7 @@ function MenuImageField({ value, onChange }: { value: string; onChange: (v: stri
 
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-1">Menu image (optional)</label>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
       <div className="flex items-center gap-2">
         <Inp value={value} onChange={onChange} placeholder="Paste a link, or upload a file" />
         <label className={`shrink-0 inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 h-[38px] rounded-lg text-xs font-semibold cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -1388,6 +1390,7 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
   const [price, setPrice] = useState('')
   const [costPrice, setCostPrice] = useState('')
   const [menuImageUrl, setMenuImageUrl] = useState('')
+  const [foodMenuImageUrl, setFoodMenuImageUrl] = useState('')
   const [isChild, setIsChild] = useState(false)
   const [busy, setBusy] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -1398,11 +1401,11 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id: eventId, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, is_child: isChild, sort_order: tickets.length }),
+      body: JSON.stringify({ event_id: eventId, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild, sort_order: tickets.length }),
     })
     if (res.ok) {
       // Refresh server data in place - keeps the Manage panel open.
-      setName(''); setDesc(''); setPrice(''); setCostPrice(''); setMenuImageUrl(''); setIsChild(false)
+      setName(''); setDesc(''); setPrice(''); setCostPrice(''); setMenuImageUrl(''); setFoodMenuImageUrl(''); setIsChild(false)
       router.refresh()
     } else {
       const d = await res.json().catch(() => ({}))
@@ -1445,7 +1448,10 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
                       <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">Child - asks for age</span>
                     )}
                     {t.menu_image_url && (
-                      <a href={t.menu_image_url} target="_blank" rel="noreferrer" className="text-gold-400 hover:underline text-xs font-normal">Menu image &rarr;</a>
+                      <a href={t.menu_image_url} target="_blank" rel="noreferrer" className="text-gold-400 hover:underline text-xs font-normal">Drinks menu &rarr;</a>
+                    )}
+                    {t.food_menu_image_url && (
+                      <a href={t.food_menu_image_url} target="_blank" rel="noreferrer" className="text-gold-400 hover:underline text-xs font-normal">Food menu &rarr;</a>
                     )}
                   </p>
                   {t.description && <p className="text-gray-500 text-xs mt-0.5 ml-6">{t.description}</p>}
@@ -1483,8 +1489,11 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
           <label className="block text-xs text-gray-500 mb-1">Cost (AED)</label>
           <Inp type="number" value={costPrice} onChange={setCostPrice} placeholder="150" />
         </div>
-        <div className="sm:col-span-11">
-          <MenuImageField value={menuImageUrl} onChange={setMenuImageUrl} />
+        <div className="sm:col-span-5">
+          <MenuImageField value={menuImageUrl} onChange={setMenuImageUrl} label="Drinks Menu (optional)" />
+        </div>
+        <div className="sm:col-span-6">
+          <MenuImageField value={foodMenuImageUrl} onChange={setFoodMenuImageUrl} label="Food Menu (optional)" />
         </div>
         <div className="sm:col-span-1">
           <button onClick={add} disabled={busy}
@@ -1510,6 +1519,7 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
   const [price, setPrice] = useState(String(ticket.price_aed))
   const [costPrice, setCostPrice] = useState(ticket.cost_price_aed != null ? String(ticket.cost_price_aed) : '')
   const [menuImageUrl, setMenuImageUrl] = useState(ticket.menu_image_url || '')
+  const [foodMenuImageUrl, setFoodMenuImageUrl] = useState(ticket.food_menu_image_url || '')
   const [isChild, setIsChild] = useState(!!ticket.is_child)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -1521,7 +1531,7 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, is_child: isChild }),
+      body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild }),
     })
     if (res.ok) {
       onSaved()
@@ -1551,8 +1561,11 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
           <label className="block text-xs text-gray-500 mb-1">Cost (AED)</label>
           <Inp type="number" value={costPrice} onChange={setCostPrice} placeholder="150" />
         </div>
-        <div className="sm:col-span-12">
-          <MenuImageField value={menuImageUrl} onChange={setMenuImageUrl} />
+        <div className="sm:col-span-6">
+          <MenuImageField value={menuImageUrl} onChange={setMenuImageUrl} label="Drinks Menu (optional)" />
+        </div>
+        <div className="sm:col-span-6">
+          <MenuImageField value={foodMenuImageUrl} onChange={setFoodMenuImageUrl} label="Food Menu (optional)" />
         </div>
       </div>
       <label className="inline-flex items-center gap-2 mt-3 text-sm text-gray-300 cursor-pointer">

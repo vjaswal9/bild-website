@@ -375,15 +375,29 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                 <span className="font-display font-bold text-charcoal-800">{priceLabel(t)}</span>
               </div>
               {t.description && <p className="text-sm text-charcoal-500 mt-0.5">{t.description}</p>}
-              {t.menu_image_url && (
-                <a
-                  href={t.menu_image_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-gold-600 hover:underline text-xs font-medium mt-1"
-                >
-                  <ImageIcon size={12} /> View menu
-                </a>
+              {(t.menu_image_url || t.food_menu_image_url) && (
+                <div className="flex items-center gap-3 mt-1">
+                  {t.menu_image_url && (
+                    <a
+                      href={t.menu_image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-gold-600 hover:underline text-xs font-medium"
+                    >
+                      <ImageIcon size={12} /> View drinks menu
+                    </a>
+                  )}
+                  {t.food_menu_image_url && (
+                    <a
+                      href={t.food_menu_image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-gold-600 hover:underline text-xs font-medium"
+                    >
+                      <ImageIcon size={12} /> View food menu
+                    </a>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex items-center gap-3 shrink-0">
