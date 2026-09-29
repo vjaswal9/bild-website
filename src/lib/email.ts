@@ -52,6 +52,14 @@ const EVENTS_ALERT_EMAILS = withOwner(list(process.env.EVENTS_ALERT_EMAIL).lengt
   ? list(process.env.EVENTS_ALERT_EMAIL)
   : ['events@bild.ae'])
 
+// Membership also has its own inbox, separate from ADMIN_ALERT_EMAILS - a
+// change to the general admin list (directory, ledger, refund alerts) must
+// never silently redirect where a new-member alert goes, or the other way
+// round.
+const MEMBER_ALERT_EMAILS = withOwner(list(process.env.MEMBER_ALERT_EMAIL).length
+  ? list(process.env.MEMBER_ALERT_EMAIL)
+  : ['admin@bild.ae'])
+
 // The next event that has not happened yet, or null when nothing is coming up.
 //
 // Read through supabaseRead rather than supabaseAdmin: this is data already
@@ -165,7 +173,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
         <p style="color:#a8a296;font-size:12.5px;line-height:1.55;margin:0">
           <strong style="color:#F4F1EC">Seeing &ldquo;expired&rdquo; or &ldquo;already used&rdquo;?</strong> If you have already tapped it once, that is
           completely normal and you are in the queue &ndash; just hang on for admin approval. If you never got the chance to
-          use it, email <a href="mailto:connect@bild.ae" style="color:#C8861A;text-decoration:none">connect@bild.ae</a> and we will send a
+          use it, email <a href="mailto:admin@bild.ae" style="color:#C8861A;text-decoration:none">admin@bild.ae</a> and we will send a
           fresh link the same day. Your membership is safe either way.
         </p>
       </div>`
@@ -247,7 +255,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
       </table>
     </div>
     <div style="padding:18px 28px 26px;text-align:center">
-      <p style="color:#6f6a60;font-size:12px;margin:0">Questions? Just reply, or email <a href="mailto:connect@bild.ae" style="color:#C8861A;text-decoration:none">connect@bild.ae</a></p>
+      <p style="color:#6f6a60;font-size:12px;margin:0">Questions? Just reply, or email <a href="mailto:admin@bild.ae" style="color:#C8861A;text-decoration:none">admin@bild.ae</a></p>
     </div>
     <div style="background:#1a1a1a;padding:16px;text-align:center;color:#6b6b6b;font-size:11px">
       BILD &middot; British Indians Living in Dubai &middot; Established 2019
@@ -330,7 +338,7 @@ export async function sendInviteReissuedEmail(opts: { to: string; name?: string;
     `,
     ctaUrl: opts.inviteUrl,
     ctaLabel: 'Join the BILD WhatsApp community',
-    contact: 'connect@bild.ae',
+    contact: 'admin@bild.ae',
   })
   await sendResendEmail(opts.to, 'Your fresh BILD WhatsApp invite', html, 'Invite reissued')
 }
@@ -388,7 +396,7 @@ export async function sendNewMemberAlert(opts: {
   try {
     await resend.emails.send({
       from: FROM,
-      to: ADMIN_ALERT_EMAILS,
+      to: MEMBER_ALERT_EMAILS,
       subject: `New BILD member: ${opts.name}`,
       html,
     })

@@ -157,7 +157,7 @@ export default async function TermsPage() {
               A dispute about anything bought from or sold to another member must be raised directly with that member.
               BILD is not a dispute resolution service, does not adjudicate such disputes, and cannot compel a refund,
               a remedy or performance. Concerns may still be reported to{' '}
-              <a href="mailto:connect@bild.ae">connect@bild.ae</a>, and BILD may act under section 13, but it is under
+              <a href="mailto:admin@bild.ae">admin@bild.ae</a>, and BILD may act under section 13, but it is under
               no obligation to investigate, to take any action, or to report an outcome, and doing so creates no
               liability on BILD&rsquo;s part.
             </p>
@@ -184,7 +184,7 @@ export default async function TermsPage() {
             </p>
             <p>
               Contact us at{' '}
-              <a href="mailto:connect@bild.ae" className="text-gold-600">connect@bild.ae</a>{' '}
+              <a href="mailto:admin@bild.ae" className="text-gold-600">admin@bild.ae</a>{' '}
               for any questions or further clarification.
             </p>
 
@@ -575,7 +575,7 @@ export default async function TermsPage() {
             <p>
               BILD will normally seek to resolve matters informally first, but is not obliged to give warning, notice
               or reasons before acting where it considers the circumstances serious. A member may also leave BILD at
-              any time by notifying us at <a href="mailto:connect@bild.ae">connect@bild.ae</a>.
+              any time by notifying us at <a href="mailto:admin@bild.ae">admin@bild.ae</a>.
             </p>
             <p>
               <strong>Removal, suspension or termination of membership does not automatically create a right to a

@@ -53,9 +53,9 @@ export function invitePage(opts: {
   <p>${opts.lead}</p>
   ${opts.cta ? `<p><a class="btn" href="${opts.cta.href}">${opts.cta.label}</a></p>` : ''}
   ${opts.detail ? `<div class="detail">${opts.detail}</div>` : ''}
-  ${opts.showContact === false || (opts.detail || '').includes('connect@bild.ae')
+  ${opts.showContact === false || (opts.detail || '').includes('admin@bild.ae')
       ? ''
-      : `<p class="contact">Still stuck? Email <a href="mailto:connect@bild.ae">connect@bild.ae</a> and we will sort it out.</p>`}
+      : `<p class="contact">Still stuck? Email <a href="mailto:admin@bild.ae">admin@bild.ae</a> and we will sort it out.</p>`}
   <p class="foot">British Indians Living in Dubai &middot; Established 2019</p>
 </div></body></html>`,
     { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } },
@@ -78,7 +78,7 @@ export const alreadyUsedPage = () =>
       'One of our admins approves every person by hand, which can take up to 48 hours. The BILD groups ' +
       'will appear in your WhatsApp once you are approved - there is nothing else for you to do.' +
       '<br><br>' +
-      '<strong>If you never reached WhatsApp:</strong> email <a href="mailto:connect@bild.ae">connect@bild.ae</a> and we will send a fresh link the same day. ' +
+      '<strong>If you never reached WhatsApp:</strong> email <a href="mailto:admin@bild.ae">admin@bild.ae</a> and we will send a fresh link the same day. ' +
       'Your membership is safe either way.',
   })
 
@@ -91,7 +91,7 @@ export const expiredPage = () =>
       'Invites are valid for 48 hours, and this one has passed that. Your membership is completely ' +
       'unaffected - only the link has lapsed.',
     detail:
-      'Email <a href="mailto:connect@bild.ae">connect@bild.ae</a> and we will send you a fresh invite the ' +
+      'Email <a href="mailto:admin@bild.ae">admin@bild.ae</a> and we will send you a fresh invite the ' +
       'same day. If you did already tap through to WhatsApp before it lapsed, you may simply be waiting on ' +
       'admin approval, which takes up to 48 hours.',
   })
@@ -127,5 +127,5 @@ export const groupNotConfiguredPage = () =>
     lead:
       'Your membership is confirmed, but the WhatsApp group link is not set up at our end yet.',
     detail:
-      'This one is on us, not you. Email connect@bild.ae and we will add you to the community by hand today.',
+      'This one is on us, not you. Email admin@bild.ae and we will add you to the community by hand today.',
   })

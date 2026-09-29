@@ -11,6 +11,9 @@ export const SITE_CONFIG = {
   // Events have their own inbox: ticket questions, waitlists, transfers and
   // refunds all go here rather than to general enquiries.
   eventsEmail: 'events@bild.ae',
+  // Membership also has its own inbox: application, invite and WhatsApp
+  // group questions, and anything about an existing membership.
+  membershipEmail: 'admin@bild.ae',
   membershipFeeAED: 50,
   // Get your free endpoint at formspree.io replace REPLACE_ME with your form ID
   businessFormEndpoint: 'https://formspree.io/f/REPLACE_ME',

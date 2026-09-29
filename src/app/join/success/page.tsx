@@ -65,7 +65,7 @@ export default async function JoinSuccessPage({
                   </div>
                   <p className="text-xs text-charcoal-400 mt-5">
                     Questions?{' '}
-                    <a href="mailto:connect@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
+                    <a href="mailto:admin@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
                   </p>
                 </>
               ) : (
@@ -82,7 +82,7 @@ export default async function JoinSuccessPage({
                   </a>
                   <p className="text-xs text-charcoal-400 mt-4">
                     The link expires in 48 hours and can only be used once. Trouble joining?{' '}
-                    <a href="mailto:connect@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
+                    <a href="mailto:admin@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.
                   </p>
                 </>
               )}

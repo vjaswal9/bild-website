@@ -221,7 +221,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
       if (res.ok && json.url) {
         try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(LEAD_ID_KEY) } catch {}
         window.location.href = json.url
-      } else { setError(json.error || 'Could not start payment. Please try again or email connect@bild.ae'); setSubmitting(false) }
+      } else { setError(json.error || 'Could not start payment. Please try again or email admin@bild.ae'); setSubmitting(false) }
     } catch { setError('Could not start payment. Please check your connection and try again.'); setSubmitting(false) }
   }
 
@@ -231,7 +231,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
         <div className="w-16 h-16 bg-ruby-500/10 rounded-full flex items-center justify-center mx-auto mb-5"><XCircle size={32} className="text-ruby-500" /></div>
         <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-3">Not eligible</h2>
         <p className="text-charcoal-600 max-w-md mx-auto">Thank you for your interest in BILD. Unfortunately, membership is open only to individuals who meet our eligibility criteria, so we&apos;re unable to accept your application at this time.</p>
-        <p className="text-sm text-charcoal-500 mt-4">Believe this is a mistake? <a href="mailto:connect@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.</p>
+        <p className="text-sm text-charcoal-500 mt-4">Believe this is a mistake? <a href="mailto:admin@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.</p>
       </div>
     )
   }

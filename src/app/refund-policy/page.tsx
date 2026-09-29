@@ -169,8 +169,8 @@ export default async function RefundPolicyPage() {
 
             <h2>8. How to request a refund</h2>
             <p>
-              For an event ticket, email <a href="mailto:events@bild.ae">events@bild.ae</a>. For membership, a
-              directory listing or Featured placement, email{' '}
+              For an event ticket, email <a href="mailto:events@bild.ae">events@bild.ae</a>. For membership, email{' '}
+              <a href="mailto:admin@bild.ae">admin@bild.ae</a>. For a directory listing or Featured placement, email{' '}
               <a href="mailto:connect@bild.ae">connect@bild.ae</a>. Include your name, the email address you used to
               pay, what you paid for, and the date. Please include your Stripe receipt or confirmation email if you
               have it.
