@@ -49,37 +49,46 @@ function priceLine(tickets: EventTicket[]): string {
   return `Tickets from ${min} AED.`
 }
 
+// Fills whatever room is left after the lead-in facts with the announcement's
+// own flavour text, cut at a word boundary rather than a blind character
+// slice that can stop mid-word with no facts in it at all.
+function factsPlusFlavour(facts: string, flavour: string): string {
+  const budget = 158 - facts.length - 1
+  if (budget <= 20) return facts
+  let snippet = flavour.slice(0, budget)
+  const lastSpace = snippet.lastIndexOf(' ')
+  if (lastSpace > 20) snippet = snippet.slice(0, lastSpace)
+  return `${facts} ${snippet}${flavour.length > snippet.length ? '…' : ''}`
+}
+
 // A search snippet or an answer engine both do better reading concrete facts
-// first - what, when, where, how much - with the announcement's own flavour
-// text only filling whatever room is left, rather than a blind character
-// slice of that copy that can cut off mid-word with no facts in it at all.
+// first - what, when, where, how much. The link preview WhatsApp and other
+// apps show (via openGraph/twitter, not the plain meta description) drops the
+// price on purpose: those previews get cached by the app and can keep
+// showing a stale figure long after a price actually changes, in a place
+// nobody thinks to check.
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const data = await getEventBySlug(params.slug)
   if (!data) return { title: 'Event' }
   const { event, tickets } = data
   const dateStr = shortEventDate(event.event_date)
   const venueStr = event.venue || event.location || ''
-  const facts = [`${event.title} - ${dateStr}${venueStr ? ` at ${venueStr}` : ''}.`, priceLine(tickets)].filter(Boolean).join(' ')
+  const whenWhere = `${event.title} - ${dateStr}${venueStr ? ` at ${venueStr}` : ''}.`
+  const factsWithPrice = [whenWhere, priceLine(tickets)].filter(Boolean).join(' ')
 
   const flavour = event.description
     ? plainDescription(event.description)
     : 'A BILD event for British Indians in Dubai and the UAE.'
-  const budget = 158 - facts.length - 1
-  let description = facts
-  if (budget > 20) {
-    let snippet = flavour.slice(0, budget)
-    const lastSpace = snippet.lastIndexOf(' ')
-    if (lastSpace > 20) snippet = snippet.slice(0, lastSpace)
-    description = `${facts} ${snippet}${flavour.length > snippet.length ? '…' : ''}`
-  }
+  const description = factsPlusFlavour(factsWithPrice, flavour)
+  const socialDescription = factsPlusFlavour(whenWhere, flavour)
 
   const title = `${event.title} - ${dateStr}`
   const images = event.flyer_url && event.flyer_url.startsWith('http') ? [event.flyer_url] : undefined
   return {
     title,
     description,
-    openGraph: { title, description, images },
-    twitter: { title, description, images },
+    openGraph: { title, description: socialDescription, images },
+    twitter: { title, description: socialDescription, images },
   }
 }
 
