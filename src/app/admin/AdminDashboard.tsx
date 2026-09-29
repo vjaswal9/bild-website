@@ -442,6 +442,7 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
             onApprove={id => handleRenewal(id, 'approve')}
             onDecline={id => handleRenewal(id, 'decline')}
             onRelist={handleRelist}
+            onEdit={s => { setView('cards'); setTab(s.status as Tab); setEditingId(s.id) }}
           />
         ) : tab === 'billing' ? (
           <BillingSection
@@ -990,6 +991,7 @@ function LicensesSection({
   onApprove,
   onDecline,
   onRelist,
+  onEdit,
 }: {
   expiringSoon: BusinessSubmission[]
   expiredDelisted: BusinessSubmission[]
@@ -1000,6 +1002,7 @@ function LicensesSection({
   onApprove: (id: string) => void
   onDecline: (id: string) => void
   onRelist: (id: string, name: string) => void
+  onEdit: (s: BusinessSubmission) => void
 }) {
   return (
     <div className="space-y-8">
@@ -1016,16 +1019,26 @@ function LicensesSection({
         ) : (
           <div className="divide-y divide-charcoal-700/60">
             {expiringSoon.map(s => (
-              <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4">
+              <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-white font-medium">{s.business_country === 'UK' ? '🇬🇧' : '🇦🇪'} {s.business_name}</p>
                   <p className="text-gray-400 text-sm">
                     Expires {s.document_expiry_date} ({daysUntil(s.document_expiry_date!)} day{daysUntil(s.document_expiry_date!) === 1 ? '' : 's'})
                   </p>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${s.document_reminder_sent_at ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                  {s.document_reminder_sent_at ? 'Reminder sent' : 'Reminder pending'}
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${s.document_reminder_sent_at ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                    {s.document_reminder_sent_at ? 'Reminder sent' : 'Reminder pending'}
+                  </span>
+                  {s.document_url && <LicenseButton path={s.document_url} compact />}
+                  <button
+                    onClick={() => onEdit(s)}
+                    className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                    title="Edit business details, including the expiry date"
+                  >
+                    <Pencil size={13} /> Edit
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1045,20 +1058,30 @@ function LicensesSection({
         ) : (
           <div className="divide-y divide-charcoal-700/60">
             {expiredDelisted.map(s => (
-              <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4">
+              <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-white font-medium">{s.business_country === 'UK' ? '🇬🇧' : '🇦🇪'} {s.business_name}</p>
                   <p className="text-gray-400 text-sm">
                     Document expired {s.document_expiry_date} · delisted {s.delisted_at ? new Date(s.delisted_at).toLocaleDateString('en-GB') : ''}
                   </p>
                 </div>
-                <button
-                  onClick={() => onRelist(s.id, s.business_name)}
-                  disabled={processing === s.id}
-                  className="shrink-0 inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
-                >
-                  Re-list
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {s.document_url && <LicenseButton path={s.document_url} compact />}
+                  <button
+                    onClick={() => onEdit(s)}
+                    className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                    title="Edit business details, including the expiry date - useful if the date was entered wrong"
+                  >
+                    <Pencil size={13} /> Edit
+                  </button>
+                  <button
+                    onClick={() => onRelist(s.id, s.business_name)}
+                    disabled={processing === s.id}
+                    className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                  >
+                    Re-list
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1243,7 +1266,7 @@ function BillingSection({
   )
 }
 
-function LicenseButton({ path }: { path: string }) {
+function LicenseButton({ path, compact }: { path: string; compact?: boolean }) {
   const [loading, setLoading] = useState(false)
 
   // Signed on the server now, not here.
@@ -1280,16 +1303,24 @@ function LicenseButton({ path }: { path: string }) {
     setLoading(false)
   }
 
+  const button = (
+    <button
+      onClick={getSignedUrl}
+      disabled={loading}
+      className={
+        compact
+          ? 'inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50'
+          : 'inline-flex items-center gap-2 bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 transition-colors px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50'
+      }
+    >
+      <FileText size={compact ? 13 : 14} /> {loading ? 'Opening...' : compact ? 'View license' : 'View Document PDF'}
+    </button>
+  )
+  if (compact) return button
   return (
     <div>
       <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">Business Document</p>
-      <button
-        onClick={getSignedUrl}
-        disabled={loading}
-        className="inline-flex items-center gap-2 bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 transition-colors px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50"
-      >
-        <FileText size={14} /> {loading ? 'Opening...' : 'View Document PDF'}
-      </button>
+      {button}
     </div>
   )
 }
