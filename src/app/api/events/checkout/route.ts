@@ -8,7 +8,7 @@ import { cardFeeFils } from '@/lib/fees'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { readWithRetry } from '@/lib/db-retry'
-import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser } from '@/lib/seating-code'
+import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, seatingPositionFor } from '@/lib/seating-code'
 
 export const dynamic = 'force-dynamic'
 
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     const { data: event, error: eventError } = await readWithRetry('checkout: load event', () =>
       supabaseAdmin
         .from('events')
-        .select('id, slug, title, status, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled')
+        .select('id, slug, title, status, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled, seats_per_table')
         .eq('id', eventId)
         .maybeSingle(),
     )
@@ -201,7 +201,15 @@ export async function POST(req: NextRequest) {
             error: 'We could not find that table code for this event. Check it with your friend, or leave it blank to get your own.',
           }, { status: 400 })
         }
-        seatingCode = entered
+        // A code is capped at one table's worth of seats. Someone joining a
+        // code that is already full (or would overflow with this booking's
+        // own party) is not turned away - they just start a fresh table of
+        // their own instead, silently, the same as if they had left the box
+        // blank. Only enforced once an admin has actually set a table size.
+        const seatsPerTable = event.seats_per_table as number | null
+        seatingCode = seatsPerTable != null && check.headcount + qty > seatsPerTable
+          ? generateSeatingCode()
+          : entered
       } else {
         seatingCode = generateSeatingCode()
       }
@@ -228,7 +236,7 @@ export async function POST(req: NextRequest) {
         attendee_age: buyerAge,
         seating_code: seatingCode,
       }])
-      .select('id')
+      .select('id, created_at')
       .single()
 
     if (regErr || !reg) {
@@ -244,6 +252,9 @@ export async function POST(req: NextRequest) {
         .update({ status: 'paid', paid_at: new Date().toISOString() })
         .eq('id', reg.id)
       const { sendEventConfirmation, sendTicketSaleAlert } = await import('@/lib/email')
+      const seatingPosition = event.seating_enabled && seatingCode
+        ? await seatingPositionFor(eventId, seatingCode, reg.created_at, qty, event.seats_per_table)
+        : null
       await sendEventConfirmation({
         to: buyerEmail,
         firstName,
@@ -262,6 +273,7 @@ export async function POST(req: NextRequest) {
         eventEndDate: event.end_date,
         seatingEnabled: event.seating_enabled,
         seatingCode,
+        seatingPosition,
       })
       // Same guard as the paid path: a failed count must not be reported as
       // zero on an event that has sold plenty.

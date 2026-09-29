@@ -64,3 +64,31 @@ export async function findSeatingGroupOrganiser(
 
   return { found: true, organiserFirstName: data.first_name || 'a member', headcount }
 }
+
+/**
+ * Where one booking landed within its table's headcount - "seats 8-10 of 10" -
+ * for the confirmation email. Counts every other PAID registration already on
+ * this code booked earlier, then adds this booking's own quantity on top, so
+ * it is correct whether called right after a free booking marks itself paid
+ * or from the Stripe webhook a moment before it does the same: either way
+ * this booking's own row is excluded by the created_at cutoff, not by status,
+ * so it is never double-counted or missed.
+ */
+export async function seatingPositionFor(
+  eventId: string,
+  seatingCode: string,
+  createdAt: string,
+  ownQuantity: number,
+  seatsPerTable: number | null,
+): Promise<{ from: number; to: number; of: number } | null> {
+  if (seatsPerTable == null) return null
+  const { data } = await supabaseAdmin
+    .from('event_registrations')
+    .select('quantity')
+    .eq('event_id', eventId)
+    .eq('seating_code', seatingCode)
+    .eq('status', 'paid')
+    .lt('created_at', createdAt)
+  const prior = (data || []).reduce((s, r) => s + (Number(r.quantity) || 1), 0)
+  return { from: prior + 1, to: prior + ownQuantity, of: seatsPerTable }
+}

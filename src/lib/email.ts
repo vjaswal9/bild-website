@@ -426,6 +426,10 @@ export async function sendEventConfirmation(opts: {
   // Table seating. Present only on an event with seating switched on.
   seatingEnabled?: boolean
   seatingCode?: string | null
+  // Where this booking landed within its table's headcount - "seats 8-10 of
+  // 10" - computed by the caller (seatingPositionFor). Absent whenever a
+  // table size has not been set, in which case the line is simply left out.
+  seatingPosition?: { from: number; to: number; of: number } | null
 }) {
   if (!apiKey) {
     console.warn('Email skipped: RESEND_API_KEY not set')
@@ -482,6 +486,12 @@ export async function sendEventConfirmation(opts: {
        <p style="margin:0 0 10px">
          <span style="color:#F4F1EC;font-size:22px;font-weight:bold;letter-spacing:3px;display:inline-block">${esc(opts.seatingCode)}</span>
        </p>
+       ${opts.seatingPosition ? `
+       <p style="color:#cfcabd;font-size:13px;margin:0 0 10px">
+         ${opts.seatingPosition.from === opts.seatingPosition.to
+           ? `You&rsquo;re number ${opts.seatingPosition.from} of ${opts.seatingPosition.of} at this table.`
+           : `You&rsquo;re numbers ${opts.seatingPosition.from}-${opts.seatingPosition.to} of ${opts.seatingPosition.of} at this table.`}
+       </p>` : ''}
        ${whatsappShareUrl && seatingInviteUrl ? `
        <p style="margin:0 0 8px">
          <a href="${whatsappShareUrl}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;

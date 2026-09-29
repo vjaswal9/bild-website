@@ -7,6 +7,7 @@ import { sendWelcomeEmail, sendEventConfirmation, sendTicketSaleAlert, sendNewMe
 import { readWithRetry } from '@/lib/db-retry'
 import { googleReviewsLinkFor } from '@/lib/google-reviews-link'
 import { loadRegistration, refundEverything } from '@/lib/event-refunds'
+import { seatingPositionFor } from '@/lib/seating-code'
 import { PaymentKind } from '@/lib/money'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
@@ -105,7 +106,7 @@ async function recordPayment(row: {
 }
 
 // The booking columns every ticket flow below reads.
-const BOOKING_COLUMNS = 'email, first_name, last_name, title, ticket_name, amount_aed, event_id, quantity, guest_names, attendee_age, seating_code'
+const BOOKING_COLUMNS = 'email, first_name, last_name, title, ticket_name, amount_aed, event_id, quantity, guest_names, attendee_age, seating_code, created_at'
 
 type Booking = {
   email: string
@@ -119,6 +120,7 @@ type Booking = {
   attendee_age?: number | null
   seating_code?: string | null
   title?: string | null
+  created_at: string
 }
 
 // Decides what a webhook delivery that marked zero rows paid actually means.
@@ -240,7 +242,7 @@ export async function POST(req: NextRequest) {
         if (reg) {
           const { data: ev } = await supabaseAdmin
             .from('events')
-            .select('title, slug, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled')
+            .select('title, slug, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled, seats_per_table')
             .eq('id', reg.event_id)
             .maybeSingle()
           const eventTitle = (ev as { title?: string })?.title || 'BILD Event'
@@ -331,6 +333,11 @@ export async function POST(req: NextRequest) {
               }
             }
           }
+          const seatingEnabled = (ev as { seating_enabled?: boolean })?.seating_enabled
+          const seatsPerTable = (ev as { seats_per_table?: number | null })?.seats_per_table ?? null
+          const seatingPosition = seatingEnabled && reg.seating_code
+            ? await seatingPositionFor(reg.event_id, reg.seating_code, reg.created_at, quantity, seatsPerTable)
+            : null
           await sendEventConfirmation({
             to: reg.email,
             firstName: reg.first_name,
@@ -349,8 +356,9 @@ export async function POST(req: NextRequest) {
             googleMapsUrl: (ev as { google_maps_url?: string })?.google_maps_url,
             eventSlug: (ev as { slug?: string })?.slug,
             eventEndDate: (ev as { end_date?: string | null })?.end_date,
-            seatingEnabled: (ev as { seating_enabled?: boolean })?.seating_enabled,
+            seatingEnabled,
             seatingCode: reg.seating_code,
+            seatingPosition,
           })
           // Alert the admin that a ticket was sold.
           //

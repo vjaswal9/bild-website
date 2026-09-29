@@ -302,7 +302,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
               {seatingHeadcount != null && seatsPerTable != null && (
                 <p className="text-charcoal-500 text-xs mt-1.5">
                   {seatingHeadcount >= seatsPerTable
-                    ? `This table already has its full ${seatsPerTable} seats claimed - you can still book, but you may be seated at a nearby table instead.`
+                    ? `This table already has its full ${seatsPerTable} seats claimed - book anyway and we'll start a fresh table for your group instead.`
                     : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
                 </p>
               )}
@@ -545,7 +545,7 @@ export default function EventRegistration({ event, tickets, soldOut, waitlistOpe
                     {seatingHeadcount != null && seatsPerTable != null && (
                       <p className="text-charcoal-500 mt-0.5">
                         {seatingHeadcount >= seatsPerTable
-                          ? `This table already has its full ${seatsPerTable} seats claimed - you can still book, but you may be seated at a nearby table instead.`
+                          ? `This table already has its full ${seatsPerTable} seats claimed - book anyway and we'll start a fresh table for your group instead.`
                           : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
                       </p>
                     )}
