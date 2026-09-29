@@ -1601,6 +1601,7 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
   const [mode, setMode] = useState<'refund' | 'tickets' | 'email' | 'stripe' | null>(null)
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
+  const [listOpen, setListOpen] = useState(false)
 
   const sorted = [...registrations].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const visible = showAll ? sorted : sorted.slice(0, 8)
@@ -1663,8 +1664,15 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
 
       {registrations.length === 0 ? (
         <p className="text-gray-500 text-sm">No bookings yet.</p>
+      ) : !listOpen ? (
+        <button onClick={() => setListOpen(true)} className="inline-flex items-center gap-1.5 text-gold-400 hover:underline text-sm font-medium">
+          <ChevronDown size={15} /> Show {sorted.length} booking{sorted.length === 1 ? '' : 's'}
+        </button>
       ) : (
         <>
+          <button onClick={() => setListOpen(false)} className="inline-flex items-center gap-1.5 text-gold-400 hover:underline text-sm font-medium mb-3">
+            <ChevronUp size={15} /> Hide bookings
+          </button>
           <div className="space-y-3">
             {visible.map(reg => (
               confirmingDeleteId === reg.id ? (
