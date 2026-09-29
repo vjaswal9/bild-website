@@ -39,9 +39,13 @@ function priceLabel(t: EventTicket) {
 // so sending the number would have left it readable by anyone viewing source
 // even though nothing displayed it. Capacity is enforced on the server at
 // checkout, which is the only place it can be enforced anyway.
-export default function EventRegistration({ event, tickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled }: {
+export default function EventRegistration({ event, tickets: rawTickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled }: {
   event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean
 }) {
+  // Cheapest first, always - regardless of whatever order the admin happens
+  // to have them in (sort_order is for the admin's own ticket-editing screen,
+  // not for what a buyer sees here).
+  const tickets = [...rawTickets].sort((a, b) => a.price_aed - b.price_aed)
   // attendees[ticketId] = array of { name, dietary } for that package (length = qty)
   const [attendeesByTicket, setAttendeesByTicket] = useState<Record<string, Attendee[]>>({})
   const [email, setEmail] = useState('')
