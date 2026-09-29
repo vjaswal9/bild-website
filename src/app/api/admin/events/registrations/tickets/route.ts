@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import type { GuestEntry } from '@/lib/events'
 import { loadRegistration, refundRegistration, type RefundOutcome } from '@/lib/event-refunds'
+import { issueUpgradePaymentLink } from '@/lib/event-upgrades'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,13 +26,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 
-  const { id, buyerTicketId, guestTicketIds, note, refundDifference } = await req.json().catch(() => ({}))
+  const { id, buyerTicketId, guestTicketIds, note, refundDifference, collectDifference } = await req.json().catch(() => ({}))
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   if (!buyerTicketId) return NextResponse.json({ error: 'Please choose the buyer\'s ticket.' }, { status: 400 })
 
   const { data: reg } = await supabaseAdmin
     .from('event_registrations')
-    .select('id, event_id, status, amount_aed, refunded_amount_aed, ticket_id, ticket_name, guest_names, attendee_age, admin_note, stripe_session_id')
+    .select('id, event_id, status, amount_aed, refunded_amount_aed, ticket_id, ticket_name, guest_names, attendee_age, admin_note, stripe_session_id, email, first_name, last_name')
     .eq('id', id)
     .maybeSingle()
 
@@ -47,6 +48,12 @@ export async function POST(req: NextRequest) {
     .select('id, name, price_aed, is_child')
     .eq('event_id', reg.event_id)
   const ticketsById = new Map((ticketRows || []).map(t => [String(t.id), t]))
+
+  const { data: eventRow } = await supabaseAdmin
+    .from('events')
+    .select('title')
+    .eq('id', reg.event_id)
+    .maybeSingle()
 
   const buyerTicket = ticketsById.get(String(buyerTicketId))
   if (!buyerTicket) {
@@ -98,10 +105,14 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // The ledger records what this booking is now worth to BILD. The gross and
-  // the card fee the buyer paid at checkout are left alone: that money did
-  // change hands, and a refund is what moves it back.
-  if (reg.stripe_session_id) {
+  // The ledger records what this booking is now worth to BILD - but only for
+  // a lateral move or a downgrade, where the money already collected still
+  // covers it (a downgrade's refund below brings it back down to match). An
+  // upgrade is the opposite: the extra has NOT been collected yet, so bumping
+  // this row to newTotal here would count it before it exists. The upgrade
+  // payment gets its own ledger row, keyed on its own Stripe session, once it
+  // is actually paid - see the webhook's event_upgrade handling.
+  if (reg.stripe_session_id && difference >= 0) {
     try {
       await supabaseAdmin
         .from('payments')
@@ -137,6 +148,23 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // The other direction: an upgrade. Stripe cannot charge more to a card
+  // already used for the original checkout, so - if asked - email a fresh,
+  // token-gated payment link for just the difference instead.
+  let upgradeLink: { ok: true; payUrl: string } | { ok: false; error: string } | null = null
+
+  if (collectDifference && difference < 0 && reg.email) {
+    upgradeLink = await issueUpgradePaymentLink({
+      registrationId: String(id),
+      amountAed: Math.abs(difference),
+      note: trimmedNote,
+      eventTitle: eventRow?.title || 'your event',
+      ticketName: buyerTicket.name,
+      to: reg.email,
+      firstName: reg.first_name,
+    })
+  }
+
   return NextResponse.json({
     ok: true,
     oldTotalAed: oldTotal,
@@ -147,5 +175,6 @@ export async function POST(req: NextRequest) {
     differenceAed: difference,
     refund,
     refundError,
+    upgradeLink,
   })
 }

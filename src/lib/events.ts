@@ -99,6 +99,13 @@ export type EventRegistration = {
   // seating_enabled off, or before an admin has run seating.
   seating_code?: string | null
   seating_table?: number[] | null
+  // Set when a ticket change made this booking cost more than what was
+  // already paid, and null once that difference has been paid or if nothing
+  // is currently owed. Stripe cannot charge more to a card already used for
+  // the original checkout, so this is collected via a separate payment link
+  // rather than automatically - see src/lib/event-upgrades.ts.
+  upgrade_due_aed?: number | null
+  upgrade_note?: string | null
 }
 
 // An event is "past" once its end (or start, if no end) is behind us.

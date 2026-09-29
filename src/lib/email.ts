@@ -938,6 +938,65 @@ export async function sendTicketSaleAlert(opts: {
   }
 }
 
+// Sent when an admin moves someone onto a more expensive ticket and asks to
+// collect the difference. Stripe cannot charge more to a card that was only
+// authorised for the original checkout, so this is a fresh, token-gated
+// payment link (the same pattern the business directory's listing-payment
+// link already uses) rather than an automatic charge.
+export async function sendTicketUpgradePaymentEmail(opts: {
+  to: string
+  firstName?: string
+  eventTitle: string
+  ticketName?: string | null
+  amountAed: number
+  payUrl: string
+}) {
+  const first = esc(opts.firstName || 'there')
+  const html = bizEmailShell({
+    kicker: 'BILD Events',
+    heading: 'One more step for your ticket',
+    bodyHtml: `
+      <p>Hi ${first},</p>
+      <p>Your ticket for <strong>${esc(opts.eventTitle)}</strong> has been changed${opts.ticketName ? ` to <strong>${esc(opts.ticketName)}</strong>` : ''},
+      which costs more than you already paid. To confirm the change, please pay the difference of
+      <strong>${opts.amountAed} AED</strong> below.</p>
+      <p style="color:#8a857a;font-size:13px">Your place at the event is unaffected either way - this is just for the extra ticket cost.</p>`,
+    ctaUrl: opts.payUrl,
+    ctaLabel: `Pay ${opts.amountAed} AED`,
+    contact: 'events@bild.ae',
+  })
+  await sendResendEmailFrom(EVENTS_FROM, opts.to, `Please pay ${opts.amountAed} AED for your ${opts.eventTitle} ticket`, html, 'Ticket upgrade payment email')
+}
+
+// Internal alert once an upgrade difference has actually been paid - the
+// ledger entry is the source of truth, this is just so the events team
+// notices without having to check.
+export async function sendTicketUpgradePaidAlert(opts: {
+  eventTitle: string
+  buyerName: string
+  buyerEmail: string
+  amountAed: number
+}) {
+  if (!apiKey) { console.warn('Email skipped: RESEND_API_KEY not set'); return }
+  const resend = new Resend(apiKey)
+  const html = `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto">
+    <h2 style="color:#0E0E0E;font-size:18px;margin:0 0 4px">💳 Ticket upgrade paid: ${esc(opts.eventTitle)}</h2>
+    <p style="color:#555;font-size:14px;margin:0 0 4px">${esc(opts.buyerName)} (${esc(opts.buyerEmail)}) paid the extra ${opts.amountAed} AED for their upgraded ticket.</p>
+    <p style="color:#999;font-size:12px;margin-top:14px">Recorded in the money ledger automatically.</p>
+  </div>`
+  try {
+    await resend.emails.send({
+      from: EVENTS_FROM,
+      to: EVENTS_ALERT_EMAILS,
+      subject: `Upgrade paid: ${opts.eventTitle} (+${opts.amountAed} AED)`,
+      html,
+    })
+  } catch (e) {
+    console.error('Ticket upgrade paid alert failed:', e)
+  }
+}
+
 // Admin alert whenever a new business is submitted to the directory.
 export async function sendNewBusinessAlert(opts: {
   businessName: string

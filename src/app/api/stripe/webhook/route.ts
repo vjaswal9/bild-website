@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { randomUUID } from 'crypto'
-import { sendWelcomeEmail, sendEventConfirmation, sendTicketSaleAlert, sendNewMemberAlert, sendListingPaidConfirmation, sendFeaturedPaidConfirmation, sendOversoldRefundEmail, sendOversoldAdminAlert, sendLedgerWriteFailedAlert, sendExternalRefundAlert } from '@/lib/email'
+import { sendWelcomeEmail, sendEventConfirmation, sendTicketSaleAlert, sendTicketUpgradePaidAlert, sendNewMemberAlert, sendListingPaidConfirmation, sendFeaturedPaidConfirmation, sendOversoldRefundEmail, sendOversoldAdminAlert, sendLedgerWriteFailedAlert, sendExternalRefundAlert } from '@/lib/email'
 import { readWithRetry } from '@/lib/db-retry'
 import { googleReviewsLinkFor } from '@/lib/google-reviews-link'
 import { loadRegistration, refundEverything } from '@/lib/event-refunds'
@@ -393,6 +393,76 @@ export async function POST(req: NextRequest) {
             amountAed: reg.amount_aed ?? 0,
             guests,
             totalTicketsSold,
+          })
+        }
+      }
+      return NextResponse.json({ received: true })
+    }
+
+    // The extra cost of a ticket upgrade, paid through its own separate
+    // checkout because Stripe cannot charge more to a card already used for
+    // the original booking - see src/lib/event-upgrades.ts.
+    if (session.metadata?.type === 'event_upgrade') {
+      const regId = session.metadata.registration_id
+      if (regId) {
+        // Read the amount owed before clearing it - the update below sets
+        // this same column to null, so it has to be captured first.
+        const { data: current } = await supabaseAdmin
+          .from('event_registrations')
+          .select('email, first_name, last_name, ticket_name, event_id, upgrade_due_aed')
+          .eq('id', regId)
+          .maybeSingle()
+        const dueAed = current?.upgrade_due_aed != null ? Number(current.upgrade_due_aed) : null
+
+        // The upgrade_due_aed filter (must still be owed) makes this
+        // idempotent against retried webhook deliveries: a second delivery
+        // for an upgrade already paid matches zero rows and changes nothing.
+        const { data: claimed, error: upgradeError } = await supabaseAdmin
+          .from('event_registrations')
+          .update({
+            upgrade_due_aed: null,
+            upgrade_payment_token: null,
+            upgrade_payment_token_expires_at: null,
+          })
+          .eq('id', regId)
+          .not('upgrade_due_aed', 'is', null)
+          .select('id')
+        if (upgradeError) {
+          console.error('Could not mark a ticket upgrade paid, asking Stripe to retry:', upgradeError)
+          Sentry.captureException(new Error('Could not mark a ticket upgrade paid'), {
+            level: 'fatal',
+            tags: { flow: 'event_upgrade', checkout_session_id: session.id, registration_id: regId },
+            contexts: { supabase: { message: (upgradeError as { message?: string }).message ?? String(upgradeError) } },
+          })
+          return NextResponse.json({ error: 'Could not record the upgrade payment, please retry.' }, { status: 500 })
+        }
+
+        if (current && dueAed != null && claimed?.length) {
+          const { data: ev } = await supabaseAdmin
+            .from('events')
+            .select('title')
+            .eq('id', current.event_id)
+            .maybeSingle()
+          const eventTitle = ev?.title || 'BILD Event'
+          const charge = await getChargeDetails(session.id)
+          // dueAed is the ticket-upgrade revenue; anything the buyer paid
+          // above it is the card processing surcharge passed straight to
+          // Stripe - same split as the original ticket purchase.
+          await recordPayment({
+            kind: 'event_ticket',
+            description: `${eventTitle} - ticket upgrade`,
+            referenceId: regId,
+            eventId: current.event_id as string,
+            grossAed: session.amount_total != null ? session.amount_total / 100 : dueAed,
+            revenueAed: dueAed,
+            stripeSessionId: session.id,
+            charge,
+          })
+          await sendTicketUpgradePaidAlert({
+            eventTitle,
+            buyerName: `${current.first_name} ${current.last_name ?? ''}`.trim(),
+            buyerEmail: current.email,
+            amountAed: dueAed,
           })
         }
       }

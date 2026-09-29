@@ -2021,6 +2021,7 @@ function ChangeTicketsPanel({ reg, tickets, onCancel, onDone }: {
   )
   const [note, setNote] = useState('')
   const [refundDifference, setRefundDifference] = useState(true)
+  const [collectDifference, setCollectDifference] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -2037,6 +2038,7 @@ function ChangeTicketsPanel({ reg, tickets, onCancel, onDone }: {
       body: JSON.stringify({
         id: reg.id, buyerTicketId, guestTicketIds, note,
         refundDifference: difference > 0 && refundDifference,
+        collectDifference: difference < 0 && collectDifference,
       }),
     })
     const d = await res.json().catch(() => ({}))
@@ -2050,6 +2052,15 @@ function ChangeTicketsPanel({ reg, tickets, onCancel, onDone }: {
     if (d.refund && d.refund.emailed === false) {
       return setError(
         `Tickets updated and ${aed(d.refund.refundedAed)} AED refunded, but the confirmation email could not be sent: ${d.refund.emailError || 'unknown reason'} Let them know another way.`,
+      )
+    }
+    if (d.upgradeLink && !d.upgradeLink.ok) {
+      return setError(`Tickets updated, but the payment link could not be created: ${d.upgradeLink.error} Try the change again to retry.`)
+    }
+    if (d.upgradeLink && d.upgradeLink.ok) {
+      window.prompt(
+        `Tickets updated. A payment link for ${aed(Math.abs(difference))} AED has been emailed to them. Copy it below if you want to send it yourself as well:`,
+        d.upgradeLink.payUrl,
       )
     }
     onDone()
@@ -2128,10 +2139,29 @@ function ChangeTicketsPanel({ reg, tickets, onCancel, onDone }: {
         </div>
       )}
       {difference < 0 && (
-        <p className="text-amber-400/90 text-xs mb-3 leading-relaxed">
-          This is an upgrade of {aed(Math.abs(difference))} AED. Stripe cannot charge more to a card that has already
-          been used, so collect the difference separately.
-        </p>
+        <div className="bg-charcoal-800 border border-charcoal-600 rounded-lg p-3 mb-3">
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={collectDifference}
+              onChange={e => setCollectDifference(e.target.checked)}
+              className="accent-gold-500 w-4 h-4 mt-0.5 shrink-0"
+            />
+            <span className="text-sm text-gray-200 leading-relaxed">
+              Email a payment link for the extra <strong className="text-white">{aed(Math.abs(difference))} AED</strong> now
+              <span className="block text-gray-500 text-xs mt-0.5">
+                Stripe cannot charge more to a card already used for the original booking, so this sends a fresh
+                link to a payment page for just the difference. Their place at the event is unaffected either way.
+              </span>
+            </span>
+          </label>
+          {!collectDifference && (
+            <p className="text-amber-400/90 text-xs mt-2 pl-7 leading-relaxed">
+              The record will be corrected but nothing is asked for. You can send the link later by making this
+              same change again.
+            </p>
+          )}
+        </div>
       )}
 
       <input
