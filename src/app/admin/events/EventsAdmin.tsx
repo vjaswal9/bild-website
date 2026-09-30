@@ -12,7 +12,7 @@ import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
   ChevronDown, ChevronUp, Download, Loader2, ExternalLink, Undo2, Pencil,
   Wallet, Banknote, TrendingUp, TrendingDown, BarChart3, Salad, Lock, Mail,
-  ShieldCheck, AlertTriangle, Armchair, Upload,
+  ShieldCheck, AlertTriangle, Armchair, Upload, Gift,
 } from 'lucide-react'
 import { FaInstagram } from 'react-icons/fa'
 
@@ -476,19 +476,26 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
 
   type Unit = { ticketName: string; cost: number; price: number }
   const units: Unit[] = []
+  // A comp booking still costs whatever its ticket type costs to host (the
+  // meal was still served) - it just never counts as revenue.
+  let compCount = 0
+  let compValue = 0
   paid.forEach(r => {
     const buyerTicket = ticketsByName.get(r.ticket_name || '')
+    const isComp = !!r.is_complimentary
+    if (isComp) { compCount += 1; compValue += buyerTicket?.price_aed ?? 0 }
     units.push({
       ticketName: r.ticket_name || 'Ticket',
       cost: buyerTicket?.cost_price_aed ?? 0,
-      price: buyerTicket?.price_aed ?? 0,
+      price: isComp ? 0 : (buyerTicket?.price_aed ?? 0),
     })
     ;(r.guest_names || []).forEach(g => {
       const t = ticketsByName.get(g.ticket_name || '')
+      if (isComp) { compCount += 1; compValue += t?.price_aed ?? 0 }
       units.push({
         ticketName: g.ticket_name || r.ticket_name || 'Ticket',
         cost: t?.cost_price_aed ?? 0,
-        price: t?.price_aed ?? (g.price_aed || 0),
+        price: isComp ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
       })
     })
   })
@@ -539,13 +546,22 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
         />
       </div>
 
-      {extra && (extra.costs > 0 || extra.revenue > 0) && (
-        <p className="text-gray-500 text-xs -mt-6 mb-8 text-center">
-          Includes {extra.costs > 0 ? `${extra.costs} AED of additional costs` : ''}
-          {extra.costs > 0 && extra.revenue > 0 ? ' and ' : ''}
-          {extra.revenue > 0 ? `${extra.revenue} AED of additional revenue` : ''}
-          {' '}from the Additional revenue &amp; costs section below.
-        </p>
+      {((extra && (extra.costs > 0 || extra.revenue > 0)) || compCount > 0) && (
+        <div className="text-gray-500 text-xs -mt-6 mb-8 text-center space-y-1">
+          {extra && (extra.costs > 0 || extra.revenue > 0) && (
+            <p>
+              Includes {extra.costs > 0 ? `${extra.costs} AED of additional costs` : ''}
+              {extra.costs > 0 && extra.revenue > 0 ? ' and ' : ''}
+              {extra.revenue > 0 ? `${extra.revenue} AED of additional revenue` : ''}
+              {' '}from the Additional revenue &amp; costs section below.
+            </p>
+          )}
+          {compCount > 0 && (
+            <p>
+              Includes {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({compValue} AED of value given away, already excluded from revenue).
+            </p>
+          )}
+        </div>
       )}
 
       {totalTickets === 0 ? (
@@ -1602,6 +1618,9 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
   const [listOpen, setListOpen] = useState(false)
+  const [issuingComp, setIssuingComp] = useState(false)
+
+  const compCount = registrations.filter(r => r.status === 'paid' && r.is_complimentary).length
 
   const sorted = [...registrations].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const visible = showAll ? sorted : sorted.slice(0, 8)
@@ -1633,6 +1652,9 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
           {stats.refunded > 0 && (
             <div><p className="text-2xl font-display font-bold text-red-400">{stats.refunded}</p><p className="text-gray-400 text-xs">Fully refunded</p></div>
           )}
+          {compCount > 0 && (
+            <div><p className="text-2xl font-display font-bold text-purple-300">{compCount}</p><p className="text-gray-400 text-xs">Complimentary</p></div>
+          )}
           {refundedTotal > 0 && (
             <div><p className="text-2xl font-display font-bold text-red-400">{aed(refundedTotal)}</p><p className="text-gray-400 text-xs">AED refunded</p></div>
           )}
@@ -1650,6 +1672,14 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
           )}
         </div>
         <div className="sm:ml-auto flex flex-wrap gap-2">
+          <button
+            onClick={() => setIssuingComp(v => !v)}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              issuingComp ? 'bg-gold-500 text-white' : 'bg-charcoal-700 hover:bg-charcoal-600 text-white'
+            }`}
+          >
+            <Gift size={16} /> Issue complimentary ticket
+          </button>
           <a href={`/api/admin/events/export?eventId=${eventId}`}
             className="inline-flex items-center gap-2 bg-charcoal-700 hover:bg-charcoal-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
             <Download size={16} /> Download door list (Excel)
@@ -1661,6 +1691,15 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
           </a>
         </div>
       </div>
+
+      {issuingComp && (
+        <IssueCompPanel
+          eventId={eventId}
+          tickets={tickets}
+          onCancel={() => setIssuingComp(false)}
+          onDone={() => { setIssuingComp(false); router.refresh() }}
+        />
+      )}
 
       {registrations.length === 0 ? (
         <p className="text-gray-500 text-sm">No bookings yet.</p>
@@ -1707,6 +1746,163 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
   )
 }
 
+// Gives a named person a ticket for free, without them going through Stripe
+// or even knowing a public link exists - unlike a ticket type simply priced
+// at 0 AED, which anyone visiting the event page can book. Mirrors the real
+// booking form closely enough that the resulting registration behaves like
+// any other paid booking (capacity, seating, door list), just flagged so
+// reporting knows not to count it as revenue.
+function IssueCompPanel({ eventId, tickets, onCancel, onDone }: {
+  eventId: string
+  tickets: EventTicket[]
+  onCancel: () => void
+  onDone: () => void
+}) {
+  const activeTickets = tickets.filter(t => t.active)
+  const [ticketId, setTicketId] = useState(activeTickets[0]?.id || '')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [age, setAge] = useState('')
+  const [guests, setGuests] = useState<{ name: string; age: string }[]>([])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState('')
+
+  const ticket = activeTickets.find(t => t.id === ticketId)
+
+  async function submit() {
+    setError('')
+    if (!ticketId || !firstName.trim() || !email.trim()) {
+      setError('Please choose a ticket and fill in a name and email.')
+      return
+    }
+    setBusy(true)
+    const res = await fetch('/api/admin/events/registrations/comp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventId,
+        ticketId,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phone: phone.trim() || null,
+        age: age.trim() || null,
+        guests: guests.map(g => ({ name: g.name.trim(), age: g.age.trim() || null })),
+      }),
+    })
+    const d = await res.json().catch(() => ({}))
+    setBusy(false)
+    if (!res.ok) return setError(d.error || 'Could not issue the ticket.')
+    setDone(email.trim())
+    setTimeout(onDone, 1600)
+  }
+
+  return (
+    <div className="mb-5 rounded-xl border border-gold-500/30 bg-charcoal-700/30 px-4 py-4">
+      <p className="text-white text-sm font-semibold mb-1 flex items-center gap-1.5"><Gift size={15} className="text-gold-400" /> Issue complimentary ticket</p>
+      <p className="text-gray-500 text-xs mb-3">
+        Instantly confirms a free booking for this person and emails them the ticket - counts toward capacity like any other booking.
+      </p>
+
+      {done ? (
+        <p className="text-green-400 text-sm">Issued to {done}.</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <label className="block">
+              <span className="text-gray-400 text-xs block mb-1">Ticket package</span>
+              <select value={ticketId} onChange={e => setTicketId(e.target.value)}
+                className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500">
+                {activeTickets.length === 0 && <option value="">No active ticket packages</option>}
+                {activeTickets.map(t => (
+                  <option key={t.id} value={t.id}>{t.name} ({t.price_aed} AED)</option>
+                ))}
+              </select>
+            </label>
+            {ticket?.is_child && (
+              <label className="block">
+                <span className="text-gray-400 text-xs block mb-1">Guest of honour&rsquo;s age</span>
+                <input type="number" min={0} max={17} value={age} onChange={e => setAge(e.target.value)}
+                  className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500" />
+              </label>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <label className="block">
+              <span className="text-gray-400 text-xs block mb-1">First name</span>
+              <input value={firstName} onChange={e => setFirstName(e.target.value)}
+                className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500" />
+            </label>
+            <label className="block">
+              <span className="text-gray-400 text-xs block mb-1">Last name</span>
+              <input value={lastName} onChange={e => setLastName(e.target.value)}
+                className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500" />
+            </label>
+            <label className="block">
+              <span className="text-gray-400 text-xs block mb-1">Email</span>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500" />
+            </label>
+            <label className="block">
+              <span className="text-gray-400 text-xs block mb-1">Phone (optional)</span>
+              <input value={phone} onChange={e => setPhone(e.target.value)}
+                className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500" />
+            </label>
+          </div>
+
+          {guests.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {guests.map((g, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input
+                    placeholder={`Guest ${i + 1} name`}
+                    value={g.name}
+                    onChange={e => setGuests(prev => prev.map((x, xi) => xi === i ? { ...x, name: e.target.value } : x))}
+                    className="flex-1 bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500"
+                  />
+                  {ticket?.is_child && (
+                    <input
+                      type="number" min={0} max={17} placeholder="Age"
+                      value={g.age}
+                      onChange={e => setGuests(prev => prev.map((x, xi) => xi === i ? { ...x, age: e.target.value } : x))}
+                      className="w-20 bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500"
+                    />
+                  )}
+                  <button onClick={() => setGuests(prev => prev.filter((_, xi) => xi !== i))}
+                    className="text-gray-500 hover:text-red-400 p-1.5">
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setGuests(prev => [...prev, { name: '', age: '' }])}
+            className="text-gold-400 hover:underline text-xs font-medium mb-4"
+          >
+            + Add another guest to this booking
+          </button>
+
+          {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+          <div className="flex gap-2">
+            <button onClick={submit} disabled={busy || activeTickets.length === 0}
+              className="inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-600 disabled:opacity-60 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <Gift size={15} />} Issue ticket
+            </button>
+            <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 const dietaryLabelFor = (d?: string | null, note?: string | null) =>
   d === 'vegetarian' ? 'Vegetarian' : d === 'vegan' ? 'Vegan' : d === 'other' ? (note ? `Other: ${note}` : 'Other diet') : null
 
@@ -1739,6 +1935,11 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
             <span className="bg-gold-500/20 text-gold-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
               Purchaser
             </span>
+            {reg.is_complimentary && (
+              <span className="bg-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                Comp
+              </span>
+            )}
             {guests.length > 0 && (
               <span className="text-gray-500 text-xs">paid for {guests.length + 1} people</span>
             )}
@@ -1750,7 +1951,7 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-right">
             <p className="text-white text-sm font-semibold">
-              {reg.amount_aed > 0 ? `${aed(reg.amount_aed)} AED` : 'Free'}
+              {reg.amount_aed > 0 ? `${aed(reg.amount_aed)} AED` : reg.is_complimentary ? 'Complimentary' : 'Free'}
             </p>
             {refunded > 0 && (
               <p className="text-red-400 text-xs">{aed(refunded)} refunded</p>

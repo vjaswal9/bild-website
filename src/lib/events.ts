@@ -110,6 +110,11 @@ export type EventRegistration = {
   // rather than automatically - see src/lib/event-upgrades.ts.
   upgrade_due_aed?: number | null
   upgrade_note?: string | null
+  // Set when an admin gave this ticket away for free rather than the buyer
+  // paying for it - kept distinct from a ticket type that is simply priced at
+  // 0 AED, so financial reporting can still count the real cost of hosting
+  // them while correctly showing 0 AED of revenue.
+  is_complimentary?: boolean
 }
 
 // An event is "past" once its end (or start, if no end) is behind us.

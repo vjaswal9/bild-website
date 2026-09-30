@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
   // by their own ticket type - not the total amount on the booking.
   const rows: Record<string, unknown>[] = []
   regs.forEach((r: Record<string, unknown>) => {
+    const isComp = !!r.is_complimentary
     const buyer = `${r.first_name} ${r.last_name}`.trim()
     const buyerTicket = ticketsById.get(r.ticket_id as string) || ticketsByName.get(r.ticket_name as string)
     // The card processing fee is charged once per booking (covering the
@@ -57,8 +58,9 @@ export async function GET(req: NextRequest) {
       Email: r.email,
       'Ticket type': r.ticket_name || '',
       'Cost price (AED)': buyerTicket?.cost_price_aed ?? '',
-      'Selling price (AED)': buyerTicket?.price_aed ?? '',
+      'Selling price (AED)': isComp ? 0 : (buyerTicket?.price_aed ?? ''),
       'Stripe fee (AED)': stripeFee,
+      Comp: isComp ? 'Yes' : '',
       Status: r.status,
     })
     const guests = Array.isArray(r.guest_names) ? r.guest_names : []
@@ -72,8 +74,9 @@ export async function GET(req: NextRequest) {
         Email: r.email, // guests don't have their own email on file - shown against the buyer's
         'Ticket type': ticketName,
         'Cost price (AED)': guestTicket?.cost_price_aed ?? '',
-        'Selling price (AED)': guestTicket?.price_aed ?? '',
+        'Selling price (AED)': isComp ? 0 : (guestTicket?.price_aed ?? ''),
         'Stripe fee (AED)': '', // already shown once on the buyer's row above
+        Comp: isComp ? 'Yes' : '',
         Status: r.status,
       })
     })
