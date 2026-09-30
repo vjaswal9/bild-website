@@ -110,10 +110,11 @@ export type EventRegistration = {
   // rather than automatically - see src/lib/event-upgrades.ts.
   upgrade_due_aed?: number | null
   upgrade_note?: string | null
-  // Set when an admin gave this ticket away for free rather than the buyer
-  // paying for it - kept distinct from a ticket type that is simply priced at
-  // 0 AED, so financial reporting can still count the real cost of hosting
-  // them while correctly showing 0 AED of revenue.
+  // Set when an admin gave this ticket away for free - typically the
+  // venue's own gift - rather than the buyer paying for it. Kept distinct
+  // from a ticket type that is simply priced at 0 AED so financial reporting
+  // can exclude it from both revenue and cost, rather than showing BILD as
+  // having paid to host them.
   is_complimentary?: boolean
 }
 

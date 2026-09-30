@@ -20,8 +20,8 @@ function normalizeAge(v: unknown): number | null {
 // publicly), this stays off the public page - only an admin can issue one,
 // to a specific named person. The resulting booking is otherwise a normal
 // paid, capacity-counted, seatable registration; it is only flagged
-// `is_complimentary` so reporting can still count its real cost while
-// showing 0 AED of revenue.
+// `is_complimentary` so reporting excludes it from both revenue and cost -
+// these are typically the venue's own gift, not something BILD pays for.
 export async function POST(req: NextRequest) {
   if (!(await verifyAdminToken(req.cookies.get(ADMIN_COOKIE)?.value))) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })

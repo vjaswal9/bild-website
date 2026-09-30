@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
       Name: buyer,
       Email: r.email,
       'Ticket type': r.ticket_name || '',
-      'Cost price (AED)': buyerTicket?.cost_price_aed ?? '',
+      'Cost price (AED)': isComp ? 0 : (buyerTicket?.cost_price_aed ?? ''),
       'Selling price (AED)': isComp ? 0 : (buyerTicket?.price_aed ?? ''),
       'Stripe fee (AED)': stripeFee,
       Comp: isComp ? 'Yes' : '',
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
         Name: name,
         Email: r.email, // guests don't have their own email on file - shown against the buyer's
         'Ticket type': ticketName,
-        'Cost price (AED)': guestTicket?.cost_price_aed ?? '',
+        'Cost price (AED)': isComp ? 0 : (guestTicket?.cost_price_aed ?? ''),
         'Selling price (AED)': isComp ? 0 : (guestTicket?.price_aed ?? ''),
         'Stripe fee (AED)': '', // already shown once on the buyer's row above
         Comp: isComp ? 'Yes' : '',

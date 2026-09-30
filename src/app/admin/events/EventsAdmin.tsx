@@ -476,8 +476,8 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
 
   type Unit = { ticketName: string; cost: number; price: number }
   const units: Unit[] = []
-  // A comp booking still costs whatever its ticket type costs to host (the
-  // meal was still served) - it just never counts as revenue.
+  // A complimentary ticket is the venue's own gift, not something BILD pays
+  // for - it counts toward neither revenue nor cost.
   let compCount = 0
   let compValue = 0
   paid.forEach(r => {
@@ -486,7 +486,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
     if (isComp) { compCount += 1; compValue += buyerTicket?.price_aed ?? 0 }
     units.push({
       ticketName: r.ticket_name || 'Ticket',
-      cost: buyerTicket?.cost_price_aed ?? 0,
+      cost: isComp ? 0 : (buyerTicket?.cost_price_aed ?? 0),
       price: isComp ? 0 : (buyerTicket?.price_aed ?? 0),
     })
     ;(r.guest_names || []).forEach(g => {
@@ -494,7 +494,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
       if (isComp) { compCount += 1; compValue += t?.price_aed ?? 0 }
       units.push({
         ticketName: g.ticket_name || r.ticket_name || 'Ticket',
-        cost: t?.cost_price_aed ?? 0,
+        cost: isComp ? 0 : (t?.cost_price_aed ?? 0),
         price: isComp ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
       })
     })
@@ -558,7 +558,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
           )}
           {compCount > 0 && (
             <p>
-              Includes {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({compValue} AED of value given away, already excluded from revenue).
+              {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({compValue} AED of value, courtesy of the venue) excluded from both revenue and cost above.
             </p>
           )}
         </div>
