@@ -18,6 +18,29 @@ export async function getPublishedEvents(): Promise<EventRow[]> {
   return (data as EventRow[]) || []
 }
 
+// Bulk sold-out check for the /events listing: one grouped query covering
+// every capped event at once, rather than the single-event query
+// getEventBySlug runs on demand. The listing already tolerates a few
+// minutes of staleness (see its own revalidate setting), so this can too.
+export async function getRemainingCapacities(events: EventRow[]): Promise<Record<string, number>> {
+  const capped = events.filter(e => e.capacity_limit != null)
+  if (capped.length === 0) return {}
+  const { data } = await supabaseAdmin
+    .from('event_registrations')
+    .select('event_id, quantity')
+    .in('event_id', capped.map(e => e.id))
+    .eq('status', 'paid')
+  const soldByEvent: Record<string, number> = {}
+  for (const r of data || []) {
+    soldByEvent[r.event_id] = (soldByEvent[r.event_id] || 0) + (Number(r.quantity) || 1)
+  }
+  const remaining: Record<string, number> = {}
+  for (const e of capped) {
+    remaining[e.id] = Math.max(0, (e.capacity_limit as number) - (soldByEvent[e.id] || 0))
+  }
+  return remaining
+}
+
 export async function getAllEvents(): Promise<EventRow[]> {
   const { data } = await supabaseAdmin
     .from('events')

@@ -21,11 +21,13 @@ function getGradient(tags: string[]): string {
   return 'from-charcoal-800 via-charcoal-700 to-charcoal-600'
 }
 
-export default function EventCard({ event }: { event: EventRow }) {
+export default function EventCard({ event, soldOut }: { event: EventRow; soldOut?: boolean }) {
   const isPast = isPastEvent(event)
   const tags = event.tags || []
   const gradient = getGradient(tags)
   const hasFlyer = !!event.flyer_url && event.flyer_url.startsWith('http')
+  const showSoldOutRibbon = !isPast && !!soldOut
+  const waitlistOpen = event.waitlist_open !== false
 
   return (
     <TiltCard max={4}>
@@ -51,6 +53,13 @@ export default function EventCard({ event }: { event: EventRow }) {
               Past Event
             </span>
           )}
+          {showSoldOutRibbon && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[220%] -rotate-[35deg] bg-red-600 border-y-2 border-red-800/50 py-1.5 shadow-lg">
+                <p className="text-center text-white text-sm font-extrabold tracking-[0.25em] uppercase">Sold Out</p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="p-6">
           <h3 className="font-display text-xl font-semibold text-charcoal-800 mb-3">{event.title}</h3>
@@ -74,7 +83,11 @@ export default function EventCard({ event }: { event: EventRow }) {
               href={`/events/${event.slug}`}
               className="text-sm font-semibold text-charcoal-700 hover:text-gold-600 transition-colors"
             >
-              {isPast ? 'View event →' : 'Learn more & register →'}
+              {isPast
+                ? 'View event →'
+                : showSoldOutRibbon
+                  ? (waitlistOpen ? 'Learn more & register for waiting list →' : 'Learn more →')
+                  : 'Learn more & register →'}
             </Link>
           </div>
         </div>

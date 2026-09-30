@@ -3,7 +3,7 @@ import PageHero from '@/components/ui/PageHero'
 import GoogleRatingBadge from '@/components/ui/GoogleRatingBadge'
 import EventCard from '@/components/events/EventCard'
 import Reveal from '@/components/anim/Reveal'
-import { getPublishedEvents } from '@/lib/events-server'
+import { getPublishedEvents, getRemainingCapacities } from '@/lib/events-server'
 import { isPastEvent } from '@/lib/events'
 import { getGoogleReviews } from '@/lib/google-reviews'
 
@@ -21,7 +21,10 @@ export default async function EventsPage() {
   const upcoming = events.filter(e => !isPastEvent(e))
   // Most recent first for past events
   const past = events.filter(e => isPastEvent(e)).reverse()
-  const googleReviews = await getGoogleReviews()
+  const [googleReviews, remaining] = await Promise.all([
+    getGoogleReviews(),
+    getRemainingCapacities(upcoming),
+  ])
 
   return (
     <>
@@ -37,7 +40,7 @@ export default async function EventsPage() {
               <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-8">Upcoming Events</h2>
               <Reveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" stagger={0.12} y={36}>
                 {upcoming.map(event => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} soldOut={remaining[event.id] === 0} />
                 ))}
               </Reveal>
             </section>
