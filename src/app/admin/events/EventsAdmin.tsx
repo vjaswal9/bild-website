@@ -324,7 +324,7 @@ function EventListCard({
             <TicketManager eventId={ev.id} tickets={tickets} />
           </Section>
           <Section title="Attendees / door list">
-            <AttendeesPanel eventId={ev.id} stats={stats} registrations={registrations} tickets={tickets} />
+            <AttendeesPanel eventId={ev.id} seatingEnabled={!!ev.seating_enabled} stats={stats} registrations={registrations} tickets={tickets} />
           </Section>
           <Section title="Waitlist">
             <WaitlistPanel eventId={ev.id} />
@@ -1606,8 +1606,9 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
 // ---------------------------------------------------------------------------
 // Attendees / door list
 // ---------------------------------------------------------------------------
-function AttendeesPanel({ eventId, stats, registrations, tickets }: {
+function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets }: {
   eventId: string
+  seatingEnabled: boolean
   stats: { total: number; paid: number; tickets: number; refunded: number }
   registrations: EventRegistration[]
   tickets: EventTicket[]
@@ -1695,6 +1696,7 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
       {issuingComp && (
         <IssueCompPanel
           eventId={eventId}
+          seatingEnabled={seatingEnabled}
           tickets={tickets}
           onCancel={() => setIssuingComp(false)}
           onDone={() => { setIssuingComp(false); router.refresh() }}
@@ -1752,8 +1754,9 @@ function AttendeesPanel({ eventId, stats, registrations, tickets }: {
 // booking form closely enough that the resulting registration behaves like
 // any other paid booking (capacity, seating, door list), just flagged so
 // reporting knows not to count it as revenue.
-function IssueCompPanel({ eventId, tickets, onCancel, onDone }: {
+function IssueCompPanel({ eventId, seatingEnabled, tickets, onCancel, onDone }: {
   eventId: string
+  seatingEnabled: boolean
   tickets: EventTicket[]
   onCancel: () => void
   onDone: () => void
@@ -1766,6 +1769,7 @@ function IssueCompPanel({ eventId, tickets, onCancel, onDone }: {
   const [phone, setPhone] = useState('')
   const [age, setAge] = useState('')
   const [guests, setGuests] = useState<{ name: string; age: string }[]>([])
+  const [seatingCode, setSeatingCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState('')
@@ -1791,6 +1795,7 @@ function IssueCompPanel({ eventId, tickets, onCancel, onDone }: {
         phone: phone.trim() || null,
         age: age.trim() || null,
         guests: guests.map(g => ({ name: g.name.trim(), age: g.age.trim() || null })),
+        seatingCode: seatingEnabled ? seatingCode.trim() : undefined,
       }),
     })
     const d = await res.json().catch(() => ({}))
@@ -1886,6 +1891,22 @@ function IssueCompPanel({ eventId, tickets, onCancel, onDone }: {
           >
             + Add another guest to this booking
           </button>
+
+          {seatingEnabled && (
+            <label className="block mb-4 max-w-xs">
+              <span className="text-gray-400 text-xs block mb-1">Table code (optional)</span>
+              <input
+                value={seatingCode}
+                onChange={e => setSeatingCode(e.target.value.toUpperCase())}
+                placeholder="e.g. AC4NR - leave blank for a new table"
+                maxLength={12}
+                className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white uppercase tracking-wider focus:outline-none focus:border-gold-500"
+              />
+              <span className="text-gray-500 text-[11px] block mt-1">
+                Seats this booking with an existing group&rsquo;s table. Leave blank to start a new one.
+              </span>
+            </label>
+          )}
 
           {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
           <div className="flex gap-2">

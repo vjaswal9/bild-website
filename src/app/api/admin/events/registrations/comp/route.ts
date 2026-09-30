@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import { isPastEvent, GuestEntry } from '@/lib/events'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
-import { generateSeatingCode } from '@/lib/seating-code'
+import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, seatingPositionFor } from '@/lib/seating-code'
 import { sendEventConfirmation, sendTicketSaleAlert } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 
-  const { eventId, ticketId, firstName, lastName, email, phone, age: buyerAgeRaw, guests: rawGuests } = await req.json().catch(() => ({}))
+  const { eventId, ticketId, firstName, lastName, email, phone, age: buyerAgeRaw, guests: rawGuests, seatingCode: rawSeatingCode } = await req.json().catch(() => ({}))
   if (!eventId || !ticketId || !firstName || !email) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
@@ -99,7 +99,31 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const seatingCode = event.seating_enabled ? generateSeatingCode() : null
+  // Table seating. An admin can seat a comp booking with an existing group by
+  // entering its code, the same as a real booking would - re-validated here
+  // rather than trusting the form. Same overflow rule as the public booking
+  // form: a code that is already full for this many extra people quietly
+  // gets its own fresh table instead of erroring out.
+  let seatingCode: string | null = null
+  let overflowFromCode: string | null = null
+  if (event.seating_enabled) {
+    const entered = normalizeSeatingCode(rawSeatingCode)
+    if (entered) {
+      const check = await findSeatingGroupOrganiser(eventId, entered)
+      if (!check.found) {
+        return NextResponse.json({ error: 'That table code was not found for this event.' }, { status: 400 })
+      }
+      const seatsPerTable = event.seats_per_table as number | null
+      if (seatsPerTable != null && check.headcount + qty > seatsPerTable) {
+        seatingCode = generateSeatingCode()
+        overflowFromCode = entered
+      } else {
+        seatingCode = entered
+      }
+    } else {
+      seatingCode = generateSeatingCode()
+    }
+  }
   const now = new Date().toISOString()
 
   const { data: reg, error: regErr } = await supabaseAdmin
@@ -119,14 +143,19 @@ export async function POST(req: NextRequest) {
       paid_at: now,
       attendee_age: buyerAge,
       seating_code: seatingCode,
+      overflow_from_code: overflowFromCode,
       is_complimentary: true,
       admin_note: `${new Date().toLocaleDateString('en-GB')}: complimentary ticket issued by admin`,
     }])
-    .select('id')
+    .select('id, created_at')
     .single()
   if (regErr || !reg) {
     return NextResponse.json({ error: regErr?.message || 'Could not create the booking.' }, { status: 500 })
   }
+
+  const seatingPosition = event.seating_enabled && seatingCode
+    ? await seatingPositionFor(eventId, seatingCode, reg.created_at, qty, event.seats_per_table)
+    : null
 
   await sendEventConfirmation({
     to: buyerEmail,
@@ -145,7 +174,7 @@ export async function POST(req: NextRequest) {
     eventEndDate: event.end_date,
     seatingEnabled: event.seating_enabled,
     seatingCode,
-    seatingPosition: null,
+    seatingPosition,
   })
   await sendTicketSaleAlert({
     eventTitle: event.title,
