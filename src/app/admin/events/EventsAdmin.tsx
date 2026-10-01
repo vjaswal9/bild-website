@@ -330,7 +330,7 @@ function EventListCard({
             <WaitlistPanel eventId={ev.id} />
           </Section>
           <Section title="Additional revenue &amp; costs">
-            <ExtraFinancesPanel eventId={ev.id} />
+            <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
           </Section>
           <Section title="Photos &amp; videos">
             <GalleryManager event={ev} />
@@ -857,7 +857,7 @@ const aed = (n: number) => n.toLocaleString('en-AE', { minimumFractionDigits: 2,
 // Sponsorship money in, DJ and lighting out. Loaded on demand rather than
 // with the events list, because most events have none and the Manage panel
 // is already a heavy screen.
-function ExtraFinancesPanel({ eventId }: { eventId: string }) {
+function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: string; tickets: EventTicket[]; registrations: EventRegistration[] }) {
   const [loading, setLoading] = useState(true)
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [revenue, setRevenue] = useState<ExtraRevenueLine[]>([])
@@ -866,6 +866,46 @@ function ExtraFinancesPanel({ eventId }: { eventId: string }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+
+  // Same per-attendee unit logic as EventDataPanel: one unit per buyer and
+  // per named guest, priced by looking up their ticket type by name - and a
+  // complimentary booking's units are zeroed out here too, so this breakdown
+  // never double-counts a free ticket as real revenue.
+  const ticketsByName = new Map(tickets.map(t => [t.name, t]))
+  const paid = registrations.filter(r => r.status === 'paid')
+  type Unit = { ticketName: string; cost: number; price: number }
+  const ticketUnits: Unit[] = []
+  let compCount = 0
+  let compValue = 0
+  paid.forEach(r => {
+    const buyerTicket = ticketsByName.get(r.ticket_name || '')
+    const isComp = !!r.is_complimentary
+    if (isComp) { compCount += 1; compValue += buyerTicket?.price_aed ?? 0 }
+    ticketUnits.push({
+      ticketName: r.ticket_name || 'Ticket',
+      cost: isComp ? 0 : (buyerTicket?.cost_price_aed ?? 0),
+      price: isComp ? 0 : (buyerTicket?.price_aed ?? 0),
+    })
+    ;(r.guest_names || []).forEach(g => {
+      const t = ticketsByName.get(g.ticket_name || '')
+      if (isComp) { compCount += 1; compValue += t?.price_aed ?? 0 }
+      ticketUnits.push({
+        ticketName: g.ticket_name || r.ticket_name || 'Ticket',
+        cost: isComp ? 0 : (t?.cost_price_aed ?? 0),
+        price: isComp ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
+      })
+    })
+  })
+  const ticketRevenueTotal = ticketUnits.reduce((s, u) => s + u.price, 0)
+  const ticketCostTotal = ticketUnits.reduce((s, u) => s + u.cost, 0)
+  const revenueByType = new Map<string, { count: number; revenue: number }>()
+  ticketUnits.forEach(u => {
+    const row = revenueByType.get(u.ticketName) || { count: 0, revenue: 0 }
+    row.count += 1
+    row.revenue += u.price
+    revenueByType.set(u.ticketName, row)
+  })
+  const revenueByTypeArr = Array.from(revenueByType.entries()).sort((a, b) => b[1].revenue - a[1].revenue)
 
   const today = new Date().toISOString().slice(0, 10)
   const blank = { date: today, kind: 'sponsorship', category: 'DJ & music', description: '', amountAed: '' }
@@ -923,9 +963,9 @@ function ExtraFinancesPanel({ eventId }: { eventId: string }) {
     load()
   }
 
-  const totalRevenue = revenue.reduce((s, r) => s + r.amountAed, 0)
-  const totalCosts = costs.reduce((s, c) => s + c.amountAed, 0)
-  const net = totalRevenue - totalCosts
+  const extraRevenueTotal = revenue.reduce((s, r) => s + r.amountAed, 0)
+  const extraCostsTotal = costs.reduce((s, c) => s + c.amountAed, 0)
+  const profit = (ticketRevenueTotal + extraRevenueTotal) - (ticketCostTotal + extraCostsTotal)
 
   const input = 'w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500'
 
@@ -939,6 +979,38 @@ function ExtraFinancesPanel({ eventId }: { eventId: string }) {
 
   return (
     <div className="px-6 py-5">
+      <div className="mb-6 pb-6 border-b border-charcoal-700">
+        <p className="text-sm font-semibold inline-flex items-center gap-1.5 text-gold-400 mb-2">
+          <Banknote size={15} /> Revenue overview (tickets)
+        </p>
+        {revenueByTypeArr.length === 0 ? (
+          <p className="text-gray-600 text-sm py-1">No paid tickets yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[380px]">
+              <tbody>
+                {revenueByTypeArr.map(([name, row]) => (
+                  <tr key={name} className="border-t border-charcoal-700">
+                    <td className="py-2.5 pr-4 text-white">{name}</td>
+                    <td className="py-2.5 pr-4 text-gray-400 whitespace-nowrap">{row.count} sold</td>
+                    <td className="py-2.5 text-right font-medium whitespace-nowrap text-green-400">{aed(row.revenue)} AED</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-charcoal-600">
+                  <td colSpan={2} className="py-2.5 text-gray-500">Total ticket revenue</td>
+                  <td className="py-2.5 text-right font-semibold text-green-400">{aed(ticketRevenueTotal)} AED</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        {compCount > 0 && (
+          <p className="text-gray-500 text-xs mt-2">
+            Excludes {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({aed(compValue)} AED of value, courtesy of the venue).
+          </p>
+        )}
+      </div>
+
       <p className="text-gray-300 text-sm mb-3">Are there additional costs or revenue you wish to record?</p>
       <div className="flex items-center gap-2 mb-1">
         {[{ v: true, l: 'Yes' }, { v: false, l: 'No' }].map(o => (
@@ -978,7 +1050,7 @@ function ExtraFinancesPanel({ eventId }: { eventId: string }) {
               description: r.description,
               amountAed: r.amountAed,
             }))}
-            total={totalRevenue}
+            total={extraRevenueTotal}
             onDelete={id => removeLine(id, 'revenue')}
             deleting={deleting}
             onAdd={() => { setForm({ ...blank, kind: 'sponsorship' }); setError(''); setAdding('revenue') }}
@@ -992,7 +1064,7 @@ function ExtraFinancesPanel({ eventId }: { eventId: string }) {
             rows={costs.map(c => ({
               id: c.id, date: c.date, tag: c.category, description: c.description, amountAed: c.amountAed,
             }))}
-            total={totalCosts}
+            total={extraCostsTotal}
             onDelete={id => removeLine(id, 'cost')}
             deleting={deleting}
             onAdd={() => { setForm({ ...blank, category: 'DJ & music' }); setError(''); setAdding('cost') }}
@@ -1058,16 +1130,40 @@ function ExtraFinancesPanel({ eventId }: { eventId: string }) {
             </div>
           )}
 
-          {(revenue.length > 0 || costs.length > 0) && (
-            <div className="flex items-baseline justify-between gap-3 pt-4 border-t border-charcoal-700">
-              <span className="text-gray-400 text-sm font-medium">Net effect on this event</span>
-              <span className={`font-display text-xl font-bold ${net >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {net < 0 ? '-' : ''}{aed(Math.abs(net))} AED
-              </span>
+        </div>
+      )}
+
+      <div className="mt-6 pt-5 border-t border-charcoal-700">
+        <p className="text-gray-500 text-xs uppercase tracking-wide font-semibold mb-3">Profit / loss for this event</p>
+        <div className="space-y-1.5 text-sm">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-gray-400">Ticket revenue</span>
+            <span className="text-green-400 font-medium">{aed(ticketRevenueTotal)} AED</span>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-gray-400">Ticket cost</span>
+            <span className="text-red-400 font-medium">-{aed(ticketCostTotal)} AED</span>
+          </div>
+          {extraRevenueTotal > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-gray-400">Additional revenue</span>
+              <span className="text-green-400 font-medium">{aed(extraRevenueTotal)} AED</span>
+            </div>
+          )}
+          {extraCostsTotal > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-gray-400">Additional costs</span>
+              <span className="text-red-400 font-medium">-{aed(extraCostsTotal)} AED</span>
             </div>
           )}
         </div>
-      )}
+        <div className="flex items-baseline justify-between gap-3 pt-3 mt-3 border-t border-charcoal-700">
+          <span className="text-gray-300 text-sm font-semibold">{profit >= 0 ? 'Profit' : 'Loss'}</span>
+          <span className={`font-display text-xl font-bold ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {profit < 0 ? '-' : ''}{aed(Math.abs(profit))} AED
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
