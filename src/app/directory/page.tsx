@@ -48,6 +48,7 @@ export default async function DirectoryPage() {
     description: b.description,
     contactEmail: b.email,
     contactPhone: b.phone,
+    contactWhatsapp: b.whatsapp || undefined,
     website: b.website || undefined,
     instagram: b.instagram || undefined,
     linkedin: b.linkedin || undefined,

@@ -65,6 +65,10 @@ export async function POST(req: NextRequest) {
     location: str(body.location, 120),
     owner_name: str(body.owner_name, 120),
     phone: str(body.phone, 40),
+    // Only set when it genuinely differs from phone - a public directory
+    // page or admin edit that falls back to phone whenever this is empty
+    // stays correct even if the phone number later changes.
+    whatsapp: str(body.whatsapp, 40) || null,
     email: str(body.email, 200),
     website: httpUrl(body.website) || null,
     // Stored as a bare handle whatever the person typed - handle, @handle,

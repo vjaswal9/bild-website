@@ -291,11 +291,11 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
         })()}
 
         <div className="flex items-center gap-3 flex-wrap pt-6 border-t border-gold-200">
-          {biz.phone && (
+          {(biz.whatsapp || biz.phone) && (
             <TrackedLink
               businessId={biz.id}
               kind="click_whatsapp"
-              href={waLink(biz.phone)}
+              href={waLink(biz.whatsapp || biz.phone)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 bg-[#25D366] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#1da851] transition-colors"

@@ -16,6 +16,9 @@ export type BusinessSubmission = {
   location: string
   owner_name: string
   phone: string
+  // Only set when WhatsApp differs from phone - fall back to phone wherever
+  // this is read.
+  whatsapp?: string
   email: string
   website?: string
   instagram?: string

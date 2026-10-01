@@ -17,6 +17,7 @@ const EDITABLE = [
   'description',
   'location',
   'phone',
+  'whatsapp',
   'email',
   'website',
   'instagram',

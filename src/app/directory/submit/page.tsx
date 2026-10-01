@@ -68,6 +68,7 @@ export default function SubmitBusinessPage() {
   const [location, setLocation] = useState('')
   const [ownerName, setOwnerName] = useState('')
   const [phone, setPhone] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [email, setEmail] = useState('')
   const [documentExpiryDate, setDocumentExpiryDate] = useState('')
   const [memberConfirm, setMemberConfirm] = useState(false)
@@ -174,6 +175,7 @@ export default function SubmitBusinessPage() {
       location: location.trim(),
       owner_name: ownerName.trim(),
       phone: phone.trim(),
+      whatsapp: whatsapp.trim() || null,
       email: email.trim(),
       website: normalizeWebsiteUrl(fd.get('website') as string),
       instagram: normaliseInstagramHandle(fd.get('instagram') as string),
@@ -280,6 +282,14 @@ export default function SubmitBusinessPage() {
                     className={cls(!!phone.trim())} />
                   {tried && !phone.trim() && <p className="text-xs text-ruby-500 mt-1">This field is required.</p>}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">WhatsApp Number (if different from above)</label>
+                <input name="whatsapp" type="tel" placeholder="+971 50 123 4567"
+                  value={whatsapp} onChange={e => setWhatsapp(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
+                <p className="text-xs text-charcoal-400 mt-1">Leave blank to use your contact number above for WhatsApp too.</p>
               </div>
 
               <div>

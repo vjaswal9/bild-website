@@ -22,6 +22,7 @@ const FIELDS: {
   { key: 'tagline', label: 'Tagline' },
   { key: 'location', label: 'Location' },
   { key: 'phone', label: 'Phone' },
+  { key: 'whatsapp', label: 'WhatsApp (if different from phone)' },
   { key: 'email', label: 'Email' },
   { key: 'website', label: 'Website' },
   { key: 'instagram', label: 'Instagram (handle only)' },

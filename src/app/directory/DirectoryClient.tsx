@@ -17,6 +17,9 @@ export type DisplayBusiness = {
   description: string
   contactEmail?: string
   contactPhone?: string
+  // Only set when it differs from contactPhone - falls back to it wherever
+  // this is used.
+  contactWhatsapp?: string
   website?: string
   instagram?: string
   linkedin?: string
@@ -104,7 +107,7 @@ function OutboundLinks({
   dark?: boolean
   stack?: boolean
 }) {
-  const wa = whatsappHref(biz.contactPhone)
+  const wa = whatsappHref(biz.contactWhatsapp || biz.contactPhone)
   const cls = `${linkUnderline} ${
     dark ? 'text-gray-300 hover:text-gold-400 decoration-gold-500/60' : 'text-charcoal-600 hover:text-gold-700'
   }`

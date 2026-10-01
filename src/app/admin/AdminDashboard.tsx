@@ -750,6 +750,7 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                     <Detail label="Description" value={sub.description} />
                     <Detail label="Email" value={sub.email} />
                     <Detail label="Phone" value={sub.phone} />
+                    {sub.whatsapp && <Detail label="WhatsApp" value={sub.whatsapp} />}
                     {sub.website && <Detail label="Website" value={sub.website} link />}
                     {sub.instagram && <Detail label="Instagram" value={`@${sub.instagram}`} />}
                     {sub.tagline && <Detail label="Tagline" value={sub.tagline} />}
