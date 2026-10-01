@@ -458,7 +458,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
   // no per-ticket cost therefore reported 0 AED cost and its whole ticket income
   // as profit. The figure looked precise and was wrong, which is worse than
   // showing nothing.
-  const [extra, setExtra] = useState<{ revenue: number; costs: number } | null>(null)
+  const [extra, setExtra] = useState<{ revenue: number; costs: number; stripeFeeAed: number } | null>(null)
   useEffect(() => {
     let live = true
     fetch(`/api/admin/events/finances?eventId=${eventId}`)
@@ -468,6 +468,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
         setExtra({
           revenue: (d.revenue || []).reduce((s: number, r: ExtraRevenueLine) => s + (Number(r.amountAed) || 0), 0),
           costs: (d.costs || []).reduce((s: number, c: ExtraCostLine) => s + (Number(c.amountAed) || 0), 0),
+          stripeFeeAed: Number(d.unrecoveredStripeFeeAed) || 0,
         })
       })
       .catch(() => {})
@@ -502,10 +503,17 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
 
   const totalTickets = units.length
   const ticketCost = units.reduce((s, u) => s + u.cost, 0)
-  const ticketRevenue = units.reduce((s, u) => s + u.price, 0)
+  const ticketRevenueGross = units.reduce((s, u) => s + u.price, 0)
+  // Money already given back, and the extra owed on an upgrade that has not
+  // been paid yet - the Money dashboard nets both out via the payments
+  // ledger, so this does the same against the nominal ticket value above
+  // rather than overstating revenue until the admin panels agree with it.
+  const refundedTotal = paid.reduce((s, r) => s + (Number(r.refunded_amount_aed) || 0), 0)
+  const upgradePendingTotal = paid.reduce((s, r) => s + (Number(r.upgrade_due_aed) || 0), 0)
+  const ticketRevenue = ticketRevenueGross - refundedTotal - upgradePendingTotal
   // Until the extra lines have loaded these read as ticket-only, which is what
   // the panel showed before - never a number that is briefly too optimistic.
-  const totalCost = ticketCost + (extra?.costs || 0)
+  const totalCost = ticketCost + (extra?.costs || 0) + (extra?.stripeFeeAed || 0)
   const totalRevenue = ticketRevenue + (extra?.revenue || 0)
   const totalProfit = totalRevenue - totalCost
 
@@ -546,7 +554,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
         />
       </div>
 
-      {((extra && (extra.costs > 0 || extra.revenue > 0)) || compCount > 0) && (
+      {((extra && (extra.costs > 0 || extra.revenue > 0 || extra.stripeFeeAed > 0)) || compCount > 0 || refundedTotal > 0 || upgradePendingTotal > 0) && (
         <div className="text-gray-500 text-xs -mt-6 mb-8 text-center space-y-1">
           {extra && (extra.costs > 0 || extra.revenue > 0) && (
             <p>
@@ -556,10 +564,17 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
               {' '}from the Additional revenue &amp; costs section below.
             </p>
           )}
+          {extra && extra.stripeFeeAed > 0 && (
+            <p>Includes {extra.stripeFeeAed} AED of card fees the buyer&rsquo;s surcharge did not fully cover.</p>
+          )}
           {compCount > 0 && (
             <p>
               {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({compValue} AED of value, courtesy of the venue) excluded from both revenue and cost above.
             </p>
+          )}
+          {refundedTotal > 0 && <p>{refundedTotal} AED already refunded, deducted from revenue above.</p>}
+          {upgradePendingTotal > 0 && (
+            <p>{upgradePendingTotal} AED of an unpaid ticket upgrade deducted from revenue until it is collected.</p>
           )}
         </div>
       )}
@@ -862,6 +877,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [revenue, setRevenue] = useState<ExtraRevenueLine[]>([])
   const [costs, setCosts] = useState<ExtraCostLine[]>([])
+  const [stripeFeeAed, setStripeFeeAed] = useState(0)
   const [adding, setAdding] = useState<'revenue' | 'cost' | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -898,6 +914,11 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   })
   const ticketRevenueTotal = ticketUnits.reduce((s, u) => s + u.price, 0)
   const ticketCostTotal = ticketUnits.reduce((s, u) => s + u.cost, 0)
+  // Money already given back, and the extra owed on an upgrade that has not
+  // been paid yet - netted out the same way the Money dashboard does via the
+  // payments ledger, so the two can't disagree.
+  const refundedTotal = paid.reduce((s, r) => s + (Number(r.refunded_amount_aed) || 0), 0)
+  const upgradePendingTotal = paid.reduce((s, r) => s + (Number(r.upgrade_due_aed) || 0), 0)
   const revenueByType = new Map<string, { count: number; revenue: number }>()
   ticketUnits.forEach(u => {
     const row = revenueByType.get(u.ticketName) || { count: 0, revenue: 0 }
@@ -918,6 +939,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
       setEnabled(!!d.enabled)
       setRevenue(d.revenue || [])
       setCosts(d.costs || [])
+      setStripeFeeAed(Number(d.unrecoveredStripeFeeAed) || 0)
     }
     setLoading(false)
   }
@@ -965,7 +987,8 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
 
   const extraRevenueTotal = revenue.reduce((s, r) => s + r.amountAed, 0)
   const extraCostsTotal = costs.reduce((s, c) => s + c.amountAed, 0)
-  const profit = (ticketRevenueTotal + extraRevenueTotal) - (ticketCostTotal + extraCostsTotal)
+  const netTicketRevenue = ticketRevenueTotal - refundedTotal - upgradePendingTotal
+  const profit = (netTicketRevenue + extraRevenueTotal) - (ticketCostTotal + extraCostsTotal + stripeFeeAed)
 
   const input = 'w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500'
 
@@ -1008,6 +1031,12 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
           <p className="text-gray-500 text-xs mt-2">
             Excludes {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({aed(compValue)} AED of value, courtesy of the venue).
           </p>
+        )}
+        {refundedTotal > 0 && (
+          <p className="text-gray-500 text-xs mt-2">{aed(refundedTotal)} AED already refunded - deducted below, not from the figures above.</p>
+        )}
+        {upgradePendingTotal > 0 && (
+          <p className="text-gray-500 text-xs mt-2">{aed(upgradePendingTotal)} AED of an unpaid ticket upgrade - deducted below until it is collected.</p>
         )}
       </div>
 
@@ -1140,6 +1169,18 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             <span className="text-gray-400">Ticket revenue</span>
             <span className="text-green-400 font-medium">{aed(ticketRevenueTotal)} AED</span>
           </div>
+          {refundedTotal > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-gray-400">Refunds given</span>
+              <span className="text-red-400 font-medium">-{aed(refundedTotal)} AED</span>
+            </div>
+          )}
+          {upgradePendingTotal > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-gray-400">Unpaid upgrade (not yet collected)</span>
+              <span className="text-red-400 font-medium">-{aed(upgradePendingTotal)} AED</span>
+            </div>
+          )}
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-gray-400">Ticket cost</span>
             <span className="text-red-400 font-medium">-{aed(ticketCostTotal)} AED</span>
@@ -1154,6 +1195,12 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-gray-400">Additional costs</span>
               <span className="text-red-400 font-medium">-{aed(extraCostsTotal)} AED</span>
+            </div>
+          )}
+          {stripeFeeAed > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-gray-400">Card fees not recovered</span>
+              <span className="text-red-400 font-medium">-{aed(stripeFeeAed)} AED</span>
             </div>
           )}
         </div>
