@@ -230,21 +230,23 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
           <ArrowLeft size={16} /> Back to Events
         </Link>
 
-        <div className="mb-8">
-          {hasFlyer ? (
-            // Sized to the flyer's own aspect ratio rather than stretched to
-            // the page width, so a portrait poster is never letterboxed with
-            // background bars down each side.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={event.flyer_url!} alt={event.title} className="max-w-full max-h-[720px] w-auto h-auto mx-auto rounded-2xl" />
-          ) : (
-            <div className="h-64 flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-br from-charcoal-700 to-charcoal-900">
-              <span className="font-display text-white/10 text-8xl font-bold">BILD</span>
-            </div>
-          )}
-        </div>
+        {!isPast && (
+          <div className="mb-8">
+            {hasFlyer ? (
+              // Sized to the flyer's own aspect ratio rather than stretched to
+              // the page width, so a portrait poster is never letterboxed with
+              // background bars down each side.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={event.flyer_url!} alt={event.title} className="max-w-full max-h-[720px] w-auto h-auto mx-auto rounded-2xl" />
+            ) : (
+              <div className="h-64 flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-br from-charcoal-700 to-charcoal-900">
+                <span className="font-display text-white/10 text-8xl font-bold">BILD</span>
+              </div>
+            )}
+          </div>
+        )}
 
-        {event.tags && event.tags.length > 0 && (
+        {!isPast && event.tags && event.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {event.tags.map(tag => (
               <span key={tag} className="bg-gold-100 text-gold-700 text-xs font-medium px-3 py-1 rounded-full">
@@ -265,7 +267,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
               <p className="text-sm text-charcoal-600">{formatEventTime(event.event_date)}</p>
             </div>
           </div>
-          {(event.venue || event.location) && (
+          {!isPast && (event.venue || event.location) && (
             <div className="flex items-start gap-3">
               <MapPin size={18} className="text-gold-500 shrink-0 mt-0.5" />
               <div>
@@ -284,7 +286,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
 
         {!isPast && <AddToCalendar event={event} />}
 
-        {event.description && (
+        {!isPast && event.description && (
           <div className="prose prose-lg text-charcoal-700 mb-10 whitespace-pre-line">
             {event.description}
           </div>

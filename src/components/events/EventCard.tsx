@@ -84,7 +84,7 @@ export default function EventCard({ event, soldOut }: { event: EventRow; soldOut
               className="text-sm font-semibold text-charcoal-700 hover:text-gold-600 transition-colors"
             >
               {isPast
-                ? 'View event →'
+                ? 'View event photos →'
                 : showSoldOutRibbon
                   ? (waitlistOpen ? 'Learn more & register for waiting list →' : 'Learn more →')
                   : 'Learn more & register →'}
