@@ -42,7 +42,7 @@ export async function buildEventSalesReport(now = new Date()): Promise<{
 }> {
   const [eventsRes, regsRes, ticketsRes, paymentsRes, costsRes, waitlistRes] = await Promise.all([
     supabaseAdmin.from('events').select('id, title, event_date, end_date, capacity_limit').eq('status', 'published'),
-    supabaseAdmin.from('event_registrations').select('event_id, ticket_id, ticket_name, quantity, guest_names, status'),
+    supabaseAdmin.from('event_registrations').select('event_id, ticket_id, ticket_name, quantity, guest_names, status, is_complimentary'),
     supabaseAdmin.from('event_tickets').select('id, event_id, name, cost_price_aed'),
     supabaseAdmin.from('payments').select('event_id, revenue_aed, refunded_aed, stripe_fee_aed, fee_passed_on_aed'),
     supabaseAdmin.from('operating_costs').select('event_id, amount_aed'),
@@ -75,6 +75,9 @@ export async function buildEventSalesReport(now = new Date()): Promise<{
       let directCost = 0
       for (const r of paid) {
         tickets_ += num(r.quantity) || 1
+        // The venue's own gift, not a cost to BILD - same exclusion the
+        // per-event admin panels apply, so this report can't disagree with them.
+        if (r.is_complimentary) continue
         directCost += costById.get(String(r.ticket_id))
           ?? costByEventAndName.get(`${id}::${String(r.ticket_name)}`)
           ?? 0

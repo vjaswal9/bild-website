@@ -45,7 +45,7 @@ export default async function MoneyPage({
     supabaseAdmin.from('event_tickets').select('id, event_id, name, cost_price_aed'),
     supabaseAdmin
       .from('event_registrations')
-      .select('event_id, ticket_id, ticket_name, quantity, guest_names, status'),
+      .select('event_id, ticket_id, ticket_name, quantity, guest_names, status, is_complimentary'),
     supabaseAdmin.from('admin_settings').select('last_stripe_import_at').eq('id', 1).maybeSingle(),
   ])
 
@@ -93,6 +93,11 @@ export default async function MoneyPage({
   for (const r of regs) {
     const eventId = String(r.event_id)
     ticketsByEvent.set(eventId, (ticketsByEvent.get(eventId) || 0) + (num(r.quantity) || 1))
+
+    // A complimentary ticket is the venue's own gift, not something BILD pays
+    // to host - same exclusion the per-event admin panels apply, so this
+    // dashboard's cost/profit figures agree with theirs for the same event.
+    if (r.is_complimentary) continue
 
     // The buyer's own ticket.
     let total = costById.get(String(r.ticket_id)) ?? costByEventAndName.get(`${eventId}::${String(r.ticket_name)}`) ?? 0
