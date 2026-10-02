@@ -11,10 +11,11 @@ export const metadata: Metadata = {
   title: 'Events',
   description: 'Upcoming BILD events for British Indians in Dubai and the UAE - cultural celebrations, socials, networking and family-friendly gatherings.',
 }
-// Rebuilt every five minutes rather than per request: the events list is the
+// Rebuilt every fifteen minutes rather than per request: the events list is the
 // same for every visitor and changes a few times a month, so there is nothing
-// to gain from querying it again for each one.
-export const revalidate = 300
+// to gain from querying it again for each one. Admin edits refresh it at once
+// (see revalidatePublic); the timer only covers an event ending, or selling out.
+export const revalidate = 900
 
 export default async function EventsPage() {
   const events = await getPublishedEvents()

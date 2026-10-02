@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 // force-no-store was the damaging half: it overrode the 24 hour cache on
 // the Google Places call, so every visit paid for a live API round trip
 // before the first byte of HTML.
-export const revalidate = 300
+export const revalidate = 3600
 
 export default async function TestimonialsPage() {
   const { google, combined } = await getCombinedReviews()

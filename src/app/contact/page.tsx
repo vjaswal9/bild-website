@@ -10,7 +10,7 @@ import { SITE_CONFIG } from '@/data/config'
 
 // Same timer as every other page showing the Google rating badge, so the
 // review count never disagrees between pages.
-export const revalidate = 300
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Contact',

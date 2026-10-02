@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 // when an admin adds one, not per request. force-no-store also overrode the
 // 24 hour cache on the Google Places call, so every visit paid for a live API
 // round trip before the first byte.
-export const revalidate = 300
+export const revalidate = 900
 
 export default async function FacesOfBildPage() {
   const reels = await getActiveReels()

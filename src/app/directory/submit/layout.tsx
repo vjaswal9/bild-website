@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 // results and link previews as "BILD: British Indians Living in Dubai" with
 // the homepage description, which says nothing about listing a business.
 // Same timer as the other pages showing the Google rating badge.
-export const revalidate = 300
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'List Your Business',

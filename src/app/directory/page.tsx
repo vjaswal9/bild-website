@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 // Rebuilt every five minutes rather than per request. Newly approved listings
 // appear within that window, which is well inside the time it takes to review
 // and approve one.
-export const revalidate = 300
+export const revalidate = 3600
 
 export default async function DirectoryPage() {
   // Every listing comes from approved submissions in Supabase. Visibility is

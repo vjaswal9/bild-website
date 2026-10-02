@@ -31,7 +31,7 @@ import { getGoogleReviews } from '@/lib/google-reviews'
 // Fetch-level caching is still deliberately NOT forced off here:
 // `fetchCache = 'force-no-store'` would override the 24h cache
 // getGoogleReviews() sets on its Places API call.
-export const revalidate = 300
+export const revalidate = 900
 
 export default async function Home() {
   // Fetched together rather than one after the other - they don't depend on

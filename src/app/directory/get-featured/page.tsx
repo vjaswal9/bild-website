@@ -11,7 +11,7 @@ import Link from 'next/link'
 // rating badge. Left fully static, these pages froze their review count at
 // deploy time while the homepage moved on, so two pages could show a
 // different number of reviews on the same day.
-export const revalidate = 300
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Get Featured',
