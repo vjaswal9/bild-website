@@ -22,10 +22,15 @@ export async function getPublishedEvents(): Promise<EventRow[]> {
 // every capped event at once, rather than the single-event query
 // getEventBySlug runs on demand. The listing already tolerates a few
 // minutes of staleness (see its own revalidate setting), so this can too.
+//
+// Deliberately reads through supabaseRead, not supabaseAdmin: a no-store
+// read anywhere in a route makes the whole page render on every visit, which
+// is what this did to /events at first and burned through the hosting plan's
+// CPU allowance. The booking itself still checks capacity live at checkout.
 export async function getRemainingCapacities(events: EventRow[]): Promise<Record<string, number>> {
   const capped = events.filter(e => e.capacity_limit != null)
   if (capped.length === 0) return {}
-  const { data } = await supabaseAdmin
+  const { data } = await supabaseRead
     .from('event_registrations')
     .select('event_id, quantity')
     .in('event_id', capped.map(e => e.id))
