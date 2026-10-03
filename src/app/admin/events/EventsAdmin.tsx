@@ -761,8 +761,10 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
   return (
     <div className="px-6 py-5">
       <div className="flex flex-wrap items-center gap-6 mb-5">
-        <div><p className="text-2xl font-display font-bold text-gold-400">{waiting.length}</p><p className="text-gray-400 text-xs">People waiting</p></div>
-        <div><p className="text-2xl font-display font-bold text-gold-400">{ticketsWaiting}</p><p className="text-gray-400 text-xs">Tickets wanted</p></div>
+        <div>
+          <p className="text-2xl font-display font-bold text-gold-400">{ticketsWaiting}</p>
+          <p className="text-gray-400 text-xs">Tickets on waitlist <span className="text-gray-600">({waiting.length} {waiting.length === 1 ? 'person' : 'people'})</span></p>
+        </div>
         {invited.length > 0 && (
           <div><p className="text-2xl font-display font-bold text-gold-300">{invited.length}</p><p className="text-gray-400 text-xs">Offered a place</p></div>
         )}

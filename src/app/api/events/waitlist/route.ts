@@ -81,11 +81,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not add you to the waitlist. Please try again.' }, { status: 500 })
   }
 
-  const { count } = await supabaseAdmin
+  // People and tickets are different numbers - the alert leads with tickets,
+  // because that is what has to be weighed against the seats that come free.
+  const { data: waitingRows } = await supabaseAdmin
     .from('event_waitlist')
-    .select('*', { count: 'exact', head: true })
+    .select('tickets_wanted')
     .eq('event_id', eventId)
     .eq('status', 'waiting')
+  const peopleWaiting = waitingRows?.length ?? 0
+  const ticketsWaiting = (waitingRows || []).reduce((s, r) => s + (Number(r.tickets_wanted) || 1), 0)
 
   await sendWaitlistJoinedEmail({
     to: normalised,
@@ -99,7 +103,8 @@ export async function POST(req: NextRequest) {
     email: normalised,
     phone: phone || undefined,
     ticketsWanted,
-    totalWaiting: count ?? 0,
+    totalWaiting: peopleWaiting,
+    totalTicketsWaiting: ticketsWaiting,
   })
 
   return NextResponse.json({ ok: true })

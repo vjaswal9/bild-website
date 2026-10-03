@@ -775,7 +775,7 @@ export async function sendWaitlistJoinedEmail(opts: {
 // Waitlist: somebody joined.
 export async function sendWaitlistJoinedAdminAlert(opts: {
   eventTitle: string; name: string; email: string; phone?: string
-  ticketsWanted: number; totalWaiting: number
+  ticketsWanted: number; totalWaiting: number; totalTicketsWaiting: number
 }) {
   const html = adminAlertShell({
     heading: 'Someone joined an event waitlist',
@@ -784,7 +784,8 @@ export async function sendWaitlistJoinedAdminAlert(opts: {
       <p>${esc(opts.name)} &middot; <a href="mailto:${esc(opts.email)}" style="color:#C8861A">${esc(opts.email)}</a>
       ${opts.phone ? `&middot; ${esc(opts.phone)}` : ''}</p>
       <p>Wants ${opts.ticketsWanted} ticket${opts.ticketsWanted === 1 ? '' : 's'}.</p>
-      <p><strong>${opts.totalWaiting}</strong> now waiting for this event. The full list is in Admin, Events, Manage.</p>
+      <p><strong>${opts.totalTicketsWaiting} ticket${opts.totalTicketsWaiting === 1 ? '' : 's'}</strong> now on the waitlist for this event,
+      from ${opts.totalWaiting} ${opts.totalWaiting === 1 ? 'person' : 'people'}. The full list is in Admin, Events, Manage.</p>
     `,
   })
   await sendResendEmailFrom(EVENTS_FROM, EVENTS_ALERT_EMAILS, `Waitlist: ${opts.name} for ${opts.eventTitle}`, html, 'Waitlist admin alert')
