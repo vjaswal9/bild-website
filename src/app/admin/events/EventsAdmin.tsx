@@ -562,9 +562,9 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
         <p className="text-5xl font-display font-bold text-white">{totalTickets}</p>
         <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">Tickets sold</p>
         {waitlist && waitlist.people > 0 && (
-          <p className="mt-3 inline-block bg-gold-500/15 text-gold-300 text-xs font-semibold px-3 py-1 rounded-full">
+          <p className="mt-3 inline-block bg-gold-500/15 text-gold-200 text-xs font-semibold px-3 py-1 rounded-full">
             {waitlist.tickets} ticket{waitlist.tickets === 1 ? '' : 's'} on the waitlist
-            <span className="font-normal text-gold-400/70"> ({waitlist.people} {waitlist.people === 1 ? 'person' : 'people'})</span>
+            <span className="font-normal text-gold-400"> ({waitlist.people} {waitlist.people === 1 ? 'person' : 'people'})</span>
           </p>
         )}
       </div>
@@ -792,7 +792,7 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
           <p className="text-gray-400 text-xs">Tickets on waitlist <span className="text-gray-600">({waiting.length} {waiting.length === 1 ? 'person' : 'people'})</span></p>
         </div>
         {invited.length > 0 && (
-          <div><p className="text-2xl font-display font-bold text-gold-300">{invited.length}</p><p className="text-gray-400 text-xs">Offered a place</p></div>
+          <div><p className="text-2xl font-display font-bold text-gold-200">{invited.length}</p><p className="text-gray-400 text-xs">Offered a place</p></div>
         )}
         <div>
           <p className={`text-2xl font-display font-bold ${seatsFree ? 'text-green-400' : 'text-white'}`}>{seatsFree ?? '-'}</p>
@@ -1837,7 +1837,7 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
           )}
           {dietaryTotal > 0 && (
             <div>
-              <p className="text-2xl font-display font-bold text-gold-300">{dietaryTotal}</p>
+              <p className="text-2xl font-display font-bold text-gold-200">{dietaryTotal}</p>
               <p className="text-gray-400 text-xs">
                 {[
                   dietaryCounts.vegetarian > 0 && `${dietaryCounts.vegetarian} veg`,
