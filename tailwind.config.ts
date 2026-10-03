@@ -26,6 +26,7 @@ const config: Config = {
           50:  '#fdf8f0',   // warm cream - page background (identical to `cream`)
           100: '#faefd9',
           200: '#f4d99b',
+          300: '#eabd68',   // between 200 and 400: light accent text on dark grounds, soft borders
           400: '#e0a135',   // accent on dark grounds
           500: '#C8861A',   // primary button colour - rich burnished gold
           600: '#a86a10',   // accent text on light grounds
