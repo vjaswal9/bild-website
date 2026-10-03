@@ -5,6 +5,7 @@ import { Ticket, Loader2, Minus, Plus, Users, Image as ImageIcon } from 'lucide-
 import { EventTicket, Dietary } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
+import { WARN_FROM_PARTY_SIZE } from '@/lib/seating-fit'
 import WaitlistForm from './WaitlistForm'
 
 // One booking can hold this many people in total, across every package.
@@ -112,6 +113,30 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     }, 500)
     return () => clearTimeout(t)
   }, [seatingCode, event.id])
+
+  // Whether a big party can still be seated together. Only asked for a group
+  // large enough to matter that is starting its own table - someone joining a
+  // friend's code is seated with that group, so this does not apply to them.
+  // It never blocks anything: it is a heads-up shown before they pay.
+  const partySize = Object.values(attendeesByTicket).reduce((s, a) => s + a.length, 0)
+  const [seatingFit, setSeatingFit] = useState<'ok' | 'tight' | 'nofit'>('ok')
+  useEffect(() => {
+    if (!seatingEnabled || partySize < WARN_FROM_PARTY_SIZE || seatingCode.trim()) {
+      setSeatingFit('ok')
+      return
+    }
+    let live = true
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/events/seating-fit?eventId=${event.id}&party=${partySize}`)
+        const data = await res.json()
+        if (live) setSeatingFit(data.status === 'tight' || data.status === 'nofit' ? data.status : 'ok')
+      } catch {
+        if (live) setSeatingFit('ok')
+      }
+    }, 500)
+    return () => { live = false; clearTimeout(t) }
+  }, [seatingEnabled, partySize, seatingCode, event.id])
 
   // Two entirely different forms live in this one component, chosen by how
   // the visitor arrived, not by anything they fill in. Someone who followed a
@@ -542,6 +567,21 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                   Seating with friends can be requested, and while we will try our best, it cannot be guaranteed.
                 </p>
               </div>
+              {seatingFit === 'tight' && (
+                <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+                  Tables are filling up. A group of {partySize} can still be seated together at the moment, but only
+                  a few tables are left that suit a group your size. Booking soon gives you the best chance of sitting
+                  together.
+                </p>
+              )}
+              {seatingFit === 'nofit' && (
+                <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+                  We are down to our last few seats, and we may not be able to seat a group of {partySize} together at
+                  one table. You are welcome to book and we will do our best to seat you close together, but we cannot
+                  guarantee it. If sitting together matters, you can book as two smaller groups, or email{' '}
+                  <a href="mailto:events@bild.ae" className="font-semibold underline">events@bild.ae</a> and we will help.
+                </p>
+              )}
               <label className="flex items-center gap-1.5 text-xs text-charcoal-500 uppercase tracking-wide mb-1 font-medium">
                 Table code (optional)
               </label>

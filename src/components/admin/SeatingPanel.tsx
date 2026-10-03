@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Loader2, Lock, Unlock, Wand2, Users, AlertTriangle, Merge, ArrowRightLeft } from 'lucide-react'
+import { seatsLeftPerTable, wholeTablesFree } from '@/lib/seating-fit'
 
 type Group = {
   key: string
@@ -114,6 +115,10 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
   }
 
   const { groups, tableCount, seatsPerTable, totalHeadcount, totalCapacity, locked } = data
+  // A projection, not today's hand-placed layout: every party so far packed
+  // in largest first, the way Auto-assign would. It shows how many tables
+  // could still take a big new party.
+  const tablesFree = wholeTablesFree(seatsLeftPerTable(groups.map(g => g.headcount), tableCount, seatsPerTable), seatsPerTable)
   const unassigned = groups.filter(g => g.tables.length === 0)
   // Still needs attention: either it has no table(s) yet, or the table(s)
   // picked so far don't add up to enough seats for the headcount. Once an
@@ -175,6 +180,12 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
         <div className="flex items-center gap-4 text-sm text-gray-300">
           <span className="flex items-center gap-1.5"><Users size={14} /> {totalHeadcount} people{totalCapacity != null ? ` / ${totalCapacity} seats` : ''}</span>
           <span>{tableCount} tables &times; {seatsPerTable} seats</span>
+          <span
+            className={tablesFree <= 1 ? 'text-amber-400' : undefined}
+            title={`Tables with all ${seatsPerTable} seats still empty, if everyone booked so far were packed in largest party first. A party of ${seatsPerTable} needs one of these.`}
+          >
+            Whole tables free: {tablesFree}
+          </span>
           {unassigned.length > 0 && <span className="text-amber-400">{unassigned.length} groups unassigned</span>}
           {needsTables.length > 0 && <span className="text-red-400 flex items-center gap-1"><AlertTriangle size={13} /> {needsTables.length} need more than one table</span>}
         </div>
