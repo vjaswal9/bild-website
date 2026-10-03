@@ -475,6 +475,26 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
     return () => { live = false }
   }, [eventId])
 
+  // Demand beyond what is on sale: tickets wanted by people still waiting
+  // (not those offered a place, booked, declined or removed), the same figure
+  // the Waitlist section under Manage shows.
+  const [waitlist, setWaitlist] = useState<{ tickets: number; people: number } | null>(null)
+  useEffect(() => {
+    let live = true
+    fetch(`/api/admin/events/waitlist?eventId=${eventId}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (!live || !d) return
+        const waiting = ((d.entries || []) as WaitEntry[]).filter(e => e.status === 'waiting')
+        setWaitlist({
+          tickets: waiting.reduce((s, e) => s + (Number(e.tickets_wanted) || 1), 0),
+          people: waiting.length,
+        })
+      })
+      .catch(() => {})
+    return () => { live = false }
+  }, [eventId])
+
   type Unit = { ticketName: string; cost: number; price: number }
   const units: Unit[] = []
   // A complimentary ticket is the venue's own gift, not something BILD pays
@@ -541,6 +561,12 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
       <div className="text-center mb-6">
         <p className="text-5xl font-display font-bold text-white">{totalTickets}</p>
         <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">Tickets sold</p>
+        {waitlist && waitlist.people > 0 && (
+          <p className="mt-3 inline-block bg-gold-500/15 text-gold-300 text-xs font-semibold px-3 py-1 rounded-full">
+            {waitlist.tickets} ticket{waitlist.tickets === 1 ? '' : 's'} on the waitlist
+            <span className="font-normal text-gold-400/70"> ({waitlist.people} {waitlist.people === 1 ? 'person' : 'people'})</span>
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
