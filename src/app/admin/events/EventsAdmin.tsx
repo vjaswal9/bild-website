@@ -753,11 +753,16 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
   const waiting = entries.filter(e => e.status === 'waiting')
   const invited = entries.filter(e => e.status === 'invited')
   const visible = showAll ? entries : entries.filter(e => e.status === 'waiting' || e.status === 'invited')
+  // People and tickets are different numbers: a waiting list of 6 people can
+  // be asking for 15 seats, and that second figure is the one to compare with
+  // the seats free.
+  const ticketsWaiting = waiting.reduce((s, e) => s + (Number(e.tickets_wanted) || 1), 0)
 
   return (
     <div className="px-6 py-5">
       <div className="flex flex-wrap items-center gap-6 mb-5">
-        <div><p className="text-2xl font-display font-bold text-gold-400">{waiting.length}</p><p className="text-gray-400 text-xs">Waiting</p></div>
+        <div><p className="text-2xl font-display font-bold text-gold-400">{waiting.length}</p><p className="text-gray-400 text-xs">People waiting</p></div>
+        <div><p className="text-2xl font-display font-bold text-gold-400">{ticketsWaiting}</p><p className="text-gray-400 text-xs">Tickets wanted</p></div>
         {invited.length > 0 && (
           <div><p className="text-2xl font-display font-bold text-gold-300">{invited.length}</p><p className="text-gray-400 text-xs">Offered a place</p></div>
         )}
