@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimited } from '@/lib/rate-limit'
-import { partyFit, WARN_FROM_PARTY_SIZE } from '@/lib/seating-fit'
+import { partyFit } from '@/lib/seating-fit'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
   const eventId = req.nextUrl.searchParams.get('eventId') || ''
   const party = Math.floor(Number(req.nextUrl.searchParams.get('party')))
-  if (!eventId || !Number.isFinite(party) || party < WARN_FROM_PARTY_SIZE) {
+  if (!eventId || !Number.isFinite(party) || party < 2) {
     return NextResponse.json({ status: 'ok' })
   }
 

@@ -5,7 +5,7 @@ import { Ticket, Loader2, Minus, Plus, Users, Image as ImageIcon } from 'lucide-
 import { EventTicket, Dietary } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
-import { WARN_FROM_PARTY_SIZE } from '@/lib/seating-fit'
+import { warnFromPartySize } from '@/lib/seating-fit'
 import WaitlistForm from './WaitlistForm'
 
 // One booking can hold this many people in total, across every package.
@@ -40,8 +40,8 @@ function priceLabel(t: EventTicket) {
 // so sending the number would have left it readable by anyone viewing source
 // even though nothing displayed it. Capacity is enforced on the server at
 // checkout, which is the only place it can be enforced anyway.
-export default function EventRegistration({ event, tickets: rawTickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled }: {
-  event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean
+export default function EventRegistration({ event, tickets: rawTickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled, tableSize }: {
+  event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean; tableSize?: number | null
 }) {
   // Cheapest first, always - regardless of whatever order the admin happens
   // to have them in (sort_order is for the admin's own ticket-editing screen,
@@ -121,7 +121,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   const partySize = Object.values(attendeesByTicket).reduce((s, a) => s + a.length, 0)
   const [seatingFit, setSeatingFit] = useState<'ok' | 'tight' | 'nofit'>('ok')
   useEffect(() => {
-    if (!seatingEnabled || partySize < WARN_FROM_PARTY_SIZE || seatingCode.trim()) {
+    if (!seatingEnabled || !tableSize || partySize < warnFromPartySize(tableSize) || partySize > tableSize || seatingCode.trim()) {
       setSeatingFit('ok')
       return
     }
@@ -136,7 +136,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       }
     }, 500)
     return () => { live = false; clearTimeout(t) }
-  }, [seatingEnabled, partySize, seatingCode, event.id])
+  }, [seatingEnabled, tableSize, partySize, seatingCode, event.id])
 
   // Two entirely different forms live in this one component, chosen by how
   // the visitor arrived, not by anything they fill in. Someone who followed a

@@ -7,8 +7,13 @@
 // everyone already booked comes first, because moving a new big party in
 // ahead of them would only push the problem onto people who booked earlier.
 
-// Smaller parties are never warned: a couple fits almost anywhere.
-export const WARN_FROM_PARTY_SIZE = 6
+// Smaller parties are never warned: they can share a table with another
+// group. A party of more than half a table cannot - two of them will not fit
+// on one table - so it needs room of its own. That is 6 or more on tables of
+// 10, 5 or more on tables of 8, 4 or more on tables of 6.
+export function warnFromPartySize(seatsPerTable: number): number {
+  return Math.floor(seatsPerTable / 2) + 1
+}
 
 // "A few tables left" means this many or fewer could still take the party.
 const TIGHT_AT_OR_BELOW = 2
@@ -49,7 +54,7 @@ export function partyFit(
   seatsPerTable: number | null,
 ): SeatingFit | null {
   if (!tableCount || !seatsPerTable) return null
-  if (party < WARN_FROM_PARTY_SIZE || party > seatsPerTable) return null
+  if (party < warnFromPartySize(seatsPerTable) || party > seatsPerTable) return null
   const left = seatsLeftPerTable(existingPartySizes, tableCount, seatsPerTable)
   const tablesThatFit = left.filter(r => r >= party).length
   if (tablesThatFit === 0) return 'nofit'
