@@ -13,7 +13,7 @@ import Reveal from '@/components/anim/Reveal'
 import CountUp from '@/components/anim/CountUp'
 
 type WeekPoint = { label: string; value: number }
-type EventRow = { id: string; title: string; date: string; bookings: number; tickets: number }
+type EventRow = { id: string; title: string; date: string; bookings: number; tickets: number; waitingTickets: number; waitingPeople: number }
 
 type DashboardData = {
   paidMembers: number
@@ -263,6 +263,7 @@ export default function DashboardClient({ data: d }: { data: DashboardData }) {
                     <th className="px-5 py-3 font-medium">Date</th>
                     <th className="px-5 py-3 font-medium text-right">Bookings</th>
                     <th className="px-5 py-3 font-medium text-right">Tickets</th>
+                    <th className="px-5 py-3 font-medium text-right">Waitlist</th>
                     <th className="px-5 py-3 font-medium w-32">Share</th>
                   </tr>
                 </thead>
@@ -279,6 +280,16 @@ export default function DashboardClient({ data: d }: { data: DashboardData }) {
                       </td>
                       <td className="px-5 py-3 text-gray-400 text-right">{e.bookings}</td>
                       <td className="px-5 py-3 text-right"><span className="text-gold-400 font-semibold text-base">{e.tickets}</span></td>
+                      <td className="px-5 py-3 text-right whitespace-nowrap">
+                        {e.waitingTickets > 0 ? (
+                          <>
+                            <span className="text-white font-semibold text-base">{e.waitingTickets}</span>
+                            <span className="text-gray-500 text-xs ml-1.5">({e.waitingPeople} {e.waitingPeople === 1 ? 'person' : 'people'})</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-600">-</span>
+                        )}
+                      </td>
                       <td className="px-5 py-3">
                         <span className="block h-2 rounded-full bg-charcoal-700 overflow-hidden">
                           <span

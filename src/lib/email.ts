@@ -1824,7 +1824,7 @@ export async function sendOversoldAdminAlert(opts: {
 export async function sendEventSalesReport(opts: {
   rows: {
     title: string; date: string; daysAway: number; inWindow: boolean
-    bookings: number; tickets: number; capacity: number | null; seatsLeft: number | null; waiting: number
+    bookings: number; tickets: number; capacity: number | null; seatsLeft: number | null; waiting: number; waitingTickets: number
     revenueAed: number; costsAed: number; profitAed: number
   }[]
   windowDays: number
@@ -1847,7 +1847,7 @@ export async function sendEventSalesReport(opts: {
   const rowHtml = (r: (typeof opts.rows)[number]) => {
     const notes: string[] = []
     if (r.capacity != null) notes.push(`${r.seatsLeft} of ${r.capacity} left`)
-    if (r.waiting > 0) notes.push(`${r.waiting} waiting`)
+    if (r.waiting > 0) notes.push(`<strong>${r.waitingTickets} ticket${r.waitingTickets === 1 ? '' : 's'} on the waitlist</strong> (${r.waiting} ${r.waiting === 1 ? 'person' : 'people'})`)
     if (r.capacity == null) notes.push('no cap set')
     return `
     <tr>

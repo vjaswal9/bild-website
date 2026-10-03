@@ -41,11 +41,12 @@ function weeklyBuckets(rows: Row[], dateKey: string, valueFn: (r: Row) => number
 export default async function AdminHomePage() {
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [membersRes, bizRes, eventsRes, regsRes] = await Promise.all([
+  const [membersRes, bizRes, eventsRes, regsRes, waitlistRes] = await Promise.all([
     supabaseAdmin.from('members').select('id, created_at, status, invite_token, invite_opened_at, invite_used_at'),
     supabaseAdmin.from('business_submissions').select('id, created_at, status, document_expiry_date, delisted_at, listing_fee_exempt, listing_paid_until, featured, featured_paid_until, website_fail_count'),
     supabaseAdmin.from('events').select('id, created_at, title, event_date, status'),
     supabaseAdmin.from('event_registrations').select('id, event_id, status, quantity, created_at'),
+    supabaseAdmin.from('event_waitlist').select('event_id, tickets_wanted').eq('status', 'waiting'),
   ])
 
   const members = (membersRes.data as Row[]) || []
@@ -99,15 +100,22 @@ export default async function AdminHomePage() {
     return d >= new Date() && d <= in14
   }).length
 
+  const waitlist = (waitlistRes.data as Row[]) || []
   const perEvent = events
     .map(e => {
       const rows = regs.filter(r => r.event_id === e.id && r.status === 'paid')
+      // Only people still waiting - not those offered a place, booked,
+      // declined or removed - and counted in tickets, since that is what
+      // has to be weighed against any seats that come free.
+      const waiting = waitlist.filter(w => w.event_id === e.id)
       return {
         id: String(e.id),
         title: String(e.title),
         date: String(e.event_date),
         bookings: rows.length,
         tickets: rows.reduce((sum, r) => sum + (Number(r.quantity) || 1), 0),
+        waitingTickets: waiting.reduce((sum, w) => sum + (Number(w.tickets_wanted) || 1), 0),
+        waitingPeople: waiting.length,
       }
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())

@@ -27,6 +27,9 @@ export type EventSalesRow = {
   capacity: number | null
   seatsLeft: number | null
   waiting: number
+  // What the people still waiting are asking for in total. The headcount
+  // alone understates demand: nine people can be after thirty-odd seats.
+  waitingTickets: number
   revenueAed: number
   costsAed: number
   profitAed: number
@@ -46,7 +49,7 @@ export async function buildEventSalesReport(now = new Date()): Promise<{
     supabaseAdmin.from('event_tickets').select('id, event_id, name, cost_price_aed'),
     supabaseAdmin.from('payments').select('event_id, revenue_aed, refunded_aed, stripe_fee_aed, fee_passed_on_aed'),
     supabaseAdmin.from('operating_costs').select('event_id, amount_aed'),
-    supabaseAdmin.from('event_waitlist').select('event_id, status'),
+    supabaseAdmin.from('event_waitlist').select('event_id, status, tickets_wanted'),
   ])
 
   const events = eventsRes.data || []
@@ -96,6 +99,7 @@ export async function buildEventSalesReport(now = new Date()): Promise<{
       const attributed = costs.filter(c => String(c.event_id || '') === id).reduce((s, c) => s + num(c.amount_aed), 0)
       const total = directCost + attributed + unrecoveredStripe
 
+      const stillWaiting = waitlist.filter(w => String(w.event_id) === id && w.status === 'waiting')
       const capacity = e.capacity_limit == null ? null : Number(e.capacity_limit)
       const daysAway = Math.ceil((new Date(String(e.event_date)).getTime() - nowMs) / 86400000)
 
@@ -109,7 +113,8 @@ export async function buildEventSalesReport(now = new Date()): Promise<{
         tickets: tickets_,
         capacity,
         seatsLeft: capacity == null ? null : Math.max(0, capacity - tickets_),
-        waiting: waitlist.filter(w => String(w.event_id) === id && w.status === 'waiting').length,
+        waiting: stillWaiting.length,
+        waitingTickets: stillWaiting.reduce((s, w) => s + (num(w.tickets_wanted) || 1), 0),
         revenueAed: round2(revenue),
         costsAed: round2(total),
         profitAed: round2(revenue - total),
