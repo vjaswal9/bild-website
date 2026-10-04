@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null)
-  const name = String(body?.name || '').trim()
+  const name = String(body?.name || '').trim().slice(0, 100)
   const quote = String(body?.quote || '').trim()
   const rating = Number(body?.rating)
   if (!name || !quote || !Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabaseAdmin.from('testimonials').insert([payload])
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('testimonial submit failed:', error.message)
+    return NextResponse.json({ error: 'Could not save your review. Please try again.' }, { status: 500 })
   }
 
   try {

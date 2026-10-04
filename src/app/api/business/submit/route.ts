@@ -93,7 +93,8 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabaseAdmin.from('business_submissions').insert([payload])
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('business submit failed:', error.message)
+    return NextResponse.json({ error: 'Could not save your application. Please try again.' }, { status: 500 })
   }
 
   // Only actually-paid members count as "verified" - flags a claimed BILD

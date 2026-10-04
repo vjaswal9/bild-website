@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
+import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
+import { str, stringMap, uuid } from '@/lib/validate'
 
 // Captures a join application as soon as someone gets past the eligibility
 // step (or fills in step 2), even if they never reach payment. This is the
@@ -13,8 +15,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many attempts.' }, { status: 429 })
     }
 
-    const { leadId, ...d } = await req.json()
-    if (!leadId || !d.fullName) {
+    const body = await req.json().catch(() => ({}))
+    // The lead id is made by the browser, so it must at least be a real UUID,
+    // and the answers are plain short strings.
+    const leadId = uuid(body?.leadId)
+    const fullName = str(body?.fullName, 200)
+    if (!leadId || !fullName) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
     }
 
@@ -30,7 +36,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    const { fullName, email, gender, uaeMobile, emirate, heritageConfirm, falseInfoConfirm, termsConfirm, ...rest } = d
+    const answers = stringMap(body, 60)
+    const { email: rawEmail, gender, uaeMobile, emirate, heritageConfirm, falseInfoConfirm, termsConfirm } = answers
+    const email = rawEmail && isValidEmail(rawEmail) ? normaliseEmail(rawEmail) : null
+    // Whatever else the form sent is kept whole in `details`, minus the fields
+    // that already have their own columns.
+    const rest = { ...answers }
+    for (const k of ['leadId', 'fullName', 'email', 'gender', 'uaeMobile', 'emirate', 'heritageConfirm', 'falseInfoConfirm', 'termsConfirm']) delete rest[k]
     const details = { uaeMobile, emirate, ...rest }
 
     const { error } = await supabaseAdmin
@@ -38,7 +50,7 @@ export async function POST(req: NextRequest) {
       .upsert({
         id: leadId,
         full_name: fullName,
-        email: email || null,
+        email,
         phone: uaeMobile || null,
         gender: gender || null,
         location: emirate || null,
@@ -50,12 +62,13 @@ export async function POST(req: NextRequest) {
       }, { onConflict: 'id' })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('join lead: could not save', error.message)
+      return NextResponse.json({ error: 'Could not save your progress.' }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Unexpected error.'
-    return NextResponse.json({ error: msg }, { status: 500 })
+    console.error('join lead failed:', e)
+    return NextResponse.json({ error: 'Unexpected error.' }, { status: 500 })
   }
 }

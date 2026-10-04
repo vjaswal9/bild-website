@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
+import { siteOrigin } from '@/lib/site-url'
 
 // Public, self-serve: any approved business can pay to become Featured any
 // time via their standing token, no admin action required.
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (!biz || biz.status !== 'approved') return NextResponse.json({ error: 'Invalid link.' }, { status: 404 })
 
   const feeAed = biz.is_bild_member ? FEATURED_MEMBER_FEE_AED : FEATURED_NON_MEMBER_FEE_AED
-  const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`
+  const origin = siteOrigin(req)
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',

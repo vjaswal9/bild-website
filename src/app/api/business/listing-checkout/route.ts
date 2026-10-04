@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
+import { siteOrigin } from '@/lib/site-url'
 
 // Public endpoint: the token-gated /directory/pay/[token] page posts here to
 // start the annual listing-fee checkout. Price is always read from the
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
   }
 
   const feeAed = biz.is_bild_member ? LISTING_MEMBER_FEE_AED : LISTING_NON_MEMBER_FEE_AED
-  const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`
+  const origin = siteOrigin(req)
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',

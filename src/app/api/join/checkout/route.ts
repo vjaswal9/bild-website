@@ -5,6 +5,8 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
+import { stringMap, uuid } from '@/lib/validate'
+import { siteOrigin } from '@/lib/site-url'
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +14,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
     }
 
-    const { leadId, ...d } = await req.json()
+    // Answers are plain short strings and the lead id a real UUID: this is a
+    // public form, so nothing else is allowed through to the database.
+    const body = await req.json().catch(() => ({}))
+    const leadId = uuid(body?.leadId)
+    const d = stringMap(body, 60)
+    delete d.leadId
+    d.fullName = (d.fullName || '').slice(0, 200)
 
     if (!d.fullName || !d.email || !d.gender) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
@@ -79,7 +87,8 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single()
       if (error || !updated) {
-        return NextResponse.json({ error: error?.message || 'Could not update member record.' }, { status: 500 })
+        console.error('join checkout: could not update member', error?.message)
+        return NextResponse.json({ error: 'Could not start your application. Please try again.' }, { status: 500 })
       }
       member = updated
     } else {
@@ -89,12 +98,13 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single()
       if (error || !inserted) {
-        return NextResponse.json({ error: error?.message || 'Could not create member record.' }, { status: 500 })
+        console.error('join checkout: could not create member', error?.message)
+        return NextResponse.json({ error: 'Could not start your application. Please try again.' }, { status: 500 })
       }
       member = inserted
     }
 
-    const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`
+    const origin = siteOrigin(req)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

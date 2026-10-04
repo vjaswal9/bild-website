@@ -9,6 +9,8 @@ import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { readWithRetry } from '@/lib/db-retry'
 import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, seatingPositionFor } from '@/lib/seating-code'
+import { siteOrigin } from '@/lib/site-url'
+import { str } from '@/lib/validate'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,7 +62,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
     }
 
-    const { eventId, ticketId, firstName, lastName, title: buyerTitleRaw, email, phone, dietary, dietaryNote, age: buyerAgeRaw, guests: rawGuests, seatingCode: rawSeatingCode } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const { eventId, ticketId, email, dietary, dietaryNote, age: buyerAgeRaw, guests: rawGuests, seatingCode: rawSeatingCode } = body
+    // Names and phone come from a public form: plain strings of sensible length.
+    const firstName = str(body.firstName, 80)
+    const lastName = str(body.lastName, 80)
+    const phone = str(body.phone, 40)
+    const buyerTitleRaw = body.title
 
     if (!eventId || !ticketId || !firstName || !email) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
@@ -142,7 +150,7 @@ export async function POST(req: NextRequest) {
       if (t.is_child && guestAge == null) return ageRequired()
       const guestTitle = normalizeTitle(g.title)
       guestEntries.push({
-        name: String(g.name).trim(),
+        name: String(g.name).trim().slice(0, 120),
         ticket_name: t.name,
         price_aed: t.price_aed,
         dietary: normalizeDietary(g.dietary),
@@ -249,10 +257,11 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (regErr || !reg) {
-      return NextResponse.json({ error: regErr?.message || 'Could not save registration.' }, { status: 500 })
+      console.error('checkout: could not save registration', regErr?.message)
+      return NextResponse.json({ error: 'We could not book this event just now. Please try again in a moment.' }, { status: 500 })
     }
 
-    const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`
+    const origin = siteOrigin(req)
 
     // Everything free - skip Stripe entirely.
     if (totalAed === 0) {

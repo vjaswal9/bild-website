@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { cardFeeFils } from '@/lib/fees'
+import { siteOrigin } from '@/lib/site-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   const dueAed = Number(reg.upgrade_due_aed)
-  const origin = req.headers.get('origin') || `https://${req.headers.get('host')}`
+  const origin = siteOrigin(req)
 
   const lineItems = [{
     price_data: {

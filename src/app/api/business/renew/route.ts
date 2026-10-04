@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
     .eq('id', biz.id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('business renew failed:', error.message)
+    return NextResponse.json({ error: 'Could not save your renewal. Please try again.' }, { status: 500 })
   }
 
   try {

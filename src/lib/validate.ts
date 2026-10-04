@@ -66,3 +66,24 @@ export function httpUrl(value: unknown, max = 500): string | undefined {
     return undefined
   }
 }
+
+/**
+ * A flat object of short strings, or {}.
+ *
+ * For form answers that are stored whole in a jsonb column. Keeps only
+ * string values, caps how many keys and how long each key and value may be, so
+ * a script cannot park megabytes of arbitrary data in the database through a
+ * public form.
+ */
+export function stringMap(value: unknown, maxKeys = 40, maxKey = 60, maxValue = 500): Record<string, string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const out: Record<string, string> = {}
+  let n = 0
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (n >= maxKeys) break
+    if (typeof v !== 'string' || k.length === 0 || k.length > maxKey) continue
+    out[k] = v.slice(0, maxValue)
+    n++
+  }
+  return out
+}
