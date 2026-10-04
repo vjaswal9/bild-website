@@ -8,6 +8,7 @@ import BackToTop from '@/components/ui/BackToTop'
 import ScrollProgress from '@/components/ui/ScrollProgress'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import { SITE_CONFIG } from '@/data/config'
+import { jsonLd } from '@/lib/json-ld'
 
 const SITE_URL = 'https://www.bild.ae'
 
@@ -113,7 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen flex flex-col">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(orgJsonLd) }}
         />
         <GoogleAnalytics />
         <ScrollProgress />

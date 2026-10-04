@@ -2,6 +2,8 @@ import { withSentryConfig } from '@sentry/nextjs/config'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Do not announce the framework in an X-Powered-By header on every response.
+  poweredByHeader: false,
   images: {
     // Event flyers, business logos and gallery images are all served from
     // Supabase storage. Without this, next/image refuses that host, which is

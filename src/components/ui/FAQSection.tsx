@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { jsonLd } from '@/lib/json-ld'
 
 export type FAQItem = { q: string; a: string }
 
@@ -18,7 +19,7 @@ export default function FAQSection({ faqs }: { faqs: FAQItem[] }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLd({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
             mainEntity: faqs.map(faq => ({

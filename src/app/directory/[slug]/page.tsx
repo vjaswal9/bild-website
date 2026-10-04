@@ -18,6 +18,7 @@ import TrackedLink from '@/components/directory/TrackedLink'
 import ViewTracker from '@/components/directory/ViewTracker'
 import { parseInstagramHandle } from '@/lib/instagram'
 import { imageHasTransparency } from '@/lib/image-transparency'
+import { jsonLd } from '@/lib/json-ld'
 
 // Prerendered and rebuilt on a 30-minute timer, rather than rendered on every
 // request.
@@ -136,7 +137,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
       <div className="py-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(businessJsonLd) }}
       />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link href="/directory" className="inline-flex items-center gap-2 text-charcoal-600 hover:text-gold-600 mb-8 text-sm font-medium">

@@ -8,6 +8,7 @@ import { formatEventDate, formatEventTime } from '@/lib/utils'
 import EventRegistration from './EventRegistration'
 import EventGallery from './EventGallery'
 import AddToCalendar from '@/components/events/AddToCalendar'
+import { jsonLd } from '@/lib/json-ld'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -218,12 +219,12 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(eventJsonLd) }}
         />
         {faqJsonLd && (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+            dangerouslySetInnerHTML={{ __html: jsonLd(faqJsonLd) }}
           />
         )}
         <Link href="/events" className="inline-flex items-center gap-2 text-charcoal-600 hover:text-gold-600 mb-8 text-sm font-medium">
