@@ -18,7 +18,7 @@ type Group = {
   // the reverse of overflowFromCode, shown so a full table's own row also
   // flags who should be seated nearby.
   overflowsInto: string[]
-  bookings: { id: string; name: string; quantity: number }[]
+  bookings: { id: string; name: string; quantity: number; guests: string[] }[]
 }
 
 type SeatingData = {
@@ -276,9 +276,22 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
                     </span>
                   )}
                 </div>
-                <p className="text-gray-500 text-xs mt-0.5 truncate">
-                  {g.bookings.map(b => `${b.name} (${b.quantity})`).join(', ')}
-                </p>
+                {/* Every person on every booking under this code - the buyer, then
+                    the guests they paid for - so parties that want to sit
+                    together can be spotted and merged. Wraps rather than
+                    truncating: a hidden name defeats the point of listing it. */}
+                <div className="mt-1.5 space-y-0.5">
+                  {g.bookings.map(b => (
+                    <p key={b.id} className="text-xs leading-relaxed">
+                      <span className="text-gray-200 font-medium">{b.name}</span>
+                      {b.guests.length > 0 && <span className="text-gray-400">, {b.guests.join(', ')}</span>}
+                      {/* Covers a booking whose guest names were never stored. */}
+                      {b.quantity > 1 + b.guests.length && (
+                        <span className="text-gray-600"> (+{b.quantity - 1 - b.guests.length} unnamed)</span>
+                      )}
+                    </p>
+                  ))}
+                </div>
               </div>
               <div className="shrink-0 relative">
                 <button

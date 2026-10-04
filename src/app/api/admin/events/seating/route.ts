@@ -26,6 +26,18 @@ type Reg = {
   seating_table: number[] | null
   overflow_from_code: string | null
   created_at: string
+  // Only selected by the GET below, which is the one view that lists names.
+  guest_names?: unknown
+}
+
+// Everyone else on a booking besides the person who paid, as plain names. Old
+// bookings stored guests as bare strings; newer ones as { name, ... }.
+function guestNamesOf(r: Reg): string[] {
+  const list = Array.isArray(r.guest_names) ? r.guest_names : []
+  return list
+    .map(g => (typeof g === 'string' ? g : (g as { name?: string } | null)?.name || ''))
+    .map(n => n.trim())
+    .filter(Boolean)
 }
 
 // Two table lists count as "the same assignment" regardless of order - used
@@ -64,7 +76,7 @@ export async function GET(req: NextRequest) {
 
   const { data: regs, error: regsErr } = await supabaseAdmin
     .from('event_registrations')
-    .select('id, first_name, last_name, quantity, seating_code, seating_table, overflow_from_code, created_at')
+    .select('id, first_name, last_name, quantity, seating_code, seating_table, overflow_from_code, created_at, guest_names')
     .eq('event_id', eventId)
     .eq('status', 'paid')
     .order('created_at', { ascending: true })
@@ -98,7 +110,7 @@ export async function GET(req: NextRequest) {
       oversized: seatsPerTable != null && headcount > seatsPerTable,
       tables,
       overflowFromCode,
-      bookings: list.map(r => ({ id: r.id, name: `${r.first_name} ${r.last_name || ''}`.trim(), quantity: r.quantity || 1 })),
+      bookings: list.map(r => ({ id: r.id, name: `${r.first_name} ${r.last_name || ''}`.trim(), quantity: r.quantity || 1, guests: guestNamesOf(r) })),
     }
   })
   groups.sort((a, b) => b.headcount - a.headcount)
