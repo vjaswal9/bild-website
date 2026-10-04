@@ -9,6 +9,7 @@ import ScrollProgress from '@/components/ui/ScrollProgress'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import { SITE_CONFIG } from '@/data/config'
 import { jsonLd } from '@/lib/json-ld'
+import { ERROR_BEACON_SCRIPT } from '@/lib/error-beacon'
 
 const SITE_URL = 'https://www.bild.ae'
 
@@ -112,6 +113,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen flex flex-col">
+        {/* Tiny browser error reporter; see src/lib/error-beacon.ts */}
+        <script dangerouslySetInnerHTML={{ __html: ERROR_BEACON_SCRIPT }} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(orgJsonLd) }}

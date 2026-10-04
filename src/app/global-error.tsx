@@ -29,6 +29,8 @@ export default function GlobalError({
   // Server-side errors are still reported to Sentry in full.
   useEffect(() => {
     console.error('Unhandled application error:', error, 'digest:', error.digest ?? 'none')
+    // Hand it to the page's inline reporter (see src/lib/error-beacon.ts).
+    ;(window as unknown as { __bildReport?: (m: string, st?: string) => void }).__bildReport?.(`React error: ${error.message} (digest ${error.digest ?? 'none'})`, error.stack)
   }, [error])
 
   return (
