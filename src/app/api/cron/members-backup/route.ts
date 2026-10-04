@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
+import { reportError } from '@/lib/report-error'
 import { Resend } from 'resend'
 import { buildMembersWorkbook } from '@/lib/members-export'
 import { buildEventsWorkbook } from '@/lib/events-export'
@@ -10,6 +12,19 @@ export const dynamic = 'force-dynamic'
 // default function timeout is far too short for that once the membership
 // grows, and a backup cut off half way is no backup at all.
 export const maxDuration = 300
+
+// Matches vercel.json: Mondays 05:00 UTC. checkinMargin is how many minutes
+// late the check-in may be before Sentry calls the run missed; maxRuntime is
+// how long a started run may take before Sentry calls it failed (the function
+// itself is cut off at 5 minutes).
+const MONITOR = {
+  schedule: { type: 'crontab' as const, value: '0 5 * * 1' },
+  checkinMargin: 60,
+  maxRuntime: 10,
+  timezone: 'UTC',
+  failureIssueThreshold: 1,
+  recoveryThreshold: 1,
+}
 
 // Weekly backup: builds the members, upcoming-events, business-directory and
 // financial-ledger spreadsheets and emails all four to the admin list. This is
@@ -28,9 +43,34 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 
+  // Sentry Cron Monitor: tells Sentry this job started and whether it
+  // finished well. If the Monday check-in never arrives (the schedule did not
+  // fire, the function died, a deploy broke it) Sentry raises "missed", which
+  // is the one failure nothing else on this site can notice, because a job
+  // that never runs leaves no error behind. A run that sends the email but
+  // could not build one of the four spreadsheets is reported as failed too.
+  // Outside production Sentry is off and this simply runs the backup.
+  let result: BackupResult | null = null
+  try {
+    await Sentry.withMonitor('weekly-backup', async () => {
+      result = await runBackup()
+      if (!result.response.ok || result.problems.length > 0) {
+        throw new Error(`Weekly backup did not complete cleanly: ${result.problems.join('; ') || `HTTP ${result.response.status}`}`)
+      }
+    }, MONITOR)
+  } catch (e) {
+    reportError('weekly backup', e)
+  }
+  return (result as BackupResult | null)?.response
+    ?? NextResponse.json({ ok: false, error: 'The weekly backup failed. See Sentry.' }, { status: 500 })
+}
+
+type BackupResult = { response: NextResponse; problems: string[] }
+
+async function runBackup(): Promise<BackupResult> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
-    return NextResponse.json({ ok: false, reason: 'RESEND_API_KEY not set' }, { status: 500 })
+    return { response: NextResponse.json({ ok: false, reason: 'RESEND_API_KEY not set' }, { status: 500 }), problems: ['RESEND_API_KEY not set'] }
   }
 
   // This is the one copy of BILD's data meant to survive losing every cloud
@@ -134,9 +174,14 @@ export async function GET(req: NextRequest) {
   })
 
   if (r.error) {
-    return NextResponse.json({ ok: false, error: r.error }, { status: 500 })
+    return { response: NextResponse.json({ ok: false, error: r.error }, { status: 500 }), problems: ['the email was rejected by Resend'] }
   }
-  return NextResponse.json({
+  const problems = [
+    eventsError && 'events spreadsheet failed',
+    directoryError && 'business directory spreadsheet failed',
+    financialError && 'financial ledger spreadsheet failed',
+  ].filter((p): p is string => !!p)
+  return { response: NextResponse.json({
     ok: true,
     count,
     events: events ? { events: events.events, bookings: events.bookings, attendees: events.attendees } : null,
@@ -147,5 +192,5 @@ export async function GET(req: NextRequest) {
     financialError,
     sentTo: recipients.length,
     id: r.data?.id,
-  })
+  }), problems }
 }
