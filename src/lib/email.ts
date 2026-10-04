@@ -747,6 +747,42 @@ export async function sendBrokenLinkAdminAlert(opts: {
   )
 }
 
+// An invitation to become an admin: a one-time link to set a password and an
+// authenticator app. The recipient is not yet a person the site knows, so this
+// goes only to them.
+export async function sendAdminInviteEmail(opts: { to: string; name: string; invitedBy: string; link: string }) {
+  const first = esc((opts.name || '').split(' ')[0] || 'there')
+  const html = adminAlertShell({
+    heading: 'You have been invited to the BILD admin area',
+    bodyHtml: `
+      <p>Hi ${first},</p>
+      <p>${esc(opts.invitedBy)} has added you as an administrator of the BILD website. You will have your own
+      sign-in, protected by your own authenticator app.</p>
+      <p>Open the link below to choose a password (at least 12 characters) and connect an authenticator app
+      such as Google Authenticator, Microsoft Authenticator or 1Password. It works once and expires in 48 hours.</p>
+      <p><a href="${esc(opts.link)}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold">Set up my admin access</a></p>
+      <p style="color:#999;font-size:12px">If you were not expecting this, ignore this email: nothing happens unless the link is used.</p>
+    `,
+    footer: 'Sent by the BILD admin area.',
+  })
+  await sendResendEmail(opts.to, 'You have been invited to the BILD admin area', html, 'Admin invite')
+}
+
+// Everyone with admin access hears when someone is added or removed, including
+// the person who did it, so a change nobody made is noticed.
+export async function sendAdminAccountAlert(opts: { event: 'added' | 'removed' | 'activated'; name: string; email: string; by: string }) {
+  const verb = opts.event === 'added' ? 'was invited as an admin' : opts.event === 'activated' ? 'finished setting up their admin access' : 'was removed as an admin'
+  const html = adminAlertShell({
+    heading: `${esc(opts.name || opts.email)} ${verb}`,
+    bodyHtml: `
+      <p><strong>${esc(opts.name || opts.email)}</strong> (${esc(opts.email)}) ${verb}${opts.event === 'activated' ? '' : ` by ${esc(opts.by)}`}.</p>
+      <p>If you did not expect this, sign in to the admin area now, open Security, and remove the account.</p>
+    `,
+    footer: 'Sent by the BILD admin area.',
+  })
+  await sendResendEmail(ADMIN_ALERT_EMAILS, `BILD admin access: ${opts.name || opts.email} ${opts.event}`, html, 'Admin account alert')
+}
+
 // The daily photo check found pictures that may show alcohol.
 export async function sendImageReviewAdminAlert(opts: { newlyFlagged: number; totalWaiting: number }) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bild.ae'

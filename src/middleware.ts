@@ -9,7 +9,10 @@ export async function middleware(request: NextRequest) {
   // Admin area stays behind its own auth (unchanged by the soft launch).
   if (pathname.startsWith('/admin')) {
     const openAdminPaths = ['/admin/login', '/admin/confirm-password']
-    if (!openAdminPaths.includes(pathname)) {
+    // The invitation page is opened by someone who has no account yet; the
+    // one-time link in the address is what authorises it.
+    const open = openAdminPaths.includes(pathname) || pathname.startsWith('/admin/invite/')
+    if (!open) {
       const ok = await verifyAdminToken(request.cookies.get(ADMIN_COOKIE)?.value)
       if (!ok) return NextResponse.redirect(new URL('/admin/login', request.url))
     }

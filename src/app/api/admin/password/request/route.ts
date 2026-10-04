@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { ADMIN_COOKIE, verifyAdminToken, hashPassword, randomToken } from '@/lib/admin-auth'
 import { verifyAdminPassword } from '@/lib/admin-password'
+import { subjectFromRequest } from '@/lib/admin-accounts'
 import { sendPasswordChangeConfirmation } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
@@ -15,6 +16,12 @@ export async function POST(req: NextRequest) {
   // A stolen session cookie should not be able to guess the password offline-fast.
   if (await isRateLimitedShared(`admin-pw-request:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
+  }
+
+  // Personal accounts change their own password from the Security page's
+  // account form; this email flow belongs to the single shared login.
+  if ((await subjectFromRequest(req)) !== null) {
+    return NextResponse.json({ error: 'Use the "Change my password" form for your personal account.' }, { status: 409 })
   }
 
   // Email confirmation is the whole point - refuse if email isn't configured.

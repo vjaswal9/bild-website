@@ -1,16 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 export default function AdminLoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [personal, setPersonal] = useState(false)
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
   const [needsCode, setNeedsCode] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Once personal accounts are on, the sign-in also asks for an email address.
+  useEffect(() => {
+    fetch('/api/admin/login').then(r => (r.ok ? r.json() : null)).then(d => setPersonal(!!d?.personal)).catch(() => {})
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -20,7 +27,7 @@ export default function AdminLoginPage() {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password, code }),
+      body: JSON.stringify({ email, password, code }),
     })
     const data = await res.json().catch(() => ({}))
 
@@ -33,7 +40,7 @@ export default function AdminLoginPage() {
       setError(data.error || 'That code is not right.')
       setCode('')
     } else {
-      setError(data.error && res.status !== 401 ? data.error : 'Incorrect password. Please try again.')
+      setError(data.error && (res.status !== 401 || personal) ? data.error : 'Incorrect password. Please try again.')
     }
     setLoading(false)
   }
@@ -48,6 +55,21 @@ export default function AdminLoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-charcoal-800 rounded-2xl p-8 space-y-4">
+          {!needsCode && personal && (
+            <div>
+              <label htmlFor="admin-email" className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <input
+                id="admin-email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoComplete="username"
+                className="w-full px-4 py-3 rounded-xl bg-charcoal-700 border border-charcoal-600 text-white focus:outline-none focus:ring-2 focus:ring-gold-500 placeholder-gray-500"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+          )}
           {!needsCode ? (
             <div>
               <label htmlFor="admin-password" className="block text-sm font-medium text-gray-300 mb-2">Password</label>

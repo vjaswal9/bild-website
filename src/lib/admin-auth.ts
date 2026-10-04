@@ -78,25 +78,139 @@ async function verifyScopedToken(scope: string, token?: string | null): Promise<
   return timingSafeEqual(sig, expected)
 }
 
+// Legacy session: "<exp>.<sig>", no identity. Still issued while the site runs
+// on the single shared login, and honoured only until personal accounts exist.
 export async function signAdminToken(): Promise<string> {
   return signScopedToken('admin', ADMIN_SESSION_MAX_AGE)
 }
 
-// Verify a cookie value: correct signature and not expired.
-export async function verifyAdminToken(token?: string | null): Promise<boolean> {
-  // Also accepts the pre-scope token format, so an admin already signed in
-  // when this shipped is not logged out mid-session.
-  if (await verifyScopedToken('admin', token)) return true
+// Personal session: "u.<adminId>.<issuedAt>.<exp>.<sig>". The id says who is
+// signed in; the issue time lets a removal or password change end the session
+// (see sessionStillValid). Everything is covered by the signature.
+export async function signAdminSession(adminId: string): Promise<string> {
+  const iat = Date.now()
+  const exp = iat + ADMIN_SESSION_MAX_AGE * 1000
+  const sig = await hmacHex(`admin-user:${adminId}:${iat}:${exp}`, secret())
+  return `u.${adminId}.${iat}.${exp}.${sig}`
+}
+
+type ParsedSession = { kind: 'legacy' } | { kind: 'user'; adminId: string; iat: number }
+
+// Signature and expiry only. Whether the person is still allowed in is a
+// separate question that needs the database (verifyAdminToken asks it).
+async function parseAdminSession(token?: string | null): Promise<ParsedSession | null> {
   const s = secret()
-  if (!token || !s) return false
+  if (!token || !s) return null
+
+  if (token.startsWith('u.')) {
+    const parts = token.split('.')
+    if (parts.length !== 5) return null
+    const [, adminId, iatStr, expStr, sig] = parts
+    const iat = Number(iatStr), exp = Number(expStr)
+    if (!/^[0-9a-f-]{36}$/i.test(adminId) || !Number.isFinite(iat) || !Number.isFinite(exp) || exp < Date.now()) return null
+    const expected = await hmacHex(`admin-user:${adminId}:${iat}:${exp}`, s)
+    return timingSafeEqual(sig, expected) ? { kind: 'user', adminId, iat } : null
+  }
+
+  // Legacy shapes. Also accepts the pre-scope format, so an admin already
+  // signed in when scoping shipped was not logged out mid-session.
+  if (await verifyScopedToken('admin', token)) return { kind: 'legacy' }
   const dot = token.indexOf('.')
-  if (dot <= 0) return false
+  if (dot <= 0) return null
   const expStr = token.slice(0, dot)
   const sig = token.slice(dot + 1)
   const exp = Number(expStr)
-  if (!Number.isFinite(exp) || exp < Date.now()) return false
+  if (!Number.isFinite(exp) || exp < Date.now()) return null
   const expected = await hmacHex(expStr, s)
-  return timingSafeEqual(sig, expected)
+  return timingSafeEqual(sig, expected) ? { kind: 'legacy' } : null
+}
+
+// ---------------------------------------------------------------------------
+// Database checks used on every admin request. Plain fetch against the REST
+// API rather than the Supabase client, so this stays small enough for the Edge
+// runtime that the admin middleware runs in. Answers are cached for 20 seconds
+// per server, so removing an admin takes effect almost at once without a
+// database round trip on every click.
+// ---------------------------------------------------------------------------
+const CHECK_CACHE_MS = 20_000
+const checkCache = new Map<string, { at: number; value: boolean | null }>()
+
+async function restRows(path: string): Promise<{ rows: Record<string, unknown>[] } | { missing: true } | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_KEY
+  if (!url || !key) return null
+  try {
+    const res = await fetch(`${url}/rest/v1/${path}`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: 'no-store' })
+    if (res.status === 404) return { missing: true }   // the table has not been created yet
+    if (!res.ok) {
+      // PostgREST also reports a missing table as a 4xx with this code.
+      const body = await res.text().catch(() => '')
+      return /PGRST205|42P01/.test(body) ? { missing: true } : null
+    }
+    return { rows: await res.json() }
+  } catch {
+    return null
+  }
+}
+
+async function cached(key: string, run: () => Promise<boolean | null>): Promise<boolean | null> {
+  const hit = checkCache.get(key)
+  if (hit && Date.now() - hit.at < CHECK_CACHE_MS) return hit.value
+  const value = await run()
+  if (checkCache.size > 200) checkCache.clear()
+  // A failed check (null) is not cached, so the next request tries again.
+  if (value !== null) checkCache.set(key, { at: Date.now(), value })
+  return value
+}
+
+// true once at least one personal admin account is active; false while the
+// site is still on the single shared login (or the table does not exist yet);
+// null when it could not be determined.
+export async function personalAccountsActive(): Promise<boolean | null> {
+  return cached('personal-active', async () => {
+    const r = await restRows('admin_users?select=id&active=eq.true&limit=1')
+    if (!r) return null
+    if ('missing' in r) return false
+    return r.rows.length > 0
+  })
+}
+
+async function sessionStillValid(adminId: string, iat: number): Promise<boolean | null> {
+  return cached(`user:${adminId}:${iat}`, async () => {
+    const r = await restRows(`admin_users?id=eq.${adminId}&select=active,sessions_valid_from&limit=1`)
+    if (!r) return null
+    if ('missing' in r) return false
+    const row = r.rows[0] as { active?: boolean; sessions_valid_from?: string } | undefined
+    if (!row || !row.active) return false
+    const from = row.sessions_valid_from ? Date.parse(row.sessions_valid_from) : 0
+    // A second of slack for the clocks of the database and the server.
+    return iat >= from - 1000
+  })
+}
+
+// Verify a cookie value: genuine, unexpired, and the person behind it is still
+// allowed in. Fails closed if the database cannot be asked.
+export async function verifyAdminToken(token?: string | null): Promise<boolean> {
+  const parsed = await parseAdminSession(token)
+  if (!parsed) return false
+  if (parsed.kind === 'legacy') {
+    // A shared-login session stops working the moment personal accounts exist.
+    return (await personalAccountsActive()) === false
+  }
+  return (await sessionStillValid(parsed.adminId, parsed.iat)) === true
+}
+
+// Who is signed in: an account id, 'legacy' for the shared login, or null.
+// Does not re-check the database; call verifyAdminToken first.
+export async function sessionIdentity(token?: string | null): Promise<string | 'legacy' | null> {
+  const parsed = await parseAdminSession(token)
+  if (!parsed) return null
+  return parsed.kind === 'legacy' ? 'legacy' : parsed.adminId
+}
+
+// Called after a change that must end someone's sessions at once.
+export function forgetSessionChecks() {
+  checkCache.clear()
 }
 
 export async function signMoneyToken(): Promise<string> {
