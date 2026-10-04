@@ -2180,6 +2180,35 @@ export async function sendListingPaidConfirmation(opts: { to: string; businessNa
   await sendResendEmail(opts.to, `You're live in the BILD Business Directory!`, html, 'Listing paid confirmation')
 }
 
+// Admin alert: a business has just paid a directory fee. Covers the annual
+// listing fee and the Featured upgrade. The business is emailed its own
+// confirmation separately; this is the one that tells the admin team money has
+// arrived, and which kind of business it came from.
+export async function sendDirectoryFeePaidAdminAlert(opts: {
+  kind: 'listing' | 'featured'
+  businessName: string
+  amountAed: number
+  isBildMember: boolean
+}) {
+  const what = opts.kind === 'featured' ? 'Featured placement (3 months)' : 'Annual directory listing'
+  const amount = `${Number.isInteger(opts.amountAed) ? opts.amountAed : opts.amountAed.toFixed(2)} AED`
+  const who = opts.isBildMember ? 'BILD member' : 'Non-BILD business'
+  const outcome = opts.kind === 'featured' ? 'Their Featured placement is now active' : 'The listing is now live'
+  const html = adminAlertShell({
+    heading: `Directory fee paid: ${esc(opts.businessName)}`,
+    bodyHtml: `
+      <p><strong>${amount}</strong> received for <strong>${what}</strong>.</p>
+      <p>${who}. ${outcome}, and the business has been sent its confirmation and receipt.</p>
+    `,
+  })
+  await sendResendEmail(
+    ADMIN_ALERT_EMAILS,
+    `Directory fee paid: ${opts.businessName} (${amount}${opts.isBildMember ? '' : ', non-BILD'})`,
+    html,
+    'Directory fee paid admin alert',
+  )
+}
+
 export async function sendFeaturedUpgradeEmail(opts: { to: string; businessName: string; feeAed: number; featuredUrl: string }) {
   const html = bizEmailShell({
     heading: `Get Featured`,

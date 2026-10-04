@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { randomUUID } from 'crypto'
-import { sendWelcomeEmail, sendEventConfirmation, sendTicketSaleAlert, sendTicketUpgradePaidAlert, sendNewMemberAlert, sendListingPaidConfirmation, sendFeaturedPaidConfirmation, sendOversoldRefundEmail, sendOversoldAdminAlert, sendLedgerWriteFailedAlert, sendExternalRefundAlert } from '@/lib/email'
+import { sendWelcomeEmail, sendEventConfirmation, sendTicketSaleAlert, sendTicketUpgradePaidAlert, sendNewMemberAlert, sendListingPaidConfirmation, sendFeaturedPaidConfirmation, sendDirectoryFeePaidAdminAlert, sendOversoldRefundEmail, sendOversoldAdminAlert, sendLedgerWriteFailedAlert, sendExternalRefundAlert } from '@/lib/email'
 import { readWithRetry } from '@/lib/db-retry'
 import { googleReviewsLinkFor } from '@/lib/google-reviews-link'
 import { loadRegistration, refundEverything } from '@/lib/event-refunds'
@@ -531,6 +531,12 @@ export async function POST(req: NextRequest) {
             receiptUrl,
             googleReviewsUrl: biz.google_place_id ? null : await googleReviewsLinkFor(businessId),
           })
+          await sendDirectoryFeePaidAdminAlert({
+            kind: 'listing',
+            businessName: biz.business_name,
+            amountAed: listingAed,
+            isBildMember: biz.is_bild_member !== false,
+          })
         }
       }
       return NextResponse.json({ received: true })
@@ -590,6 +596,12 @@ export async function POST(req: NextRequest) {
             businessName: biz.business_name,
             manageUrl: `${base}/directory/manage/${manageToken}`,
             receiptUrl,
+          })
+          await sendDirectoryFeePaidAdminAlert({
+            kind: 'featured',
+            businessName: biz.business_name,
+            amountAed: featuredAed,
+            isBildMember: biz.is_bild_member !== false,
           })
         }
       }
