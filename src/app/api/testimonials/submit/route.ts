@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendTestimonialSubmittedAdminAlert } from '@/lib/email'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { stripDashes } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 // Public endpoint: the "Share your experience" form posts here. Submissions
 // start pending and are only shown on the site once an admin approves them.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`testimonial-submit:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
+  if (await isRateLimitedShared(`testimonial-submit:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

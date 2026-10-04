@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 
 // Captures a join application as soon as someone gets past the eligibility
 // step (or fills in step 2), even if they never reach payment. This is the
@@ -9,7 +9,7 @@ import { getClientIp, isRateLimited } from '@/lib/rate-limit'
 // people who reached the final Pay button.
 export async function POST(req: NextRequest) {
   try {
-    if (isRateLimited(`join-lead:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 30 })) {
+    if (await isRateLimitedShared(`join-lead:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 30 })) {
       return NextResponse.json({ error: 'Too many attempts.' }, { status: 429 })
     }
 

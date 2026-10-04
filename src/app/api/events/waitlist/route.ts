@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { sendWaitlistJoinedEmail, sendWaitlistJoinedAdminAlert } from '@/lib/email'
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 // Public: join the waitlist for a sold-out event.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`waitlist:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+  if (await isRateLimitedShared(`waitlist:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

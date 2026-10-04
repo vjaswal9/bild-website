@@ -1,5 +1,5 @@
 import { supabaseAdmin } from './supabase-admin'
-import { verifyPassword } from './admin-auth'
+import { verifyPassword, hashPassword, needsRehash } from './admin-auth'
 
 // The DB-stored password hash (set once an admin changes their password via
 // the Security page) is authoritative when present; otherwise falls back to
@@ -12,6 +12,18 @@ export async function verifyAdminPassword(candidate: string): Promise<boolean> {
   if (!candidate) return false
   const { data } = await supabaseAdmin.from('admin_settings').select('password_hash').eq('id', 1).maybeSingle()
   const storedHash = (data as { password_hash?: string | null } | null)?.password_hash
-  if (storedHash) return verifyPassword(candidate, storedHash)
+  if (storedHash) {
+    const ok = await verifyPassword(candidate, storedHash)
+    // Quietly move an older, cheaper hash up to the current strength now that
+    // we hold the plaintext. A failure here must never fail the sign-in.
+    if (ok && needsRehash(storedHash)) {
+      try {
+        await supabaseAdmin.from('admin_settings').update({ password_hash: await hashPassword(candidate) }).eq('id', 1)
+      } catch (e) {
+        console.error('Could not upgrade the admin password hash:', e)
+      }
+    }
+    return ok
+  }
   return !!process.env.ADMIN_PASSWORD && candidate === process.env.ADMIN_PASSWORD
 }

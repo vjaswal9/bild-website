@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
 // Public, self-serve: any approved business can pay to become Featured any
 // time via their standing token, no admin action required.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`featured-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+  if (await isRateLimitedShared(`featured-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

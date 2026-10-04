@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendRenewalSubmittedAdminAlert } from '@/lib/email'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 // document_expiry_date/delisted_at fields directly - only stages the renewal in
 // pending_* columns for an admin to approve or decline.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`renew:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
+  if (await isRateLimitedShared(`renew:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

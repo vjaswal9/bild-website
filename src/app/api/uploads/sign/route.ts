@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { str } from '@/lib/validate'
 
 export const dynamic = 'force-dynamic'
@@ -179,7 +179,7 @@ async function authorise(req: NextRequest, token: string, eventId: string): Prom
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req)
-  if (isRateLimited(`upload-sign:${ip}`, { windowMs: 10 * 60 * 1000, max: 40 })) {
+  if (await isRateLimitedShared(`upload-sign:${ip}`, { windowMs: 10 * 60 * 1000, max: 40 })) {
     return NextResponse.json({ error: 'Too many uploads. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

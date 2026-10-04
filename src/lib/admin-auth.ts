@@ -20,6 +20,21 @@ function secret(): string {
   return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || ''
 }
 
+// True once ADMIN_SESSION_SECRET is set, so the key that signs sessions is no
+// longer the same string as the bootstrap admin password.
+export function sessionSecretIsSeparate(): boolean {
+  return !!process.env.ADMIN_SESSION_SECRET
+}
+
+// The key links were signed with before ADMIN_SESSION_SECRET existed. Only the
+// non-expiring Google review links still honour it: those are already in
+// businesses' inboxes and cannot be re-sent, whereas an admin session just
+// asks you to sign in again.
+function legacyLinkSecret(): string {
+  const legacy = process.env.ADMIN_PASSWORD || ''
+  return legacy && legacy !== process.env.ADMIN_SESSION_SECRET ? legacy : ''
+}
+
 async function hmacHex(message: string, key: string): Promise<string> {
   const enc = new TextEncoder()
   const cryptoKey = await crypto.subtle.importKey(
@@ -95,7 +110,10 @@ export async function verifyMoneyToken(token?: string | null): Promise<boolean> 
 // ---------------------------------------------------------------------------
 // Password hashing (PBKDF2-SHA256) and random tokens - pure Web Crypto.
 // ---------------------------------------------------------------------------
-const PBKDF2_ITER = 100_000
+// OWASP's current guidance for PBKDF2-SHA256 is 600,000 rounds. Hashes made
+// earlier keep their own stored count and still verify; they are upgraded the
+// next time their owner signs in.
+export const PBKDF2_ITER = 600_000
 
 function bytesToHex(b: Uint8Array): string {
   return Array.from(b).map(x => x.toString(16).padStart(2, '0')).join('')
@@ -148,15 +166,24 @@ export async function signGoogleReviewsLinkToken(businessId: string): Promise<st
   return `${businessId}.${sig}`
 }
 
+// True when a stored hash was made with fewer rounds than we use now.
+export function needsRehash(stored?: string | null): boolean {
+  const parts = (stored || '').split('$')
+  return parts.length === 4 && parts[0] === 'pbkdf2' && Number(parts[1]) < PBKDF2_ITER
+}
+
 // Returns the business id the link belongs to, or null if it is not genuine.
 export async function verifyGoogleReviewsLinkToken(token?: string | null): Promise<string | null> {
-  const s = secret()
-  if (!token || !s) return null
+  if (!token) return null
   const dot = token.lastIndexOf('.')
   if (dot <= 0) return null
   const businessId = token.slice(0, dot)
   const sig = token.slice(dot + 1)
   if (!/^[0-9a-f-]{36}$/i.test(businessId)) return null
-  const expected = await hmacHex(`google-reviews:${businessId}`, s)
-  return timingSafeEqual(sig, expected) ? businessId : null
+  for (const key of [secret(), legacyLinkSecret()]) {
+    if (!key) continue
+    const expected = await hmacHex(`google-reviews:${businessId}`, key)
+    if (timingSafeEqual(sig, expected)) return businessId
+  }
+  return null
 }

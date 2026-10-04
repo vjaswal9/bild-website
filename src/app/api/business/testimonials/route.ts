@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { businessByManageToken } from '@/lib/business-token'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { str, uuid } from '@/lib/validate'
 import { sendBusinessTestimonialAdminAlert } from '@/lib/email'
 
@@ -16,7 +16,7 @@ const MAX_PENDING = 10
 // type a glowing quote, so what is being checked is that a real customer
 // really said it.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`business-testimonial:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 12 })) {
+  if (await isRateLimitedShared(`business-testimonial:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 12 })) {
     return NextResponse.json({ error: 'Too many submissions. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ADMIN_COOKIE, ADMIN_SESSION_MAX_AGE, signAdminToken } from '@/lib/admin-auth'
 import { verifyAdminPassword } from '@/lib/admin-password'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
-// Best-effort in-memory throttle. Serverless instances aren't shared, so this
-// isn't bulletproof, but it slows down brute-force attempts per instance.
-const attempts = new Map<string, { count: number; first: number }>()
-const WINDOW_MS = 10 * 60 * 1000 // 10 minutes
-const MAX_ATTEMPTS = 10
-
-function rateLimited(ip: string): boolean {
-  const now = Date.now()
-  const rec = attempts.get(ip)
-  if (!rec || now - rec.first > WINDOW_MS) {
-    attempts.set(ip, { count: 1, first: now })
-    return false
-  }
-  rec.count += 1
-  return rec.count > MAX_ATTEMPTS
-}
-
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
-  if (rateLimited(ip)) {
+  // Shared across every server instance, so the limit is real. 10 tries per 10
+  // minutes per address.
+  if (await isRateLimitedShared(`admin-login:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json(
       { error: 'Too many attempts. Please wait a few minutes and try again.' },
       { status: 429 }

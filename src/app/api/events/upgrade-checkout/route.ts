@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { cardFeeFils } from '@/lib/fees'
 
 export const dynamic = 'force-dynamic'
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 // always read from the registration's own upgrade_due_aed server-side, never
 // trusted from the client, so it can't be tampered with.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`upgrade-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+  if (await isRateLimitedShared(`upgrade-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

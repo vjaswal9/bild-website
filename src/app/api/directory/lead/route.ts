@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { optionalStr } from '@/lib/validate'
 
@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic'
 // two characters into a box would be hard to justify.
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req)
-  if (isRateLimited(`dir-lead:${ip}`, { windowMs: 60 * 1000, max: 12 })) {
+  if (await isRateLimitedShared(`dir-lead:${ip}`, { windowMs: 60 * 1000, max: 12 })) {
     return new NextResponse(null, { status: 204 })
   }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { verifyGoogleReviewsLinkToken } from '@/lib/admin-auth'
 import { resolvePlaceIdFromGoogleUrl, getGoogleReviews } from '@/lib/google-reviews'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { revalidatePublic, directoryPaths } from '@/lib/revalidate-public'
 import { sendGoogleReviewsActivatedAlert } from '@/lib/email'
 
@@ -50,7 +50,7 @@ function whyItFailed(u: URL): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`google-reviews-link:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+  if (await isRateLimitedShared(`google-reviews-link:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

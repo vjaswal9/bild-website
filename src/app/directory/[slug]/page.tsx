@@ -19,6 +19,7 @@ import ViewTracker from '@/components/directory/ViewTracker'
 import { parseInstagramHandle } from '@/lib/instagram'
 import { imageHasTransparency } from '@/lib/image-transparency'
 import { jsonLd } from '@/lib/json-ld'
+import { toEmbedUrl } from '@/lib/video-embed'
 
 // Prerendered and rebuilt on a 30-minute timer, rather than rendered on every
 // request.
@@ -227,10 +228,10 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
           </div>
         )}
 
-        {isFeaturedActive && biz.featured_video_url && (
+        {isFeaturedActive && toEmbedUrl(biz.featured_video_url) && (
           <div className="mb-6 rounded-xl overflow-hidden aspect-video">
             <iframe
-              src={biz.featured_video_url.replace('watch?v=', 'embed/')}
+              src={toEmbedUrl(biz.featured_video_url) as string}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

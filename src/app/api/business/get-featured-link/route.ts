@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { sendGetFeaturedLinkEmail } from '@/lib/email'
 
 // Public "resend my Get Featured link" endpoint - never exposes the token
 // directly, and always returns the same generic message regardless of
 // whether the email matched, so it can't be used to probe the directory.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`get-featured-link:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
+  if (await isRateLimitedShared(`get-featured-link:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

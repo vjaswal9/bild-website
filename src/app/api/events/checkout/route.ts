@@ -5,7 +5,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { isPastEvent, GuestEntry, Dietary } from '@/lib/events'
 import { cardFeeFils } from '@/lib/fees'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { readWithRetry } from '@/lib/db-retry'
 import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, seatingPositionFor } from '@/lib/seating-code'
@@ -56,7 +56,7 @@ const tryAgain = () => NextResponse.json(
 
 export async function POST(req: NextRequest) {
   try {
-    if (isRateLimited(`events-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 15 })) {
+    if (await isRateLimitedShared(`events-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 15 })) {
       return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
     }
 

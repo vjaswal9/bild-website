@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { normaliseEmail } from '@/lib/email-validate'
 import { normaliseInstagramHandle } from '@/lib/instagram'
 import { sendNewBusinessAlert } from '@/lib/email'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { resolvePlaceIdFromGoogleUrl } from '@/lib/google-reviews'
 import { stripDashes } from '@/lib/utils'
 import { str, httpUrl } from '@/lib/validate'
@@ -21,7 +21,7 @@ function slugify(s: string) {
 // Files (logo, licence/document) are uploaded to Storage by the client
 // beforehand; this route only inserts the record and alerts the admin team.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`business-submit:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
+  if (await isRateLimitedShared(`business-submit:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 5 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

@@ -3,12 +3,12 @@ import * as Sentry from '@sentry/nextjs'
 import { randomUUID } from 'crypto'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 
 export async function POST(req: NextRequest) {
   try {
-    if (isRateLimited(`join:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 8 })) {
+    if (await isRateLimitedShared(`join:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 8 })) {
       return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
     }
 

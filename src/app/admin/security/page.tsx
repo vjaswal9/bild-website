@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { ShieldCheck, Loader2, MailCheck } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ShieldCheck, Loader2, MailCheck, CheckCircle2, AlertTriangle } from 'lucide-react'
 import AdminNav from '@/components/admin/AdminNav'
 
 export default function AdminSecurityPage() {
@@ -11,6 +11,11 @@ export default function AdminSecurityPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sentTo, setSentTo] = useState('')
+  const [status, setStatus] = useState<{ sessionSecretSeparate: boolean; cronSecretSet: boolean; photoCheckOn: boolean } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/security-status').then(r => (r.ok ? r.json() : null)).then(setStatus).catch(() => {})
+  }, [])
 
   async function submit() {
     setError('')
@@ -37,7 +42,29 @@ export default function AdminSecurityPage() {
     <div className="min-h-screen bg-charcoal-900">
       <AdminNav subtitle="Security" />
 
-      <div className="max-w-lg mx-auto px-4 py-10">
+      <div className="max-w-lg mx-auto px-4 py-10 space-y-6">
+        {status && (
+          <div className="bg-charcoal-800 border border-charcoal-700 rounded-2xl p-6">
+            <h2 className="font-display text-lg font-bold text-white mb-3">Protection status</h2>
+            <ul className="space-y-3 text-sm">
+              <StatusRow
+                ok={status.sessionSecretSeparate}
+                good="Admin sessions are signed with their own secret."
+                bad="Admin sessions are signed with the admin password. In Vercel, add a long random ADMIN_SESSION_SECRET (Settings, Environment Variables), then redeploy. You will be asked to sign in again once."
+              />
+              <StatusRow
+                ok={status.cronSecretSet}
+                good="Scheduled jobs are locked behind a secret."
+                bad="CRON_SECRET is not set, so the scheduled jobs cannot run. Add it in Vercel."
+              />
+              <StatusRow
+                ok={status.photoCheckOn}
+                good="The automatic photo check is on."
+                bad="The automatic photo check is off. Add ANTHROPIC_API_KEY in Vercel."
+              />
+            </ul>
+          </div>
+        )}
         <div className="bg-charcoal-800 border border-charcoal-700 rounded-2xl p-6 sm:p-8">
           <h2 className="font-display text-2xl font-bold text-white flex items-center gap-2 mb-1">
             <ShieldCheck size={22} className="text-gold-400" /> Change admin password
@@ -91,5 +118,16 @@ function PwField({ label, value, onChange }: { label: string; value: string; onC
         className="w-full px-3 py-2.5 bg-charcoal-700 border border-charcoal-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-gold-500"
       />
     </div>
+  )
+}
+
+function StatusRow({ ok, good, bad }: { ok: boolean; good: string; bad: string }) {
+  return (
+    <li className="flex items-start gap-2">
+      {ok
+        ? <CheckCircle2 size={18} className="text-green-400 shrink-0 mt-0.5" />
+        : <AlertTriangle size={18} className="text-amber-400 shrink-0 mt-0.5" />}
+      <span className={ok ? 'text-gray-300' : 'text-amber-200'}>{ok ? good : bad}</span>
+    </li>
   )
 }

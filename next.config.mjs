@@ -1,5 +1,37 @@
 import { withSentryConfig } from '@sentry/nextjs/config'
 
+// The Content-Security-Policy being trialled. It is sent as REPORT-ONLY: a
+// browser that sees something it would have blocked posts a note to
+// /api/csp-report and carries on loading the page exactly as before, so this
+// cannot break the site. Once the reports have been quiet for a week or two it
+// can be turned into an enforcing header.
+//
+// What each part is for:
+//   script-src   only our own scripts plus the few third parties the site uses
+//                (Google Analytics, Instagram embeds). 'unsafe-inline' stays for
+//                now because Next.js writes small inline scripts into every page
+//                and giving them nonces would make every page render on demand
+//                instead of coming from cache.
+//   frame-src    which sites may appear inside a frame on our pages.
+//   object-src, base-uri, form-action   close off old tricks outright.
+const supabaseHost = 'https://mwzqlxhutpsuivgcuxtw.supabase.co'
+const isDev = process.env.NODE_ENV !== 'production'
+const cspReportOnly = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://www.google-analytics.com https://www.instagram.com https://static.cdninstagram.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  `connect-src 'self' ${supabaseHost} https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com`,
+  `media-src 'self' blob: ${supabaseHost}`,
+  "frame-src https://www.instagram.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com https://www.googletagmanager.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  'report-uri /api/csp-report',
+].join('; ')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Do not announce the framework in an X-Powered-By header on every response.
@@ -34,6 +66,8 @@ const nextConfig = {
           // Blocks framing. frame-ancestors is the modern rule; X-Frame-Options
           // is kept for older browsers that ignore it.
           { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+          // Trial run of a full policy. Report-only: reports problems, blocks nothing.
+          { key: 'Content-Security-Policy-Report-Only', value: cspReportOnly },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           // Send the full URL to ourselves, only the origin to other sites,
           // and nothing at all when downgrading to http.

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { stripDashes } from '@/lib/utils'
 import { revalidatePublic, directoryPaths } from '@/lib/revalidate-public'
+import { toEmbedUrl } from '@/lib/video-embed'
 
 // Public, token-gated: the business's standing "manage Featured content"
 // link posts here to update their extended profile content. Only usable
 // while Featured is active.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`featured-content:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 20 })) {
+  if (await isRateLimitedShared(`featured-content:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 20 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 
@@ -28,7 +29,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Your Featured status has lapsed. Renew to manage your content.' }, { status: 403 })
   }
 
-  const galleryUrls = Array.isArray(body.gallery_urls) ? body.gallery_urls.slice(0, 6) : []
+  // Photos can only be files uploaded to our own storage. Anything else a
+  // browser sent is dropped rather than stored and later shown to the public.
+  const storagePrefix = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-logos/`
+  const galleryUrls: string[] = Array.isArray(body.gallery_urls)
+    ? body.gallery_urls.filter((u: unknown): u is string => typeof u === 'string' && u.startsWith(storagePrefix)).slice(0, 6)
+    : []
+
+  // The video must be a YouTube or Vimeo link; it is stored in embed form.
+  const rawVideo = typeof body.video_url === 'string' ? body.video_url.trim() : ''
+  const videoEmbed = rawVideo ? toEmbedUrl(rawVideo) : null
+  if (rawVideo && !videoEmbed) {
+    return NextResponse.json({ error: 'The video link must be a YouTube or Vimeo address, for example https://www.youtube.com/watch?v=...' }, { status: 400 })
+  }
   const offers = Array.isArray(body.offers) ? body.offers.filter((o: string) => o?.trim()).slice(0, 10).map(stripDashes) : []
 
   const { error } = await supabaseAdmin
@@ -36,7 +49,7 @@ export async function POST(req: NextRequest) {
     .update({
       featured_bio: stripDashes(body.bio) || null,
       featured_gallery_urls: galleryUrls,
-      featured_video_url: body.video_url || null,
+      featured_video_url: videoEmbed,
       featured_offers: offers,
     })
     .eq('id', biz.id)

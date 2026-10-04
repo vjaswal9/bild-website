@@ -79,6 +79,11 @@ export async function GET(req: NextRequest) {
   const { data: pruned, error: pruneErr } = await supabaseAdmin.rpc('prune_directory_dedupe')
   if (pruneErr) console.error('directory stats: dedupe prune failed', pruneErr.message)
 
+  // Rate-limit counters older than a day are dead weight. Missing before the
+  // rate-limit migration has been run, so a failure here is only logged.
+  const { error: rlErr } = await supabaseAdmin.rpc('prune_rate_limits')
+  if (rlErr) console.error('rate limits: prune failed', rlErr.message)
+
   return NextResponse.json({
     ok: true,
     deleted,

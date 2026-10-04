@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
 // Public endpoint: the token-gated /directory/pay/[token] page posts here to
@@ -9,7 +9,7 @@ import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED } from '@/lib/featur
 // business's own is_bild_member value server-side, never trusted from the
 // client, so it can't be tampered with.
 export async function POST(req: NextRequest) {
-  if (isRateLimited(`listing-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+  if (await isRateLimitedShared(`listing-checkout:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
   }
 

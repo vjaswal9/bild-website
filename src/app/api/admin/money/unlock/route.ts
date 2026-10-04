@@ -4,7 +4,7 @@ import {
   signMoneyToken, verifyAdminToken,
 } from '@/lib/admin-auth'
 import { verifyAdminPassword } from '@/lib/admin-password'
-import { getClientIp, isRateLimited } from '@/lib/rate-limit'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   if (!(await verifyAdminToken(req.cookies.get(ADMIN_COOKIE)?.value))) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
-  if (isRateLimited(`money-unlock:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+  if (await isRateLimitedShared(`money-unlock:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
     return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes.' }, { status: 429 })
   }
 
