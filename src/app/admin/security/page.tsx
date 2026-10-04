@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ShieldCheck, Loader2, MailCheck, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ShieldCheck, Loader2, MailCheck, CheckCircle2, AlertTriangle, Smartphone } from 'lucide-react'
 import AdminNav from '@/components/admin/AdminNav'
 
 export default function AdminSecurityPage() {
@@ -11,7 +11,7 @@ export default function AdminSecurityPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sentTo, setSentTo] = useState('')
-  const [status, setStatus] = useState<{ sessionSecretSeparate: boolean; cronSecretSet: boolean; photoCheckOn: boolean } | null>(null)
+  const [status, setStatus] = useState<{ twoFactorOn: boolean; sessionSecretSeparate: boolean; cronSecretSet: boolean; photoCheckOn: boolean } | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/security-status').then(r => (r.ok ? r.json() : null)).then(setStatus).catch(() => {})
@@ -48,6 +48,11 @@ export default function AdminSecurityPage() {
             <h2 className="font-display text-lg font-bold text-white mb-3">Protection status</h2>
             <ul className="space-y-3 text-sm">
               <StatusRow
+                ok={status.twoFactorOn}
+                good="Two-factor login is on for the admin area."
+                bad="Two-factor login is off. Set it up in the card below so a password alone cannot open the admin area."
+              />
+              <StatusRow
                 ok={status.sessionSecretSeparate}
                 good="Admin sessions are signed with their own secret."
                 bad="Admin sessions are signed with the admin password. In Vercel, add a long random ADMIN_SESSION_SECRET (Settings, Environment Variables), then redeploy. You will be asked to sign in again once."
@@ -65,6 +70,8 @@ export default function AdminSecurityPage() {
             </ul>
           </div>
         )}
+        <TwoFactorCard />
+
         <div className="bg-charcoal-800 border border-charcoal-700 rounded-2xl p-6 sm:p-8">
           <h2 className="font-display text-2xl font-bold text-white flex items-center gap-2 mb-1">
             <ShieldCheck size={22} className="text-gold-400" /> Change admin password
@@ -129,5 +136,139 @@ function StatusRow({ ok, good, bad }: { ok: boolean; good: string; bad: string }
         : <AlertTriangle size={18} className="text-amber-400 shrink-0 mt-0.5" />}
       <span className={ok ? 'text-gray-300' : 'text-amber-200'}>{ok ? good : bad}</span>
     </li>
+  )
+}
+
+type TwoFactorStatus = { available: boolean; enabled: boolean; recoveryCodesLeft: number }
+
+// Two-factor login: scan a QR code with an authenticator app, confirm it works
+// by typing a code, then keep the one-time recovery codes somewhere safe.
+function TwoFactorCard() {
+  const [status, setStatus] = useState<TwoFactorStatus | null>(null)
+  const [step, setStep] = useState<'idle' | 'scan' | 'codes' | 'off'>('idle')
+  const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
+  const [qr, setQr] = useState('')
+  const [secret, setSecret] = useState('')
+  const [recovery, setRecovery] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function load() {
+    const res = await fetch('/api/admin/2fa')
+    if (res.ok) setStatus(await res.json())
+  }
+  useEffect(() => { load() }, [])
+
+  async function post(path: string, body: object) {
+    setBusy(true); setError('')
+    try {
+      const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(data.error || 'Something went wrong. Please try again.'); return null }
+      return data
+    } finally { setBusy(false) }
+  }
+
+  async function start() {
+    const d = await post('/api/admin/2fa/setup', { password })
+    if (d) { setQr(d.qr); setSecret(d.secret); setPassword(''); setCode(''); setStep('scan') }
+  }
+  async function confirm() {
+    const d = await post('/api/admin/2fa/enable', { code })
+    if (d) { setRecovery(d.recoveryCodes); setCode(''); setQr(''); setSecret(''); setStep('codes') }
+  }
+  async function turnOff() {
+    const d = await post('/api/admin/2fa/disable', { password, code })
+    if (d) { setPassword(''); setCode(''); setStep('idle'); load() }
+  }
+  function finish() { setRecovery([]); setStep('idle'); load() }
+
+  const field = 'w-full px-4 py-3 rounded-xl bg-charcoal-700 border border-charcoal-600 text-white focus:outline-none focus:ring-2 focus:ring-gold-500 placeholder-gray-500'
+  const primary = 'inline-flex items-center justify-center gap-2 bg-gold-500 hover:bg-gold-600 text-white px-5 py-3 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50'
+
+  if (!status) return null
+
+  return (
+    <div className="bg-charcoal-800 border border-charcoal-700 rounded-2xl p-6 sm:p-8">
+      <h2 className="font-display text-2xl font-bold text-white flex items-center gap-2 mb-1">
+        <Smartphone size={22} className="text-gold-400" /> Two-factor login
+      </h2>
+
+      {!status.available ? (
+        <p className="text-amber-200 text-sm mt-2">
+          This needs one database update first: run <span className="font-mono">supabase/admin-2fa.sql</span> in Supabase, then refresh this page.
+        </p>
+      ) : step === 'codes' ? (
+        <div className="space-y-4 mt-3">
+          <p className="text-green-300 text-sm font-semibold">Two-factor login is now on.</p>
+          <p className="text-gray-300 text-sm">
+            Save these recovery codes somewhere safe, such as a password manager. Each works once, in place of the
+            app code, if you lose your phone. They are shown only now.
+          </p>
+          <div className="grid grid-cols-2 gap-2 font-mono text-sm text-white bg-charcoal-900 rounded-xl p-4">
+            {recovery.map(c => <span key={c}>{c}</span>)}
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <button type="button" onClick={() => navigator.clipboard?.writeText(recovery.join('\n'))} className="border border-charcoal-600 text-gray-200 hover:bg-charcoal-700 px-4 py-2.5 rounded-xl text-sm">Copy codes</button>
+            <button type="button" onClick={finish} className={primary}>I have saved them</button>
+          </div>
+        </div>
+      ) : step === 'scan' ? (
+        <div className="space-y-4 mt-3">
+          <p className="text-gray-300 text-sm">
+            1. Open an authenticator app (Google Authenticator, Microsoft Authenticator, Authy or 1Password) and scan this code.
+          </p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qr} alt="QR code to scan with your authenticator app" width={240} height={240} className="rounded-xl bg-white p-1" />
+          <p className="text-gray-400 text-xs">
+            Cannot scan? Enter this key in the app instead: <span className="font-mono text-gray-200 break-all">{secret}</span>
+          </p>
+          <p className="text-gray-300 text-sm">2. Type the 6-digit code the app now shows to confirm it works.</p>
+          <label htmlFor="tf-code" className="sr-only">6-digit code</label>
+          <input id="tf-code" value={code} onChange={e => setCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" placeholder="6-digit code" className={field} />
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <div className="flex gap-3">
+            <button type="button" onClick={confirm} disabled={busy || code.replace(/\s/g, '').length < 6} className={primary}>
+              {busy ? <><Loader2 size={16} className="animate-spin" /> Checking...</> : 'Turn on two-factor login'}
+            </button>
+            <button type="button" onClick={() => { setStep('idle'); setError('') }} className="border border-charcoal-600 text-gray-200 hover:bg-charcoal-700 px-4 py-2.5 rounded-xl text-sm">Cancel</button>
+          </div>
+        </div>
+      ) : status.enabled ? (
+        <div className="space-y-4 mt-3">
+          <p className="flex items-center gap-2 text-green-300 text-sm"><CheckCircle2 size={18} /> On. Signing in needs your password and a code from your phone.</p>
+          <p className="text-gray-400 text-sm">{status.recoveryCodesLeft} recovery code{status.recoveryCodesLeft === 1 ? '' : 's'} left.</p>
+          {step === 'off' ? (
+            <div className="space-y-3">
+              <label htmlFor="tf-off-pw" className="block text-sm text-gray-300">Current password</label>
+              <input id="tf-off-pw" type="password" value={password} onChange={e => setPassword(e.target.value)} className={field} />
+              <label htmlFor="tf-off-code" className="block text-sm text-gray-300">Code from your app (or a recovery code)</label>
+              <input id="tf-off-code" value={code} onChange={e => setCode(e.target.value)} autoComplete="one-time-code" className={field} />
+              {error && <p className="text-red-400 text-sm">{error}</p>}
+              <div className="flex gap-3">
+                <button type="button" onClick={turnOff} disabled={busy || !password || !code} className={primary}>{busy ? 'Turning off...' : 'Turn off two-factor login'}</button>
+                <button type="button" onClick={() => { setStep('idle'); setError('') }} className="border border-charcoal-600 text-gray-200 hover:bg-charcoal-700 px-4 py-2.5 rounded-xl text-sm">Cancel</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" onClick={() => { setStep('off'); setError('') }} className="border border-charcoal-600 text-gray-200 hover:bg-charcoal-700 px-4 py-2.5 rounded-xl text-sm">Turn off...</button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4 mt-3">
+          <p className="text-gray-400 text-sm">
+            Adds a second step to signing in: a 6-digit code from an app on your phone. A stolen or guessed password
+            alone then cannot open the admin area.
+          </p>
+          <label htmlFor="tf-pw" className="block text-sm text-gray-300">Confirm your password to begin</label>
+          <input id="tf-pw" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" className={field} />
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <button type="button" onClick={start} disabled={busy || !password} className={primary}>
+            {busy ? <><Loader2 size={16} className="animate-spin" /> Starting...</> : 'Set up two-factor login'}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

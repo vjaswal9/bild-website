@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ADMIN_COOKIE, verifyAdminToken, sessionSecretIsSeparate } from '@/lib/admin-auth'
 import { imageCheckConfigured } from '@/lib/image-check'
+import { getTwoFactorState } from '@/lib/admin-2fa'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +11,9 @@ export async function GET(req: NextRequest) {
   if (!(await verifyAdminToken(req.cookies.get(ADMIN_COOKIE)?.value))) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
+  const tf = await getTwoFactorState()
   return NextResponse.json({
+    twoFactorOn: tf.ok && tf.state.enabled,
     sessionSecretSeparate: sessionSecretIsSeparate(),
     cronSecretSet: !!process.env.CRON_SECRET,
     photoCheckOn: imageCheckConfigured(),
