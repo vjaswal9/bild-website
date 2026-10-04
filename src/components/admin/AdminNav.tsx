@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Store, Users, PartyPopper, KeyRound, LogOut, Images, Quote, LineChart, Milestone, Mail, BadgeCheck, Star } from 'lucide-react'
+import { LayoutDashboard, Store, Users, PartyPopper, KeyRound, LogOut, Images, Quote, LineChart, Milestone, Mail, BadgeCheck, Star, ScanEye } from 'lucide-react'
 
 const links = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,6 +13,7 @@ const links = [
   { href: '/admin/events', label: 'Events', icon: PartyPopper },
   { href: '/admin/reviews', label: 'Post Event Google Review Request', icon: Star },
   { href: '/admin/faces', label: 'Faces', icon: Images },
+  { href: '/admin/image-review', label: 'Photo check', icon: ScanEye },
   { href: '/admin/milestones', label: 'Milestones', icon: Milestone },
   { href: '/admin/testimonials', label: 'BILD Testimonials', icon: Quote },
   { href: '/admin/business-testimonials', label: 'Biz Testimonials', icon: BadgeCheck },

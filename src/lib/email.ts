@@ -747,6 +747,29 @@ export async function sendBrokenLinkAdminAlert(opts: {
   )
 }
 
+// The daily photo check found pictures that may show alcohol.
+export async function sendImageReviewAdminAlert(opts: { newlyFlagged: number; totalWaiting: number }) {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bild.ae'
+  const n = opts.newlyFlagged
+  const html = adminAlertShell({
+    heading: n === 1 ? 'A photo may show alcohol' : `${n} photos may show alcohol`,
+    bodyHtml: `
+      <p>The automatic photo check found ${n === 1 ? 'a photo' : `${n} photos`} on the website with bottles, labels or
+      a drinks shelf in view.${opts.totalWaiting > n ? ` ${opts.totalWaiting} photos are now waiting for a decision.` : ''}</p>
+      <p>Nothing has been changed. Open the review page to see each photo with the suggested areas marked, then choose
+      to blur them or keep the photo as it is.</p>
+      <p><a href="${siteUrl}/admin/image-review" style="color:#C8861A">Review the photos</a></p>
+    `,
+    footer: 'Sent by the daily photo check.',
+  })
+  await sendResendEmail(
+    ADMIN_ALERT_EMAILS,
+    `BILD: ${n === 1 ? '1 photo needs' : `${n} photos need`} a look`,
+    html,
+    'Photo check alert',
+  )
+}
+
 // Waitlist: told them they are on the list.
 export async function sendWaitlistJoinedEmail(opts: {
   to: string; firstName?: string; eventTitle: string; ticketsWanted: number
@@ -1655,12 +1678,12 @@ function bizEmailShell(opts: { heading: string; bodyHtml: string; ctaUrl?: strin
   </div>`
 }
 
-function adminAlertShell(opts: { heading: string; bodyHtml: string }) {
+function adminAlertShell(opts: { heading: string; bodyHtml: string; footer?: string }) {
   return `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto">
     <h2 style="color:#0E0E0E;font-size:18px;margin:0 0 4px">${opts.heading}</h2>
     <div style="color:#555;font-size:14px;line-height:1.6;margin:0 0 12px">${opts.bodyHtml}</div>
-    <p style="color:#999;font-size:12px;margin-top:14px">Full details are in the admin business directory list.</p>
+    <p style="color:#999;font-size:12px;margin-top:14px">${opts.footer ?? 'Full details are in the admin business directory list.'}</p>
   </div>`
 }
 

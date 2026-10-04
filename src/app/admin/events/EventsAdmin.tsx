@@ -2943,6 +2943,7 @@ function GalleryManager({ event }: { event: EventRow }) {
   async function onFiles(files: FileList | null) {
     if (!files || files.length === 0) return
     setUploading(true)
+    let uploadedImage = false
     try {
       for (const file of Array.from(files)) {
         // Auto-resize/compress photos; warn on oversized videos (no in-browser transcode).
@@ -2967,9 +2968,25 @@ function GalleryManager({ event }: { event: EventRow }) {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ event_id: event.id, url, type }),
         })
+        if (type === 'image') uploadedImage = true
       }
       router.refresh()
     } finally { setUploading(false) }
+    if (uploadedImage) checkForAlcohol()
+  }
+
+  // The automatic photo check: looks at what was just uploaded and, if
+  // something shows bottles or labels, offers to go and review it. Silent when
+  // nothing is found or the check is not switched on.
+  async function checkForAlcohol() {
+    try {
+      const res = await fetch('/api/admin/image-check/scan', { method: 'POST' })
+      if (!res.ok) return
+      const d = await res.json()
+      if (d.flagged > 0 && confirm(`The photo check found ${d.flagged} photo${d.flagged === 1 ? '' : 's'} that may show alcohol. Review ${d.flagged === 1 ? 'it' : 'them'} now?`)) {
+        router.push('/admin/image-review')
+      }
+    } catch { /* the daily check will pick it up */ }
   }
 
   async function remove(url: string) {
