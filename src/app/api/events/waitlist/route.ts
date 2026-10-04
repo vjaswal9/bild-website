@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { sendWaitlistJoinedEmail, sendWaitlistJoinedAdminAlert } from '@/lib/email'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     : await supabaseAdmin.from('event_waitlist').insert([{ ...fields, event_id: eventId, email: normalised }])
 
   if (error) {
-    console.error('Waitlist write failed:', error)
+    reportError('Waitlist write failed:', error)
     return NextResponse.json({ error: 'Could not add you to the waitlist. Please try again.' }, { status: 500 })
   }
 

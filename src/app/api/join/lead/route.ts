@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { str, stringMap, uuid } from '@/lib/validate'
+import { reportError } from '@/lib/report-error'
 
 // Captures a join application as soon as someone gets past the eligibility
 // step (or fills in step 2), even if they never reach payment. This is the
@@ -62,13 +63,13 @@ export async function POST(req: NextRequest) {
       }, { onConflict: 'id' })
 
     if (error) {
-      console.error('join lead: could not save', error.message)
+      reportError('join lead: could not save', error.message)
       return NextResponse.json({ error: 'Could not save your progress.' }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
   } catch (e) {
-    console.error('join lead failed:', e)
+    reportError('join lead failed:', e)
     return NextResponse.json({ error: 'Unexpected error.' }, { status: 500 })
   }
 }

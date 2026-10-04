@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendRenewalSubmittedAdminAlert } from '@/lib/email'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     .eq('id', biz.id)
 
   if (error) {
-    console.error('business renew failed:', error.message)
+    reportError('business renew failed:', error.message)
     return NextResponse.json({ error: 'Could not save your renewal. Please try again.' }, { status: 500 })
   }
 

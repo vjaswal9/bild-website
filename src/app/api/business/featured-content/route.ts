@@ -4,6 +4,7 @@ import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { stripDashes } from '@/lib/utils'
 import { revalidatePublic, directoryPaths } from '@/lib/revalidate-public'
 import { toEmbedUrl } from '@/lib/video-embed'
+import { reportError } from '@/lib/report-error'
 
 // Public, token-gated: the business's standing "manage Featured content"
 // link posts here to update their extended profile content. Only usable
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
     .eq('id', biz.id)
 
   if (error) {
-    console.error('featured content save failed:', error.message)
+    reportError('featured content save failed:', error.message)
     return NextResponse.json({ error: 'Could not save. Please try again.' }, { status: 500 })
   }
 

@@ -4,6 +4,7 @@ import { businessByManageToken } from '@/lib/business-token'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { str, uuid } from '@/lib/validate'
 import { sendBusinessTestimonialAdminAlert } from '@/lib/email'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) {
-    console.error('Could not save a business testimonial:', error)
+    reportError('Could not save a business testimonial:', error)
     return NextResponse.json({ error: 'Could not save that just now. Please try again.' }, { status: 500 })
   }
 

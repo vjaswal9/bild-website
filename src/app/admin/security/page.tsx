@@ -11,7 +11,7 @@ export default function AdminSecurityPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sentTo, setSentTo] = useState('')
-  const [status, setStatus] = useState<{ twoFactorOn: boolean; sessionSecretSeparate: boolean; cronSecretSet: boolean; photoCheckOn: boolean } | null>(null)
+  const [status, setStatus] = useState<{ errorMonitoringOn: boolean; twoFactorOn: boolean; sessionSecretSeparate: boolean; cronSecretSet: boolean; photoCheckOn: boolean } | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/security-status').then(r => (r.ok ? r.json() : null)).then(setStatus).catch(() => {})
@@ -61,6 +61,11 @@ export default function AdminSecurityPage() {
                 ok={status.cronSecretSet}
                 good="Scheduled jobs are locked behind a secret."
                 bad="CRON_SECRET is not set, so the scheduled jobs cannot run. Add it in Vercel."
+              />
+              <StatusRow
+                ok={status.errorMonitoringOn}
+                good="Error monitoring (Sentry) is on for the live site."
+                bad="Error monitoring is off. Add SENTRY_DSN in Vercel so server errors are reported."
               />
               <StatusRow
                 ok={status.photoCheckOn}

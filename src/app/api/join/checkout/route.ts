@@ -7,6 +7,7 @@ import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { stringMap, uuid } from '@/lib/validate'
 import { siteOrigin } from '@/lib/site-url'
+import { reportError } from '@/lib/report-error'
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single()
       if (error || !updated) {
-        console.error('join checkout: could not update member', error?.message)
+        reportError('join checkout: could not update member', error?.message)
         return NextResponse.json({ error: 'Could not start your application. Please try again.' }, { status: 500 })
       }
       member = updated
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single()
       if (error || !inserted) {
-        console.error('join checkout: could not create member', error?.message)
+        reportError('join checkout: could not create member', error?.message)
         return NextResponse.json({ error: 'Could not start your application. Please try again.' }, { status: 500 })
       }
       member = inserted

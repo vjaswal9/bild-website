@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   }
   const tf = await getTwoFactorState()
   return NextResponse.json({
+    errorMonitoringOn: !!(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN),
     twoFactorOn: tf.ok && tf.state.enabled,
     sessionSecretSeparate: sessionSecretIsSeparate(),
     cronSecretSet: !!process.env.CRON_SECRET,

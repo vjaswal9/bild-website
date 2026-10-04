@@ -8,6 +8,7 @@ import { resolvePlaceIdFromGoogleUrl } from '@/lib/google-reviews'
 import { stripDashes } from '@/lib/utils'
 import { str, httpUrl } from '@/lib/validate'
 import { isVerifiedMemberContact } from '@/lib/member-match'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabaseAdmin.from('business_submissions').insert([payload])
   if (error) {
-    console.error('business submit failed:', error.message)
+    reportError('business submit failed:', error.message)
     return NextResponse.json({ error: 'Could not save your application. Please try again.' }, { status: 500 })
   }
 

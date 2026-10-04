@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { str } from '@/lib/validate'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -220,7 +221,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin.storage.from(spec.bucket).createSignedUploadUrl(path)
   if (error || !data) {
-    console.error('Could not create a signed upload URL:', error)
+    reportError('Could not create a signed upload URL:', error)
     return NextResponse.json({ error: 'Could not start the upload. Please try again.' }, { status: 500 })
   }
 

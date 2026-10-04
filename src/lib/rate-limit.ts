@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { reportError } from '@/lib/report-error'
 
 // Best-effort in-memory rate limiter, keyed per-IP per-bucket. Serverless
 // instances aren't shared, so this isn't bulletproof, but it stops a simple
@@ -41,7 +42,7 @@ export async function isRateLimitedShared(key: string, opts: { windowMs: number;
   } catch (e) {
     if (!warnedSharedDown) {
       warnedSharedDown = true
-      console.error('Shared rate limiter unavailable, using per-instance counting:', e instanceof Error ? e.message : e)
+      reportError('Shared rate limiter unavailable, using per-instance counting:', e instanceof Error ? e.message : e)
     }
     return isRateLimited(key, opts)
   }

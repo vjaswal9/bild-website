@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { optionalStr } from '@/lib/validate'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
   const { error } = await supabaseAdmin
     .from('directory_leads')
     .upsert(row, { onConflict: 'email' })
-  if (error) console.error('directory lead: could not save', error.message)
+  if (error) reportError('directory lead: could not save', error.message)
 
   return new NextResponse(null, { status: 204 })
 }

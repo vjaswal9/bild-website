@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { sendTestimonialSubmittedAdminAlert } from '@/lib/email'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { stripDashes } from '@/lib/utils'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   const { error } = await supabaseAdmin.from('testimonials').insert([payload])
   if (error) {
-    console.error('testimonial submit failed:', error.message)
+    reportError('testimonial submit failed:', error.message)
     return NextResponse.json({ error: 'Could not save your review. Please try again.' }, { status: 500 })
   }
 

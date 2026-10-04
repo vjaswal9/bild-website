@@ -11,6 +11,7 @@ import { readWithRetry } from '@/lib/db-retry'
 import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, seatingPositionFor } from '@/lib/seating-code'
 import { siteOrigin } from '@/lib/site-url'
 import { str } from '@/lib/validate'
+import { reportError } from '@/lib/report-error'
 
 export const dynamic = 'force-dynamic'
 
@@ -257,7 +258,7 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (regErr || !reg) {
-      console.error('checkout: could not save registration', regErr?.message)
+      reportError('checkout: could not save registration', regErr?.message)
       return NextResponse.json({ error: 'We could not book this event just now. Please try again in a moment.' }, { status: 500 })
     }
 
