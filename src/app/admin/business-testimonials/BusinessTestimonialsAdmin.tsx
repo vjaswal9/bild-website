@@ -161,7 +161,7 @@ export default function BusinessTestimonialsAdmin() {
                       ) : r.businessName}
                     </p>
                     <p className="text-gray-500 text-xs mt-0.5 flex items-center gap-1.5">
-                      <Clock size={11} /> {new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <Clock size={11} /> {new Date(r.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai', day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
                   <button

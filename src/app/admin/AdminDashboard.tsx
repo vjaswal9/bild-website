@@ -671,7 +671,7 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                       )}
                     </div>
                     <p className="text-gray-400 text-sm">{sub.owner_name} · {sub.location}</p>
-                    <p className="text-gray-500 text-xs mt-1">Submitted {new Date(sub.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-gray-500 text-xs mt-1">Submitted {new Date(sub.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
@@ -922,7 +922,7 @@ function BrokenLinksSection({ businesses, allWithWebsites, onEdit }: {
         <p className="text-gray-500 text-xs mt-3">
           {allWithWebsites.length} listing{allWithWebsites.length === 1 ? '' : 's'} with a website ·{' '}
           {lastChecked
-            ? `last checked ${new Date(lastChecked).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+            ? `last checked ${new Date(lastChecked).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai', day: 'numeric', month: 'short', year: 'numeric' })}`
             : 'not checked yet, the first run is on Monday'}
         </p>
       </div>
@@ -1063,7 +1063,7 @@ function LicensesSection({
                 <div>
                   <p className="text-white font-medium">{s.business_country === 'UK' ? '🇬🇧' : '🇦🇪'} {s.business_name}</p>
                   <p className="text-gray-400 text-sm">
-                    Document expired {s.document_expiry_date} · delisted {s.delisted_at ? new Date(s.delisted_at).toLocaleDateString('en-GB') : ''}
+                    Document expired {s.document_expiry_date} · delisted {s.delisted_at ? new Date(s.delisted_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' }) : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -1184,7 +1184,7 @@ function BillingSection({
                 key={s.id}
                 s={s}
                 dateLabel="Email sent"
-                dateValue={s.reviewed_at ? new Date(s.reviewed_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
+                dateValue={s.reviewed_at ? new Date(s.reviewed_at).toLocaleString('en-GB', { timeZone: 'Asia/Dubai', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown'}
                 badge={{ label: 'Awaiting payment', className: 'bg-orange-500/20 text-orange-400' }}
               />
             ))}
@@ -1204,7 +1204,7 @@ function BillingSection({
         ) : (
           <div className="divide-y divide-charcoal-700/60">
             {listingRenewingSoon.map(s => (
-              <BillingRow key={s.id} s={s} dateLabel="Renews" dateValue={new Date(s.listing_paid_until!).toLocaleDateString('en-GB')} badge={{ label: 'Reminded', className: 'bg-yellow-500/20 text-yellow-400' }} />
+              <BillingRow key={s.id} s={s} dateLabel="Renews" dateValue={new Date(s.listing_paid_until!).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })} badge={{ label: 'Reminded', className: 'bg-yellow-500/20 text-yellow-400' }} />
             ))}
           </div>
         )}
@@ -1222,7 +1222,7 @@ function BillingSection({
         ) : (
           <div className="divide-y divide-charcoal-700/60">
             {listingExpired.map(s => (
-              <BillingRow key={s.id} s={s} dateLabel="Expired" dateValue={new Date(s.listing_paid_until!).toLocaleDateString('en-GB')} badge={{ label: 'Hidden', className: 'bg-red-500/20 text-red-400' }} />
+              <BillingRow key={s.id} s={s} dateLabel="Expired" dateValue={new Date(s.listing_paid_until!).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })} badge={{ label: 'Hidden', className: 'bg-red-500/20 text-red-400' }} />
             ))}
           </div>
         )}
@@ -1240,7 +1240,7 @@ function BillingSection({
         ) : (
           <div className="divide-y divide-charcoal-700/60">
             {featuredRenewingSoon.map(s => (
-              <BillingRow key={s.id} s={s} dateLabel="Renews" dateValue={new Date(s.featured_paid_until!).toLocaleDateString('en-GB')} badge={{ label: 'Reminded', className: 'bg-yellow-500/20 text-yellow-400' }} />
+              <BillingRow key={s.id} s={s} dateLabel="Renews" dateValue={new Date(s.featured_paid_until!).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })} badge={{ label: 'Reminded', className: 'bg-yellow-500/20 text-yellow-400' }} />
             ))}
           </div>
         )}
@@ -1258,7 +1258,7 @@ function BillingSection({
         ) : (
           <div className="divide-y divide-charcoal-700/60">
             {featuredExpired.map(s => (
-              <BillingRow key={s.id} s={s} dateLabel="Expired" dateValue={new Date(s.featured_paid_until!).toLocaleDateString('en-GB')} badge={{ label: 'Unfeatured', className: 'bg-red-500/20 text-red-400' }} />
+              <BillingRow key={s.id} s={s} dateLabel="Expired" dateValue={new Date(s.featured_paid_until!).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })} badge={{ label: 'Unfeatured', className: 'bg-red-500/20 text-red-400' }} />
             ))}
           </div>
         )}

@@ -78,7 +78,7 @@ export default function MembersTable({ members }: { members: Member[] }) {
 
   async function sendReminder(m: Member) {
     if (m.abandoned_reminder_sent_at) {
-      const sentOn = new Date(m.abandoned_reminder_sent_at).toLocaleDateString('en-GB')
+      const sentOn = new Date(m.abandoned_reminder_sent_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })
       if (!confirm(`A reminder email was already sent to ${m.full_name} on ${sentOn}. Send it again?`)) return
     }
     setSendingId(m.id)
@@ -188,9 +188,9 @@ export default function MembersTable({ members }: { members: Member[] }) {
                   </div>
                 </td>
                 <td className="px-5 py-3 text-gray-500 text-xs">
-                  {new Date(m.created_at).toLocaleDateString('en-GB')} {new Date(m.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(m.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })} {new Date(m.created_at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dubai', hour: '2-digit', minute: '2-digit' })}
                 </td>
-                <td className="px-5 py-3 text-gray-500 text-xs">{m.paid_at ? new Date(m.paid_at).toLocaleDateString('en-GB') : '-'}</td>
+                <td className="px-5 py-3 text-gray-500 text-xs">{m.paid_at ? new Date(m.paid_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' }) : '-'}</td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-end gap-1">
                     {isAbandoned(m) && (
@@ -199,7 +199,7 @@ export default function MembersTable({ members }: { members: Member[] }) {
                           onClick={() => sendReminder(m)}
                           disabled={sendingId === m.id}
                           className="p-2 text-green-400 hover:text-green-300 disabled:opacity-50"
-                          title={`Reminder email sent on ${new Date(m.abandoned_reminder_sent_at).toLocaleDateString('en-GB')} ${new Date(m.abandoned_reminder_sent_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} - click to send again`}
+                          title={`Reminder email sent on ${new Date(m.abandoned_reminder_sent_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })} ${new Date(m.abandoned_reminder_sent_at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dubai', hour: '2-digit', minute: '2-digit' })} - click to send again`}
                         >
                           {sendingId === m.id ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                         </button>
@@ -215,7 +215,7 @@ export default function MembersTable({ members }: { members: Member[] }) {
                       ) : (
                         <span
                           className="p-2 text-gray-700"
-                          title={`They may still be paying. Available from ${reminderReadyAt(m).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`}
+                          title={`They may still be paying. Available from ${reminderReadyAt(m).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dubai', hour: '2-digit', minute: '2-digit' })}`}
                         >
                           <Mail size={15} />
                         </span>

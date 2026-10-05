@@ -84,7 +84,7 @@ function TestimonialCard({ t, business }: { t: Testimonial; business?: { name: s
           )}
         </div>
       )}
-      <p className="text-gray-500 text-xs mb-4">Submitted {new Date(t.created_at).toLocaleDateString('en-GB')}</p>
+      <p className="text-gray-500 text-xs mb-4">Submitted {new Date(t.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' })}</p>
       <div className="flex gap-2">
         {t.status !== 'approved' && (
           <button onClick={() => setStatus('approved')} disabled={processing}

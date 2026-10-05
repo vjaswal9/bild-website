@@ -403,7 +403,7 @@ function AdminsCard() {
               <p className="text-gray-400 text-xs truncate">{a.email}</p>
               <p className="text-gray-500 text-xs">
                 {a.active
-                  ? (a.last_login_at ? `Last signed in ${new Date(a.last_login_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}` : 'Never signed in')
+                  ? (a.last_login_at ? `Last signed in ${new Date(a.last_login_at).toLocaleString('en-GB', { timeZone: 'Asia/Dubai', dateStyle: 'medium', timeStyle: 'short' })}` : 'Never signed in')
                   : 'Invitation pending, not yet accepted'}
               </p>
             </div>
