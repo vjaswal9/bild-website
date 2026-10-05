@@ -34,7 +34,7 @@ export default function HeroPhoto({
   // part that matters is shown there instead.
   images: { src: string; alt: string; position?: string; mobileSrc?: string; scrim?: number }[]
   googleRating?: { rating: number; totalReviews: number; mapsUrl: string } | null
-  nextEvent?: { title: string; date: string; slug: string } | null
+  nextEvent?: { title: string; date: string; slug: string; soldOut?: boolean } | null
   memberCount?: string
 }) {
   const slides = images.length ? images : []
@@ -276,6 +276,9 @@ export default function HeroPhoto({
                     <span className="block text-white/60 text-sm mt-0.5">
                       {new Date(nextEvent.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'Asia/Dubai' })}
                     </span>
+                    {nextEvent.soldOut && (
+                      <span className="inline-block mt-1.5 bg-red-600 text-white text-[11px] font-extrabold tracking-[0.18em] uppercase px-2.5 py-0.5 rounded">Sold out</span>
+                    )}
                   </Link>
                 </dd>
               </div>

@@ -16,7 +16,7 @@ import FAQSection from '@/components/ui/FAQSection'
 import Link from 'next/link'
 import Reveal from '@/components/anim/Reveal'
 import { btnOutline } from '@/lib/ui'
-import { getPublishedEvents } from '@/lib/events-server'
+import { getPublishedEvents, getRemainingCapacities } from '@/lib/events-server'
 import { isPastEvent } from '@/lib/events'
 import { LAUNCH_MODE } from '@/lib/launch'
 import { ELIGIBILITY_SUMMARY } from '@/lib/eligibility'
@@ -41,6 +41,9 @@ export default async function Home() {
     getGoogleReviews(),
   ])
   const upcomingEvents = allEvents.filter(e => !isPastEvent(e)).slice(0, 3)
+  // Which of these are sold out. Read through the cacheable client, so the
+  // home page stays prerendered (see getRemainingCapacities).
+  const remaining = await getRemainingCapacities(upcomingEvents)
 
   return (
     <>
@@ -59,7 +62,7 @@ export default async function Home() {
         images={HERO_PHOTOS}
         googleRating={googleReviews ? { rating: googleReviews.rating, totalReviews: googleReviews.totalReviews, mapsUrl: googleReviews.mapsUrl } : null}
         nextEvent={upcomingEvents[0]
-          ? { title: upcomingEvents[0].title, date: upcomingEvents[0].event_date, slug: upcomingEvents[0].slug }
+          ? { title: upcomingEvents[0].title, date: upcomingEvents[0].event_date, slug: upcomingEvents[0].slug, soldOut: remaining[upcomingEvents[0].id] === 0 }
           : null}
       />
       <TwoJourneys />
@@ -80,7 +83,7 @@ export default async function Home() {
             </Reveal>
             <Reveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" stagger={0.15} y={36}>
               {upcomingEvents.map(event => (
-                <EventCard key={event.id} event={event} />
+                <EventCard key={event.id} event={event} soldOut={remaining[event.id] === 0} />
               ))}
             </Reveal>
             <div className="text-center mt-10">

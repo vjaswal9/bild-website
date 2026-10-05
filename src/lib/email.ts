@@ -66,20 +66,39 @@ const MEMBER_ALERT_EMAILS = withOwner(list(process.env.MEMBER_ALERT_EMAIL).lengt
 // public on /events, and the admin client's no-store fetch wrapper would be
 // wasted here. Any failure returns null and the email simply omits the section,
 // because a welcome email must never fail over a nice-to-have panel.
-async function nextUpcomingEvent(): Promise<{ title: string; slug: string; venue: string | null; whenLabel: string } | null> {
+async function nextUpcomingEvent(): Promise<{ title: string; slug: string; venue: string | null; whenLabel: string; soldOut: boolean; waitlistOpen: boolean } | null> {
   const { data, error } = await supabaseRead
     .from('events')
-    .select('title, slug, venue, event_date')
+    .select('id, title, slug, venue, event_date, capacity_limit, waitlist_open')
     .eq('status', 'published')
     .gte('event_date', new Date().toISOString())
     .order('event_date', { ascending: true })
     .limit(1)
     .maybeSingle()
   if (error || !data) return null
+
+  // Sold out when every ticket under the cap has gone. A failed count simply
+  // means the email does not claim it, which is the safe direction: the event
+  // page itself always tells the truth at the point of booking.
+  let soldOut = false
+  if (data.capacity_limit != null) {
+    const { data: regs, error: regErr } = await supabaseRead
+      .from('event_registrations')
+      .select('quantity')
+      .eq('event_id', data.id)
+      .eq('status', 'paid')
+    if (!regErr) {
+      const sold = (regs || []).reduce((n, r) => n + (Number(r.quantity) || 1), 0)
+      soldOut = sold >= (data.capacity_limit as number)
+    }
+  }
+
   return {
     title: data.title,
     slug: data.slug,
     venue: data.venue,
+    soldOut,
+    waitlistOpen: data.waitlist_open !== false,
     whenLabel: new Date(data.event_date).toLocaleDateString('en-GB', {
       weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dubai',
     }),
@@ -184,13 +203,17 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
     ? `
     <div style="padding:26px 28px 0">
       <div style="background:#241a08;border:1px solid #4a3714;border-radius:14px;padding:22px">
-        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">🔥 Next up &middot; Don't miss it</p>
+        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">${nextEvent.soldOut ? 'Next up &middot; Sold out' : '🔥 Next up &middot; Don\'t miss it'}</p>
         <p style="color:#F4F1EC;font-family:Georgia,serif;font-size:21px;margin:0 0 6px">${esc(nextEvent.title)}</p>
         <p style="color:#cfcabd;font-size:14px;margin:0 0 4px">${esc(nextEvent.whenLabel)}${nextEvent.venue ? ' &middot; ' + esc(nextEvent.venue) : ''}</p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.55;margin:10px 0 16px">
-          Our events fill up fast and members hear first. Grab your ticket now rather than hearing about it in the group afterwards.
+          ${nextEvent.soldOut
+            ? (nextEvent.waitlistOpen
+                ? 'This one has sold out. Join the waitlist and we will email you if a place frees up.'
+                : 'This one has sold out. Have a look at what else is coming up.')
+            : 'Our events fill up fast and members hear first. Grab your ticket now rather than hearing about it in the group afterwards.'}
         </p>
-        <a href="${site}/events/${nextEvent.slug}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:11px">Get your tickets</a>
+        <a href="${site}/events/${nextEvent.slug}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:11px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Join the waitlist' : 'See the event') : 'Get your tickets'}</a>
         <p style="margin:14px 0 0"><a href="${site}/events" style="color:#C8861A;font-size:13px;text-decoration:none">See everything coming up &rarr;</a></p>
       </div>
     </div>`
