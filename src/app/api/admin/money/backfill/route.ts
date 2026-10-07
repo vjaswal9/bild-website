@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, MONEY_COOKIE, verifyAdminToken, verifyMoneyToken } from '@/lib/admin-auth'
 import { PaymentKind } from '@/lib/money'
+import { classifyCheckout, asUuid, upgradeRevenueFromGross } from '@/lib/money-import'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,14 +50,6 @@ type LedgerRow = {
   source: string
 }
 
-function classify(metadata: Record<string, string> | null | undefined): PaymentKind {
-  switch (metadata?.type) {
-    case 'event': return 'event_ticket'
-    case 'business_listing': return 'listing'
-    case 'business_featured': return 'featured'
-    default: return 'membership'
-  }
-}
 
 export async function POST(req: NextRequest) {
   if (!(await moneyGuard(req))) {
@@ -103,7 +96,7 @@ export async function POST(req: NextRequest) {
     //    counted as income. amount_aed is what BILD actually keeps.
     const regIds = paid
       .map(s => s.metadata?.registration_id)
-      .filter((v): v is string => !!v)
+      .filter((v): v is string => asUuid(v) !== null)
     const regMap = new Map<string, { amount: number; eventId: string }>()
     if (regIds.length) {
       for (let i = 0; i < regIds.length; i += 200) {
@@ -125,7 +118,7 @@ export async function POST(req: NextRequest) {
       const info = pi ? byPaymentIntent.get(pi) : undefined
       if (!info) skippedNoCharge++
 
-      const kind = classify(s.metadata as Record<string, string> | null)
+      const kind = classifyCheckout(s.metadata as Record<string, string> | null)
       const grossAed = (s.amount_total ?? 0) / 100
       if (grossAed <= 0) continue
 
@@ -135,22 +128,29 @@ export async function POST(req: NextRequest) {
       let description = 'Payment'
 
       if (kind === 'event_ticket') {
-        const regId = s.metadata?.registration_id || null
+        const regId = asUuid(s.metadata?.registration_id)
         const reg = regId ? regMap.get(regId) : undefined
         referenceId = regId
         eventId = reg?.eventId ?? null
-        // Fall back to the gross if the registration has since been deleted:
-        // better to slightly overstate revenue than to lose the payment.
-        revenueAed = reg ? reg.amount : grossAed
-        description = s.metadata?.ticket_name ? `Event ticket - ${s.metadata.ticket_name}` : 'Event ticket'
+        if (s.metadata?.type === 'event_upgrade') {
+          // An upgrade pays only the price difference (plus card fee); the
+          // booking's own amount is the original ticket, not this payment.
+          revenueAed = upgradeRevenueFromGross(grossAed)
+          description = 'Event ticket upgrade'
+        } else {
+          // Fall back to the gross if the registration has since been deleted:
+          // better to slightly overstate revenue than to lose the payment.
+          revenueAed = reg ? reg.amount : grossAed
+          description = s.metadata?.ticket_name ? `Event ticket - ${s.metadata.ticket_name}` : 'Event ticket'
+        }
       } else if (kind === 'listing') {
-        referenceId = s.metadata?.business_id || null
+        referenceId = asUuid(s.metadata?.business_id)
         description = 'Directory listing'
       } else if (kind === 'featured') {
-        referenceId = s.metadata?.business_id || null
+        referenceId = asUuid(s.metadata?.business_id)
         description = 'Featured placement'
       } else {
-        referenceId = s.client_reference_id || null
+        referenceId = asUuid(s.client_reference_id)
         description = 'Membership'
       }
 
