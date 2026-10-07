@@ -1,11 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Loader2, Laptop, Lock, Plus, Copy, RotateCw, Trash2, Save } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Loader2, Laptop, Lock, Plus, Copy, RotateCw, Trash2, Save, ArrowLeftRight, Undo2, Pencil } from 'lucide-react'
 import {
   FloorLayout, PlanTable, PlanLabel, TableShape,
   seatSlots, tableBody, footprint, clampTable, snap, GRID, SEAT_R, MAX_LABELS, MAX_LABEL_TEXT,
+  swapMapping, autoNumberMapping, isIdentity, type AutoOrder, type Mapping,
 } from '@/lib/floor-plan'
+
+type Lease = { supported: boolean; active: boolean; mine: boolean; name: string | null; since: string | null; until: string | null }
 
 type Payload = {
   available: boolean
@@ -17,6 +20,9 @@ type Payload = {
   tableCount: number
   seatsPerTable: number
   locked: boolean
+  lease: Lease
+  toolsReady: boolean
+  lastRenumber: { at: string | null; label: string } | null
 }
 
 type Selection = { type: 'table'; n: number } | { type: 'label'; id: string } | null
@@ -26,6 +32,28 @@ type Drag =
   | { kind: 'table'; n: number; startX: number; startY: number; origX: number; origY: number }
   | { kind: 'label'; id: string; startX: number; startY: number; origX: number; origY: number }
   | { kind: 'resize'; id: string; startX: number; startY: number; origW: number; origH: number }
+
+const API = '/api/admin/events/seating-layout'
+
+// One id per browser tab, so two windows of the same person do not both edit.
+function tabId(): string {
+  try {
+    let id = sessionStorage.getItem('bild_plan_tab')
+    if (!id) { id = crypto.randomUUID(); sessionStorage.setItem('bild_plan_tab', id) }
+    return id
+  } catch { return 'tab-' + Math.random().toString(36).slice(2, 12) + Date.now().toString(36) }
+}
+
+const ORDER_LABEL: Record<AutoOrder, string> = {
+  rows: 'Rows, left to right, top to bottom',
+  columns: 'Columns, top to bottom, left to right',
+  clockwise: 'Clockwise from the top',
+  anticlockwise: 'Anticlockwise from the top',
+}
+
+function clock(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' }) : ''
+}
 
 // The room editor: arrange the tables and labels where they really are in the
 // venue. Stage 1 of the floor plan - it changes the saved LAYOUT only. It never
@@ -48,16 +76,26 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
   const [copyFrom, setCopyFrom] = useState('')
   const svgRef = useRef<SVGSVGElement>(null)
   const drag = useRef<Drag | null>(null)
+  const [clientId] = useState(tabId)
+  const [editing, setEditing] = useState(false)
+  const [lostLease, setLostLease] = useState(false)
+  const [lease, setLease] = useState<Lease | null>(null)
+  const [lastRenumber, setLastRenumber] = useState<{ at: string | null; label: string } | null>(null)
+  const [renum, setRenum] = useState<{ kind: 'swap'; first: number | null; second: number | null } | { kind: 'auto'; order: AutoOrder } | null>(null)
+  const [seated, setSeated] = useState<{ tables: number[]; headcount: number }[] | null>(null)
+  const [renumBusy, setRenumBusy] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true); setError(''); setConflict(false)
     try {
-      const res = await fetch(`/api/admin/events/seating-layout?eventId=${eventId}`)
+      const res = await fetch(`${API}?eventId=${eventId}&clientId=${clientId}`)
       const d = await res.json()
       if (!res.ok) { setError(d.error || 'Could not load the floor plan.'); setLoading(false); return }
       setData(d)
       if (d.available) {
-        setLayout(d.layout); setUpdatedAt(d.updatedAt); setDirty(false); setSelected(null)
+        setLayout(d.layout); setUpdatedAt(d.updatedAt); setDirty(false); setSelected(null); setRenum(null)
+        setLease(d.lease); setLastRenumber(d.lastRenumber)
+        if (!d.lease?.mine) setEditing(false)
         if (d.added?.length || d.dropped?.length) {
           setNotice([
             d.added?.length ? `Table${d.added.length > 1 ? 's' : ''} ${d.added.join(', ')} added to match the event's table count.` : '',
@@ -67,7 +105,7 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
       }
     } catch { setError('Network error loading the floor plan.') }
     setLoading(false)
-  }, [eventId])
+  }, [eventId, clientId])
 
   useEffect(() => { load() }, [load])
 
@@ -87,8 +125,108 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
 
-  const editable = !!data?.available && !data.locked && !smallScreen
+  const leaseOk = !lease?.supported || editing
+  const editable = !!data?.available && !data.locked && !smallScreen && leaseOk && !lostLease
   const seats = data?.seatsPerTable ?? 8
+
+  // While editing, keep the claim alive; if another admin takes over, stop.
+  useEffect(() => {
+    if (!editing || !lease?.supported) return
+    const beat = async () => {
+      try {
+        const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'heartbeat', eventId, clientId }) })
+        if (res.status === 409) { setEditing(false); setLostLease(true) }
+      } catch { /* a missed beat is fine; the claim lasts two minutes */ }
+    }
+    const t = setInterval(beat, 30000)
+    return () => clearInterval(t)
+  }, [editing, lease?.supported, eventId, clientId])
+
+  // While only looking, notice when somebody starts or finishes editing.
+  useEffect(() => {
+    if (editing || !data?.available || !lease?.supported) return
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API}?eventId=${eventId}&clientId=${clientId}&leaseOnly=1`)
+        if (res.ok) setLease((await res.json()).lease)
+      } catch { /* try again next time */ }
+    }
+    const t = setInterval(poll, 20000)
+    return () => clearInterval(t)
+  }, [editing, data?.available, lease?.supported, eventId, clientId])
+
+  // Free the claim when the tab closes or the panel goes away.
+  useEffect(() => {
+    if (!editing) return
+    const release = () => {
+      fetch(API, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release', eventId, clientId }) }).catch(() => {})
+    }
+    window.addEventListener('pagehide', release)
+    return () => { window.removeEventListener('pagehide', release); release() }
+  }, [editing, eventId, clientId])
+
+  async function startEditing(takeover = false) {
+    if (takeover && !confirm(`${lease?.name || 'Another admin'} is editing. If you take over, any changes they have not saved will be lost. Take over editing?`)) return
+    setError(''); setNotice('')
+    try {
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'claim', eventId, clientId, takeover }) })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(d.error || 'Could not start editing.'); if (d.lease) setLease(d.lease); return }
+      setLostLease(false); setEditing(true)
+      await load()           // start from the latest saved plan
+      setEditing(true)
+    } catch { setError('Network error. Please try again.') }
+  }
+
+  async function stopEditing() {
+    if (dirty && !confirm('You have unsaved changes. Leave editing and discard them?')) return
+    setEditing(false); setRenum(null)
+    await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release', eventId, clientId }) }).catch(() => {})
+    await load()
+  }
+
+  function pickForSwap(n: number) {
+    setRenum(r => {
+      if (!r || r.kind !== 'swap') return r
+      if (r.first === null) return { ...r, first: n }
+      if (r.first === n) return { ...r, first: null }
+      return { ...r, second: n }
+    })
+    ensureSeated()
+  }
+
+  async function ensureSeated() {
+    if (seated !== null) return
+    try {
+      const res = await fetch(`/api/admin/events/seating?eventId=${eventId}`)
+      const d = await res.json()
+      setSeated(res.ok ? (d.groups || []).map((g: { tables: number[]; headcount: number }) => ({ tables: g.tables || [], headcount: g.headcount || 0 })) : [])
+    } catch { setSeated([]) }
+  }
+
+  async function doRenumber(undo = false) {
+    if (!data) return
+    setRenumBusy(true); setError(''); setNotice('')
+    try {
+      const body: Record<string, unknown> = { action: 'renumber', eventId, clientId, undo }
+      if (!undo) {
+        body.mapping = mapping
+        body.label = renum?.kind === 'swap' ? `Swapped tables ${renum.first} and ${renum.second}` : renum?.kind === 'auto' ? `Numbered by ${ORDER_LABEL[renum.order].toLowerCase()}` : ''
+      }
+      const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const d = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setRenum(null); setSeated(null)
+        await load(); setEditing(true)
+        setNotice(`${undo ? 'Renumbering undone' : 'Tables renumbered'}. ${d.bookingsUpdated ?? 0} booking${d.bookingsUpdated === 1 ? '' : 's'} followed their tables.`)
+      } else {
+        setError(d.error || 'Could not renumber.')
+        if (d.leaseLost) { setEditing(false); setLostLease(true) }
+        if (d.conflict) setConflict(true)
+      }
+    } catch { setError('Network error. Nothing was changed.') }
+    setRenumBusy(false)
+  }
 
   function edit(next: FloorLayout) { setLayout(next); setDirty(true); setNotice('') }
 
@@ -204,13 +342,13 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
     if (layout.labels.some(l => !l.text.trim())) { setError('Every label needs some text. Fill it in or delete the label.'); return }
     setSaving(true); setError(''); setNotice('')
     try {
-      const res = await fetch('/api/admin/events/seating-layout', {
+      const res = await fetch(API, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId, layout, expectedUpdatedAt: updatedAt }),
+        body: JSON.stringify({ eventId, layout, expectedUpdatedAt: updatedAt, clientId }),
       })
       const d = await res.json().catch(() => ({}))
       if (res.ok) { setUpdatedAt(d.updatedAt); setDirty(false); setNotice('Layout saved.') }
-      else { setError(d.error || 'Could not save.'); if (d.conflict) setConflict(true) }
+      else { setError(d.error || 'Could not save.'); if (d.conflict) setConflict(true); if (d.leaseLost) { setEditing(false); setLostLease(true) } }
     } catch { setError('Network error. Your changes are still on screen, try saving again.') }
     setSaving(false)
   }
@@ -219,7 +357,7 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
     setCopyOpen(o => !o)
     if (sources !== null) return
     try {
-      const res = await fetch(`/api/admin/events/seating-layout?eventId=${eventId}&sources=1`)
+      const res = await fetch(`${API}?eventId=${eventId}&sources=1`)
       const d = await res.json()
       setSources(res.ok ? d.sources : [])
     } catch { setSources([]) }
@@ -230,16 +368,26 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
     if ((data?.saved || dirty) && !confirm('This replaces the current floor plan for this event with the copy. Continue?')) return
     setSaving(true); setError(''); setNotice('')
     try {
-      const res = await fetch('/api/admin/events/seating-layout', {
+      const res = await fetch(API, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'copy', fromEventId: copyFrom, toEventId: eventId, expectedUpdatedAt: updatedAt }),
+        body: JSON.stringify({ action: 'copy', fromEventId: copyFrom, toEventId: eventId, expectedUpdatedAt: updatedAt, clientId }),
       })
       const d = await res.json().catch(() => ({}))
-      if (res.ok) { setCopyOpen(false); setCopyFrom(''); await load(); setNotice('Layout copied. Check the tables and save if you change anything.') }
-      else { setError(d.error || 'Could not copy.'); if (d.conflict) setConflict(true) }
+      if (res.ok) { setCopyOpen(false); setCopyFrom(''); await load(); setEditing(true); setNotice('Layout copied. Check the tables and save if you change anything.') }
+      else { setError(d.error || 'Could not copy.'); if (d.conflict) setConflict(true); if (d.leaseLost) { setEditing(false); setLostLease(true) } }
     } catch { setError('Network error.') }
     setSaving(false)
   }
+
+  const mapping: Mapping | null = useMemo(() => {
+    if (!layout || !renum) return null
+    if (renum.kind === 'swap') return renum.first !== null && renum.second !== null ? swapMapping(layout.tables.length, renum.first, renum.second) : null
+    return autoNumberMapping(layout, seats, renum.order)
+  }, [layout, renum, seats])
+  const changes = mapping ? Object.entries(mapping).filter(([k, v]) => Number(k) !== v).map(([k, v]) => [Number(k), v] as [number, number]) : []
+  const affected = mapping && seated
+    ? seated.filter(g => g.tables.some(n => mapping[n] !== undefined && mapping[n] !== n))
+    : null
 
   if (loading) return <div className="px-6 py-8 text-center"><Loader2 className="animate-spin inline" size={20} /></div>
   if (!data) return <div className="px-6 py-5"><p className="text-red-400 text-sm">{error || 'Could not load the floor plan.'}</p></div>
@@ -271,9 +419,51 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
         <p className="text-sm text-gray-400">Editing the floor plan needs a laptop or desktop. You can look at it here; use the list view to change seating from this device.</p>
       )}
 
+      {lease?.supported && !data.locked && !smallScreen && (
+        editing ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-sm text-green-200">
+            <Pencil size={16} className="shrink-0" />
+            <span>You are editing this plan. Anyone else sees it as view only until you press Done editing.</span>
+            <button type="button" onClick={stopEditing} className="ml-auto border border-green-400/50 rounded-lg px-3 py-1 text-xs hover:bg-green-500/10">Done editing</button>
+          </div>
+        ) : lostLease ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            <span>Another admin has taken over editing. Your unsaved changes cannot be saved.</span>
+            <button type="button" onClick={() => { setLostLease(false); load() }} className="ml-auto border border-red-400/50 rounded-lg px-3 py-1 text-xs hover:bg-red-500/10">Reload the plan</button>
+          </div>
+        ) : lease.active && !lease.mine ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+            <Lock size={16} className="shrink-0" />
+            <span>{lease.name} is editing this plan{lease.since ? ` (since ${clock(lease.since)})` : ''}. View only for now.</span>
+            <button type="button" onClick={() => startEditing(true)} className="ml-auto border border-amber-400/50 rounded-lg px-3 py-1 text-xs hover:bg-amber-500/10">Take over editing</button>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-charcoal-600 bg-charcoal-800 px-3 py-2 text-sm text-gray-300">
+            <span>View only. Press Edit plan to make changes; while you do, nobody else can edit.</span>
+            <button type="button" onClick={() => startEditing(false)} className="ml-auto inline-flex items-center gap-1.5 bg-gold-500 hover:bg-gold-600 text-white rounded-lg px-3 py-1.5 text-xs font-semibold"><Pencil size={14} /> Edit plan</button>
+          </div>
+        )
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className={btn} onClick={addLabel} disabled={!editable || layout.labels.length >= MAX_LABELS}><Plus size={14} /> Label</button>
         <button type="button" className={btn} onClick={openCopy} disabled={!editable}><Copy size={14} /> Copy layout</button>
+        <button type="button" className={btn} disabled={!editable || dirty || !!renum || !lease?.supported} title={dirty ? 'Save your layout first' : undefined} onClick={() => { setRenum({ kind: 'swap', first: null, second: null }); ensureSeated() }}><ArrowLeftRight size={14} /> Swap numbers</button>
+        <label htmlFor="fp-order" className="sr-only">Number tables in order</label>
+        <select
+          id="fp-order" value="" disabled={!editable || dirty || !!renum || !lease?.supported} title={dirty ? 'Save your layout first' : undefined}
+          onChange={e => { if (e.target.value) { setRenum({ kind: 'auto', order: e.target.value as AutoOrder }); ensureSeated() } }}
+          className="px-2 py-1.5 bg-charcoal-800 border border-charcoal-600 rounded-lg text-xs text-gray-200 disabled:opacity-40"
+        >
+          <option value="">Number tables in order...</option>
+          {(Object.keys(ORDER_LABEL) as AutoOrder[]).map(o => <option key={o} value={o}>{ORDER_LABEL[o]}</option>)}
+        </select>
+        {lastRenumber && (
+          <button type="button" className={btn} disabled={!editable || dirty || !!renum || renumBusy}
+            onClick={() => { if (confirm('Undo the last renumbering? Tables and the guests seated at them go back to their previous numbers.')) doRenumber(true) }}>
+            <Undo2 size={14} /> Undo last renumber
+          </button>
+        )}
         {selTable && (
           <>
             <span className="text-xs text-gray-500 ml-2">Table {selTable.n}:</span>
@@ -301,6 +491,33 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
           {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save layout
         </button>
       </div>
+
+      {renum && (
+        <div className="rounded-lg border border-gold-500/50 bg-gold-500/5 p-3 space-y-2 text-sm text-gray-200">
+          {renum.kind === 'swap' && !mapping && (
+            <p>Click the two tables whose numbers you want to swap.{renum.first !== null ? ` Table ${renum.first} chosen. Now click the second table.` : ''}</p>
+          )}
+          {renum.kind === 'auto' && <p>Numbering by: {ORDER_LABEL[renum.order]}. The new numbers are shown in gold on the plan.</p>}
+          {mapping && changes.length === 0 && <p>No table would change number.</p>}
+          {mapping && changes.length > 0 && (
+            <>
+              <p>{changes.length} table{changes.length === 1 ? '' : 's'} would change number: {changes.slice(0, 12).map(([a, b]) => `${a} to ${b}`).join(', ')}{changes.length > 12 ? ', ...' : ''}.</p>
+              <p>
+                {affected === null ? 'Checking who is seated...'
+                  : affected.length === 0 ? 'Nobody is seated at those tables yet.'
+                  : `${affected.length} group${affected.length === 1 ? '' : 's'} (${affected.reduce((n, g) => n + g.headcount, 0)} guests) seated at those tables will follow their table to its new number.`}
+              </p>
+              <p className="text-amber-200">Anything already printed or sent that mentions table numbers will be out of date afterwards. You can undo this straight afterwards with one click.</p>
+            </>
+          )}
+          <div className="flex gap-2">
+            <button type="button" className="bg-gold-500 hover:bg-gold-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40" disabled={!mapping || isIdentity(mapping) || renumBusy || affected === null} onClick={() => doRenumber(false)}>
+              {renumBusy ? 'Renumbering...' : 'Renumber tables'}
+            </button>
+            <button type="button" className={btn} onClick={() => setRenum(null)} disabled={renumBusy}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {copyOpen && (
         <div className="rounded-lg border border-charcoal-600 p-3 space-y-2">
@@ -373,22 +590,26 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
           const slots = seatSlots(t.shape, seats)
           const on = selected?.type === 'table' && selected.n === t.n
           const f = footprint(t, seats)
+          const next = mapping ? mapping[t.n] : undefined
+          const changed = next !== undefined && next !== t.n
+          const picked = renum?.kind === 'swap' && (renum.first === t.n || renum.second === t.n)
           return (
             <g
               key={t.n}
               role="button"
               aria-label={`Table ${t.n}, ${t.shape}`}
-              onPointerDown={e => startDrag(e, { kind: 'table', n: t.n, origX: t.x, origY: t.y }, { type: 'table', n: t.n })}
+              onPointerDown={e => { if (renum?.kind === 'swap') { e.stopPropagation(); pickForSwap(t.n); return } startDrag(e, { kind: 'table', n: t.n, origX: t.x, origY: t.y }, { type: 'table', n: t.n }) }}
               style={{ cursor: editable ? 'move' : 'default' }}
             >
               <rect x={t.x - f.w / 2} y={t.y - f.h / 2} width={f.w} height={f.h} fill="transparent" />
               <g transform={`translate(${t.x} ${t.y}) rotate(${t.rot})`}>
                 {t.shape === 'round'
-                  ? <circle r={body.w / 2} fill="#2e2e2e" stroke={on ? '#f3d58a' : '#666'} strokeWidth={on ? 5 : 2} />
-                  : <rect x={-body.w / 2} y={-body.h / 2} width={body.w} height={body.h} rx={8} fill="#2e2e2e" stroke={on ? '#f3d58a' : '#666'} strokeWidth={on ? 5 : 2} />}
+                  ? <circle r={body.w / 2} fill="#2e2e2e" stroke={on || picked ? '#f3d58a' : '#666'} strokeWidth={on || picked ? 5 : 2} />
+                  : <rect x={-body.w / 2} y={-body.h / 2} width={body.w} height={body.h} rx={8} fill="#2e2e2e" stroke={on || picked ? '#f3d58a' : '#666'} strokeWidth={on || picked ? 5 : 2} />}
                 {slots.map((s, i) => <circle key={i} cx={s.dx} cy={s.dy} r={SEAT_R} fill="none" stroke="#8a8a8a" strokeWidth={2.5} />)}
               </g>
-              <text x={t.x} y={t.y} textAnchor="middle" dominantBaseline="central" fill="#fff" fontSize={30} fontFamily="sans-serif" fontWeight={600}>{t.n}</text>
+              <text x={t.x} y={t.y} textAnchor="middle" dominantBaseline="central" fill={changed ? '#f3d58a' : '#fff'} fontSize={30} fontFamily="sans-serif" fontWeight={600}>{changed ? next : t.n}</text>
+              {changed && <text x={t.x} y={t.y + 24} textAnchor="middle" dominantBaseline="central" fill="#9a9890" fontSize={18} fontFamily="sans-serif">was {t.n}</text>}
             </g>
           )
         })}

@@ -221,3 +221,97 @@ export function validateLayout(raw: unknown, tableCount: number, seats: number):
 
   return { ok: true, layout: { version: 1, room, tables, labels } }
 }
+
+// ---------------------------------------------------------------------------
+// Renumbering. A mapping says "the table now called OLD becomes NEW"; it must be
+// a permutation of 1..tableCount so no number is lost or used twice. Guests
+// follow their physical table, so the mapping is applied to the layout and to
+// every booking's table list in one go (the database function does the latter).
+// ---------------------------------------------------------------------------
+
+export type Mapping = Record<number, number>
+export type AutoOrder = 'rows' | 'columns' | 'clockwise' | 'anticlockwise'
+
+export function isPermutation(mapping: unknown, tableCount: number): mapping is Mapping {
+  if (!mapping || typeof mapping !== 'object' || Array.isArray(mapping)) return false
+  const entries = Object.entries(mapping as Record<string, unknown>)
+  if (entries.length !== tableCount) return false
+  const keys = new Set<number>(), values = new Set<number>()
+  for (const [k, v] of entries) {
+    const key = Number(k)
+    if (!/^[0-9]+$/.test(k) || !Number.isInteger(v) || key < 1 || key > tableCount || (v as number) < 1 || (v as number) > tableCount) return false
+    keys.add(key); values.add(v as number)
+  }
+  return keys.size === tableCount && values.size === tableCount
+}
+
+export function identityMapping(tableCount: number): Mapping {
+  const m: Mapping = {}
+  for (let n = 1; n <= tableCount; n++) m[n] = n
+  return m
+}
+
+// Two tables trade numbers; everything else stays.
+export function swapMapping(tableCount: number, a: number, b: number): Mapping {
+  const m = identityMapping(tableCount)
+  if (a >= 1 && a <= tableCount && b >= 1 && b <= tableCount) { m[a] = b; m[b] = a }
+  return m
+}
+
+export function invertMapping(mapping: Mapping): Mapping {
+  const out: Mapping = {}
+  for (const [k, v] of Object.entries(mapping)) out[v] = Number(k)
+  return out
+}
+
+export function isIdentity(mapping: Mapping): boolean {
+  return Object.entries(mapping).every(([k, v]) => Number(k) === v)
+}
+
+// The layout with every table renumbered. Positions and shapes stay with the
+// physical table; only the number changes. Never mutates the input.
+export function applyMapping(layout: FloorLayout, mapping: Mapping): FloorLayout {
+  const tables = layout.tables.map(t => ({ ...t, n: mapping[t.n] ?? t.n })).sort((a, b) => a.n - b.n)
+  return { ...layout, tables, labels: layout.labels.map(l => ({ ...l })) }
+}
+
+// A tidy numbering of tables by where they sit in the room. Returns a mapping
+// from each table's current number to its new one.
+export function autoNumberMapping(layout: FloorLayout, seats: number, order: AutoOrder): Mapping {
+  const tables = layout.tables
+  if (tables.length === 0) return {}
+  const heights = tables.map(t => footprint(t, seats).h).sort((a, b) => a - b)
+  const widths = tables.map(t => footprint(t, seats).w).sort((a, b) => a - b)
+  const midH = heights[Math.floor(heights.length / 2)], midW = widths[Math.floor(widths.length / 2)]
+
+  let sorted: PlanTable[]
+  if (order === 'rows' || order === 'columns') {
+    // Group tables into rows (or columns) of roughly equal y (or x), then go
+    // along each one. Two tables belong to the same row if they are less than
+    // half a table apart across the row's direction.
+    const major = order === 'rows' ? (t: PlanTable) => t.y : (t: PlanTable) => t.x
+    const minor = order === 'rows' ? (t: PlanTable) => t.x : (t: PlanTable) => t.y
+    const tol = (order === 'rows' ? midH : midW) / 2
+    const byMajor = [...tables].sort((a, b) => major(a) - major(b) || minor(a) - minor(b))
+    const bands: PlanTable[][] = []
+    let anchor = -Infinity
+    for (const t of byMajor) {
+      if (bands.length === 0 || major(t) - anchor > tol) { bands.push([t]); anchor = major(t) } else bands[bands.length - 1].push(t)
+    }
+    sorted = bands.flatMap(b => b.sort((a, c) => minor(a) - minor(c) || a.n - c.n))
+  } else {
+    // Around the middle of the group of tables, starting at the top and going
+    // clockwise (or the other way).
+    const cx = tables.reduce((s, t) => s + t.x, 0) / tables.length
+    const cy = tables.reduce((s, t) => s + t.y, 0) / tables.length
+    const angle = (t: PlanTable) => {
+      let a = (Math.atan2(t.y - cy, t.x - cx) + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI)
+      if (order === 'anticlockwise') a = (2 * Math.PI - a) % (2 * Math.PI)
+      return Math.round(a * 1e6) / 1e6
+    }
+    sorted = [...tables].sort((a, b) => angle(a) - angle(b) || Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy) || a.n - b.n)
+  }
+  const m: Mapping = {}
+  sorted.forEach((t, i) => { m[t.n] = i + 1 })
+  return m
+}
