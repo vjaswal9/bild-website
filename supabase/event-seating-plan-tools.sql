@@ -75,6 +75,23 @@ begin
          seating_last_renumber = p_undo
    where id = p_event_id;
 
+  -- The shared draft seating (event-seating-draft.sql), if it exists, follows
+  -- the tables to their new numbers too. Checked at run time so this function
+  -- works whether or not that file has been run.
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'events' and column_name = 'seating_draft') then
+    execute $q$
+      update public.events e
+         set seating_draft = jsonb_build_object('version', 1, 'assignments', coalesce((
+               select jsonb_object_agg(a.key, (
+                        select coalesce(jsonb_agg(coalesce(($1 ->> t.val)::int, t.val::int) order by t.ord), '[]'::jsonb)
+                          from jsonb_array_elements_text(a.value) with ordinality as t(val, ord)))
+                 from jsonb_each(e.seating_draft -> 'assignments') a), '{}'::jsonb)),
+             seating_draft_updated_at = now()
+       where e.id = $2 and e.seating_draft is not null
+    $q$ using p_mapping, p_event_id;
+  end if;
+
   return jsonb_build_object('updatedAt', stamp, 'bookingsUpdated', moved);
 end;
 $$;
