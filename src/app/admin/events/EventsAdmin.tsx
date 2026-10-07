@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { uploadViaSignedUrl } from '@/lib/upload-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
-import SeatingPanel from '@/components/admin/SeatingPanel'
+import SeatingView from '@/components/admin/SeatingView'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent } from '@/lib/events'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
@@ -311,7 +311,7 @@ function EventListCard({
 
       {seatingOpen && (
         <div className="border-t border-charcoal-700">
-          <SeatingPanel eventId={ev.id} />
+          <SeatingView eventId={ev.id} />
         </div>
       )}
 
