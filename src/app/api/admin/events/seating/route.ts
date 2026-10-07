@@ -233,6 +233,80 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, code: targetCode })
   }
 
+  if (b.action === 'move_booking') {
+    // Moves ONE booking (the person who paid and the guests on that ticket - a
+    // booking is the smallest unit seating knows about) from its current code
+    // to another existing code or to a brand new one. Unlike set_code this
+    // never touches anyone else: the group they leave and the group they join
+    // keep their tables exactly as placed.
+    const registrationId = typeof b.registrationId === 'string' ? b.registrationId : ''
+    if (!registrationId) return NextResponse.json({ error: 'Missing booking.' }, { status: 400 })
+
+    const { data: reg, error: regErr } = await supabaseAdmin
+      .from('event_registrations')
+      .select('id, quantity, seating_code, seating_table')
+      .eq('id', registrationId)
+      .eq('event_id', eventId)
+      .eq('status', 'paid')
+      .maybeSingle()
+    if (regErr) return NextResponse.json({ error: regErr.message }, { status: 500 })
+    if (!reg) return NextResponse.json({ error: 'Booking not found on this event.' }, { status: 404 })
+
+    const moving = b.code === 'NEW'
+    const targetCode = moving ? generateSeatingCode() : normalizeSeatingCode(b.code)
+    if (!targetCode) return NextResponse.json({ error: 'Choose a destination code.' }, { status: 400 })
+    if (reg.seating_code === targetCode) {
+      return NextResponse.json({ error: 'That booking is already in this group.' }, { status: 400 })
+    }
+
+    let tables: number[] | null = null
+    let warning = ''
+    if (moving) {
+      // Make sure a freshly generated code is not already in use here.
+      const { data: clash } = await supabaseAdmin
+        .from('event_registrations').select('id').eq('event_id', eventId).eq('seating_code', targetCode).limit(1)
+      if (clash && clash.length > 0) return NextResponse.json({ error: 'Could not make a new code, try again.' }, { status: 500 })
+    } else {
+      // Only codes that already hold a paid booking here are valid - a typo
+      // must not quietly create a one-person group under a made-up code.
+      const { data: dest, error: destErr } = await supabaseAdmin
+        .from('event_registrations')
+        .select('id, quantity, seating_table')
+        .eq('event_id', eventId)
+        .eq('status', 'paid')
+        .eq('seating_code', targetCode)
+      if (destErr) return NextResponse.json({ error: destErr.message }, { status: 500 })
+      if (!dest || dest.length === 0) return NextResponse.json({ error: `No group on this event has the code ${targetCode}.` }, { status: 404 })
+
+      // They now sit with their new group, so they take its tables - but only
+      // when every booking there agrees on them (a group whose tables
+      // disagree is shown as unassigned, so the mover is unassigned too).
+      const lists = dest.map(d => (d.seating_table as number[] | null) || [])
+      if (lists[0].length > 0 && lists.every(l => sameTables(l, lists[0]))) {
+        tables = lists[0]
+        const seatsPerTable = (await supabaseAdmin.from('events').select('seats_per_table').eq('id', eventId).maybeSingle()).data?.seats_per_table as number | null
+        const headcount = dest.reduce((s, d) => s + (d.quantity || 1), 0) + (reg.quantity || 1)
+        if (seatsPerTable != null && headcount > tables.length * seatsPerTable) {
+          warning = `That group now has ${headcount} people but its table${tables.length > 1 ? 's seat' : ' seats'} ${tables.length * seatsPerTable}. Give it another table or move someone out.`
+        }
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from('event_registrations')
+      .update({
+        seating_code: targetCode,
+        seating_table: tables && tables.length ? tables : null,
+        // Any "overflowed from X" note described the group they just left.
+        overflow_from_code: null,
+      })
+      .eq('id', registrationId)
+      .eq('event_id', eventId)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    return NextResponse.json({ ok: true, code: targetCode, newCode: moving, seated: !!(tables && tables.length), warning })
+  }
+
   if (b.action === 'auto_assign') {
     const { data: event } = await supabaseAdmin
       .from('events')

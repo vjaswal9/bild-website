@@ -46,6 +46,9 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
   const [mergeTarget, setMergeTarget] = useState('')
   // Which group's table picker is expanded, if any - only one at a time.
   const [openPicker, setOpenPicker] = useState<string | null>(null)
+  // Which single booking is being moved to another code, and where to.
+  const [movingId, setMovingId] = useState<string | null>(null)
+  const [moveDest, setMoveDest] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -150,6 +153,20 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
       setSelected(new Set())
       setMergeTarget('')
       setNotice(`Moved into table code ${result.code}. Table assignments were cleared for the moved bookings - re-run Auto-assign or place the table by hand.`)
+    }
+  }
+
+  async function doMoveBooking(registrationId: string) {
+    const result = await act({ action: 'move_booking', registrationId, code: moveDest || 'NEW' })
+    if (result) {
+      setMovingId(null)
+      setMoveDest('')
+      setNotice(
+        (result.newCode
+          ? `Moved into a new group, code ${result.code}. They are unassigned - place their table.`
+          : `Moved into group ${result.code}.${result.seated ? ' They now sit at that group\u2019s table.' : ' That group has no table yet.'}`)
+        + (result.warning ? ` ${result.warning}` : ''),
+      )
     }
   }
 
@@ -282,14 +299,44 @@ export default function SeatingPanel({ eventId }: { eventId: string }) {
                     truncating: a hidden name defeats the point of listing it. */}
                 <div className="mt-1.5 space-y-0.5">
                   {g.bookings.map(b => (
-                    <p key={b.id} className="text-xs leading-relaxed">
-                      <span className="text-gray-200 font-medium">{b.name}</span>
-                      {b.guests.length > 0 && <span className="text-gray-400">, {b.guests.join(', ')}</span>}
-                      {/* Covers a booking whose guest names were never stored. */}
-                      {b.quantity > 1 + b.guests.length && (
-                        <span className="text-gray-600"> (+{b.quantity - 1 - b.guests.length} unnamed)</span>
+                    <div key={b.id}>
+                      <p className="text-xs leading-relaxed">
+                        <span className="text-gray-200 font-medium">{b.name}</span>
+                        {b.guests.length > 0 && <span className="text-gray-400">, {b.guests.join(', ')}</span>}
+                        {/* Covers a booking whose guest names were never stored. */}
+                        {b.quantity > 1 + b.guests.length && (
+                          <span className="text-gray-600"> (+{b.quantity - 1 - b.guests.length} unnamed)</span>
+                        )}
+                        {!locked && movingId !== b.id && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => { setMovingId(b.id); setMoveDest('') }}
+                            className="ml-2 text-gold-400 hover:text-gold-300 underline-offset-2 hover:underline disabled:opacity-50"
+                            title="Move this booking (and the guests on it) to another code or a new one"
+                          >
+                            Move
+                          </button>
+                        )}
+                      </p>
+                      {!locked && movingId === b.id && (
+                        <div className="my-1 flex flex-wrap items-center gap-2 bg-charcoal-700/50 rounded-lg px-2 py-1.5">
+                          <span className="text-gray-300 text-xs">Move {b.name}{b.quantity > 1 ? ` and ${b.quantity - 1} guest${b.quantity > 2 ? 's' : ''}` : ''} to</span>
+                          <select value={moveDest} onChange={e => setMoveDest(e.target.value)}
+                            className="bg-charcoal-700 border border-charcoal-600 rounded-lg text-white text-xs px-2 py-1">
+                            <option value="">a new code</option>
+                            {groups.filter(o => o.code && o.key !== g.key).map(o => (
+                              <option key={o.code} value={o.code!}>{o.code} ({o.organiserName})</option>
+                            ))}
+                          </select>
+                          <button onClick={() => doMoveBooking(b.id)} disabled={busy}
+                            className="bg-gold-500 hover:bg-gold-600 text-white px-2.5 py-1 rounded-lg text-xs font-semibold disabled:opacity-50">
+                            Move
+                          </button>
+                          <button onClick={() => setMovingId(null)} className="text-gray-400 hover:text-white text-xs">Cancel</button>
+                        </div>
                       )}
-                    </p>
+                    </div>
                   ))}
                 </div>
               </div>

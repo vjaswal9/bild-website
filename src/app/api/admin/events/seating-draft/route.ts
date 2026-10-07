@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken, sessionIdentity } from '@/lib/admin-auth'
 import { reportError } from '@/lib/report-error'
+import { verifyAdminPassword } from '@/lib/admin-password'
+import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -179,6 +181,15 @@ export async function POST(req: NextRequest) {
   // ---- Commit and undo: the only writes to bookings -----------------------
   if (action === 'commit') {
     const lock = body?.lock === true
+    // Committing rewrites every booking's table and feeds the door list, so
+    // the standing sign-in is not enough: the password is re-checked here, on
+    // the server, so the box in the browser cannot be skipped.
+    if (await isRateLimitedShared(`admin-verify:${getClientIp(req)}`, { windowMs: 10 * 60 * 1000, max: 10 })) {
+      return NextResponse.json({ error: 'Too many attempts. Please wait a few minutes and try again.' }, { status: 429 })
+    }
+    if (!(await verifyAdminPassword(typeof body?.password === 'string' ? body.password : ''))) {
+      return NextResponse.json({ error: 'Incorrect password. Nothing was committed.' }, { status: 401 })
+    }
     // Commit exactly what the person was looking at: if the draft has changed
     // since they loaded it (someone else edited, or bookings moved the groups
     // about), refuse and make them look again rather than commit a surprise.

@@ -50,6 +50,7 @@ export default function DraftSeating({ eventId }: { eventId: string }) {
   const [selTable, setSelTable] = useState<number | null>(null)
   const [carry, setCarry] = useState<string | null>(null)
   const [commitOpen, setCommitOpen] = useState(false)
+  const [commitPw, setCommitPw] = useState('')
   const [small, setSmall] = useState(false)
   const [clientId] = useState(tabId)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -145,7 +146,7 @@ export default function DraftSeating({ eventId }: { eventId: string }) {
     setLost(false); await load(); setEditing(true)
   }
   async function stopEditing() {
-    setEditing(false); setCommitOpen(false); setSel(null)
+    setEditing(false); setCommitOpen(false); setCommitPw(''); setSel(null)
     await fetch(LAYOUT_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'release', eventId, clientId }) }).catch(() => {})
     await load()
   }
@@ -197,8 +198,14 @@ export default function DraftSeating({ eventId }: { eventId: string }) {
   const overfull = Object.entries(tables).filter(([, t]) => t.used > seats).length
 
   async function commit(lock: boolean) {
-    if (lock && !confirm('Commit the draft AND lock seating? Nothing can change until you unlock it.')) return
-    const j = await act({ action: 'commit', lock })
+    if (!commitPw) { setError('Enter your admin password to commit.'); return }
+    const sure = lock
+      ? 'Are you sure? This will change the LIVE seating and the door list, AND lock seating so nothing can change until you unlock it.'
+      : 'Are you sure? This will change the LIVE seating and the door list to match the draft.'
+    if (!confirm(sure)) return
+    const password = commitPw
+    setCommitPw('')
+    const j = await act({ action: 'commit', lock, password })
     if (j) { setCommitOpen(false); await load(); setNotice(`Committed. ${j.bookingsChanged} booking${j.bookingsChanged === 1 ? '' : 's'} updated${lock ? ' and seating locked' : ''}. You can undo the last commit until you lock.`) }
   }
   async function undoCommit() {
@@ -275,10 +282,24 @@ export default function DraftSeating({ eventId }: { eventId: string }) {
           {unseated.length > 0 && <p className="text-amber-200">{unseated.length} group{unseated.length === 1 ? ' is' : 's are'} not seated in the draft, so they will have no table after this.</p>}
           {overfull > 0 && <p className="text-red-300">{overfull} table{overfull === 1 ? ' has' : 's have'} more people than seats.</p>}
           <p className="text-gray-400">Live seating will match the draft exactly. You can undo the last commit with one click, until you lock.</p>
+          <p className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-red-200">
+            Are you sure? Committing changes the real table for every booking listed above and what the door list shows. Check the summary first, then enter your admin password to confirm.
+          </p>
+          <div>
+            <label htmlFor="commit-password" className="block text-xs text-gray-400 mb-1">Admin password</label>
+            <input
+              id="commit-password"
+              type="password"
+              autoComplete="current-password"
+              value={commitPw}
+              onChange={e => setCommitPw(e.target.value)}
+              className="w-full max-w-xs bg-charcoal-700 border border-charcoal-600 rounded-lg text-white text-sm px-3 py-1.5"
+            />
+          </div>
           <div className="flex gap-2 flex-wrap">
-            <button type="button" className={primary} disabled={busy} onClick={() => commit(false)}>{busy ? 'Committing...' : 'Commit to live seating'}</button>
-            <button type="button" className={primary} disabled={busy} onClick={() => commit(true)}>Commit and lock</button>
-            <button type="button" className={btn} onClick={() => setCommitOpen(false)}>Cancel</button>
+            <button type="button" className={primary} disabled={busy || !commitPw} onClick={() => commit(false)}>{busy ? 'Committing...' : 'Commit to live seating'}</button>
+            <button type="button" className={primary} disabled={busy || !commitPw} onClick={() => commit(true)}>Commit and lock</button>
+            <button type="button" className={btn} onClick={() => { setCommitOpen(false); setCommitPw('') }}>Cancel</button>
           </div>
         </div>
       )}

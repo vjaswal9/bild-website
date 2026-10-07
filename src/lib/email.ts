@@ -219,6 +219,26 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
     </div>`
     : ''
 
+  // Set the tone for the WhatsApp groups before the member is in them: what
+  // BILD is for, and that business promotion has its own proper route.
+  const groupNoteBlock = `
+    <div style="padding:26px 28px 0">
+      <div style="background:#1a1a1a;border:1px solid #3a3222;border-radius:14px;padding:22px">
+        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 10px">A quick word on the groups</p>
+        <p style="color:#cfcabd;font-size:14px;line-height:1.65;margin:0 0 14px">
+          BILD is all about meeting people, making new connections, supporting each other and getting involved in what's happening around Dubai. Have a look through the groups and jump in whenever you fancy.
+        </p>
+        <p style="color:#cfcabd;font-size:14px;line-height:1.65;margin:0 0 14px">
+          Just a quick one on the groups: we keep them community focused, so please may we ask you not to provide direct advertising, self promotion or business links on the WhatsApp groups. If you have a business or service you'd like to share, we have proper opportunities to do that.
+        </p>
+        <p style="color:#cfcabd;font-size:14px;line-height:1.65;margin:0 0 6px">You can apply for our BILD Business Directory here:</p>
+        <p style="margin:0 0 14px"><a href="${site}/directory" style="color:#C8861A;font-weight:bold;font-size:14px;text-decoration:underline">${site}/directory</a></p>
+        <p style="color:#cfcabd;font-size:14px;line-height:1.65;margin:0">
+          We also have social media promotion opportunities, so just email us <a href="mailto:connect@bild.ae" style="color:#C8861A;text-decoration:none;font-weight:bold">connect@bild.ae</a> with some info of what you're looking for.
+        </p>
+      </div>
+    </div>`
+
   // No business count on purpose: a number invites "only that many?", where the
   // trades below imply breadth without ever being counted.
   const directoryBlock = `
@@ -268,6 +288,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
       ${googleBadge}
     </div>
     <div style="padding:8px 28px 0">${whatsappBlock}</div>
+    ${groupNoteBlock}
     ${eventBlock}
     ${directoryBlock}
     <div style="padding:26px 28px 8px">
