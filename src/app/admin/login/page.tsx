@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
@@ -13,11 +13,23 @@ export default function AdminLoginPage() {
   const [needsCode, setNeedsCode] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  // Set once sign-in has succeeded, until the admin page takes over. Without it the
+  // button went back to "Verify and sign in" for the second or two the page needs to load.
+  const [done, setDone] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Once personal accounts are on, the sign-in also asks for an email address.
   useEffect(() => {
     fetch('/api/admin/login').then(r => (r.ok ? r.json() : null)).then(d => setPersonal(!!d?.personal)).catch(() => {})
   }, [])
+
+  // On a phone the keyboard opens as soon as the code box appears and can cover
+  // the button. Once the second step shows, bring the button into view above it.
+  useEffect(() => {
+    if (!needsCode) return
+    const t = setTimeout(() => buttonRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350)
+    return () => clearTimeout(t)
+  }, [needsCode])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,7 +47,9 @@ export default function AdminLoginPage() {
       // Password was right; the second step is the code from the phone.
       setNeedsCode(true)
     } else if (res.ok) {
+      setDone(true)
       router.push('/admin')
+      return
     } else if (needsCode || data.needsCode) {
       setError(data.error || 'That code is not right.')
       setCode('')
@@ -46,7 +60,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-charcoal-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-charcoal-900 flex items-start sm:items-center justify-center px-4 pt-8 pb-40 sm:py-0">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain mx-auto mb-4 brightness-0 invert" />
@@ -106,11 +120,12 @@ export default function AdminLoginPage() {
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <button
+            ref={buttonRef}
             type="submit"
-            disabled={loading}
+            disabled={loading || done}
             className="w-full bg-gold-500 text-white py-3 rounded-xl font-semibold hover:bg-gold-600 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Signing in...' : needsCode ? 'Verify and sign in' : 'Sign In'}
+            {done ? 'Signed in. Opening admin...' : loading ? (needsCode ? 'Verifying...' : 'Signing in...') : needsCode ? 'Verify and sign in' : 'Sign In'}
           </button>
         </form>
       </div>

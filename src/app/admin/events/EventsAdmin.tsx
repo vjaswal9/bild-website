@@ -716,6 +716,8 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [showAll, setShowAll] = useState(false)
+  // Collapsed until asked for, like the bookings list above it.
+  const [listOpen, setListOpen] = useState(false)
 
   const load = async () => {
     const res = await fetch(`/api/admin/events/waitlist?eventId=${eventId}`)
@@ -826,8 +828,15 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
 
       {entries.length === 0 ? (
         <p className="text-gray-500 text-sm">Nobody on the waitlist yet.</p>
+      ) : !listOpen ? (
+        <button onClick={() => setListOpen(true)} className="inline-flex items-center gap-1.5 text-gold-400 hover:underline text-sm font-medium">
+          <ChevronDown size={15} /> {waiting.length + invited.length > 0 ? `Show ${waiting.length + invited.length} on the waitlist` : `Show ${entries.length} past ${entries.length === 1 ? 'entry' : 'entries'} (removed or declined)`}
+        </button>
       ) : (
         <>
+          <button onClick={() => setListOpen(false)} className="inline-flex items-center gap-1.5 text-gold-400 hover:underline text-sm font-medium mb-3">
+            <ChevronUp size={15} /> Hide waitlist
+          </button>
           <div className="space-y-2">
             {visible.map((e, i) => (
               <div key={e.id} className="flex items-start justify-between gap-3 bg-charcoal-700/40 rounded-lg px-4 py-3">
