@@ -76,6 +76,13 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
   const [copyFrom, setCopyFrom] = useState('')
   const svgRef = useRef<SVGSVGElement>(null)
   const drag = useRef<Drag | null>(null)
+  // Snap to grid: 0 is off. Remembered per browser so it is the same next time.
+  const [grid, setGridState] = useState<number>(25)
+  useEffect(() => {
+    try { const v = Number(localStorage.getItem('bild-plan-grid')); if ([0, 10, 25, 50].includes(v) && localStorage.getItem('bild-plan-grid') !== null) setGridState(v) } catch { /* optional */ }
+  }, [])
+  function setGrid(v: number) { setGridState(v); try { localStorage.setItem('bild-plan-grid', String(v)) } catch { /* optional */ } }
+  const sn = (v: number) => (grid ? snap(v, grid) : Math.round(v))
   const [clientId] = useState(tabId)
   const [editing, setEditing] = useState(false)
   const [lostLease, setLostLease] = useState(false)
@@ -259,21 +266,34 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
     if (d.kind === 'table') {
       const t = layout.tables.find(x => x.n === d.n)
       if (!t) return
-      const moved = clampTable({ ...t, x: snap(d.origX + dx), y: snap(d.origY + dy) }, layout.room, seats)
+      // Snap, then keep the whole table (seats included) inside the room. When the
+      // wall is in the way, step back to the nearest grid line that still fits
+      // instead of landing between lines.
+      const f = footprint(t, seats)
+      const fit = (v: number, half: number, size: number) => {
+        const lo = half, hi = Math.max(half, size - half)
+        let c = sn(v)
+        if (grid) {
+          if (c < lo) c = Math.ceil(lo / grid) * grid
+          if (c > hi) c = Math.floor(hi / grid) * grid
+        }
+        return Math.min(Math.max(c, lo), hi)
+      }
+      const moved = { ...t, x: fit(d.origX + dx, f.w / 2, layout.room.w), y: fit(d.origY + dy, f.h / 2, layout.room.h) }
       if (moved.x === t.x && moved.y === t.y) return
       edit({ ...layout, tables: layout.tables.map(x => (x.n === d.n ? moved : x)) })
     } else if (d.kind === 'label') {
       const l = layout.labels.find(x => x.id === d.id)
       if (!l) return
-      const x = Math.min(Math.max(snap(d.origX + dx), 0), layout.room.w - l.w)
-      const y = Math.min(Math.max(snap(d.origY + dy), 0), layout.room.h - l.h)
+      const x = Math.min(Math.max(sn(d.origX + dx), 0), layout.room.w - l.w)
+      const y = Math.min(Math.max(sn(d.origY + dy), 0), layout.room.h - l.h)
       if (x === l.x && y === l.y) return
       edit({ ...layout, labels: layout.labels.map(v => (v.id === d.id ? { ...v, x, y } : v)) })
     } else {
       const l = layout.labels.find(x => x.id === d.id)
       if (!l) return
-      const w = Math.min(Math.max(snap(d.origW + dx), 40), Math.min(800, layout.room.w - l.x))
-      const h = Math.min(Math.max(snap(d.origH + dy), 30), Math.min(400, layout.room.h - l.y))
+      const w = Math.min(Math.max(sn(d.origW + dx), 40), Math.min(800, layout.room.w - l.x))
+      const h = Math.min(Math.max(sn(d.origH + dy), 30), Math.min(400, layout.room.h - l.y))
       if (w === l.w && h === l.h) return
       edit({ ...layout, labels: layout.labels.map(v => (v.id === d.id ? { ...v, w, h } : v)) })
     }
@@ -285,7 +305,7 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
     if (!layout || !selected) return
     if (e.key === 'Escape') { setSelected(null); return }
     if (!editable) return
-    const step = (e.shiftKey ? 5 : 1) * GRID
+    const step = (e.shiftKey ? 5 : 1) * (grid || GRID)
     const delta: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }
     if (delta[e.key]) {
       e.preventDefault()
@@ -448,6 +468,16 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className={btn} onClick={addLabel} disabled={!editable || layout.labels.length >= MAX_LABELS}><Plus size={14} /> Label</button>
         <button type="button" className={btn} onClick={openCopy} disabled={!editable}><Copy size={14} /> Copy layout</button>
+        <label htmlFor="fp-snap" className="inline-flex items-center gap-1.5 text-xs text-gray-300">
+          Snap to grid
+          <select id="fp-snap" value={grid} onChange={e => setGrid(Number(e.target.value))}
+            className="px-2 py-1.5 bg-charcoal-800 border border-charcoal-600 rounded-lg text-xs text-gray-200">
+            <option value={0}>Off</option>
+            <option value={10}>Fine</option>
+            <option value={25}>Medium</option>
+            <option value={50}>Large</option>
+          </select>
+        </label>
         <button type="button" className={btn} disabled={!editable || dirty || !!renum || !lease?.supported} title={dirty ? 'Save your layout first' : undefined} onClick={() => { setRenum({ kind: 'swap', first: null, second: null }); ensureSeated() }}><ArrowLeftRight size={14} /> Swap numbers</button>
         <label htmlFor="fp-order" className="sr-only">Number tables in order</label>
         <select
@@ -560,10 +590,14 @@ export default function FloorPlan({ eventId }: { eventId: string }) {
         style={{ aspectRatio: `${layout.room.w} / ${layout.room.h}` }}
       >
         <defs>
+          <pattern id="fp-grid-minor" width={grid || 100} height={grid || 100} patternUnits="userSpaceOnUse">
+            <path d={`M ${grid || 100} 0 L 0 0 0 ${grid || 100}`} fill="none" stroke="#333333" strokeWidth="1" />
+          </pattern>
           <pattern id="fp-grid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#2f2f2f" strokeWidth="1" />
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#444444" strokeWidth="1" />
           </pattern>
         </defs>
+        {grid > 0 && grid < 100 && <rect width={layout.room.w} height={layout.room.h} fill="url(#fp-grid-minor)" />}
         <rect width={layout.room.w} height={layout.room.h} fill="url(#fp-grid)" />
 
         {layout.labels.map(l => {

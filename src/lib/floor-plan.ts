@@ -111,7 +111,8 @@ function placeInFreeSpot(
 ): { table: PlanTable; roomH: number } {
   const f = footprint({ shape, rot: 0 }, seats)
   const stepX = Math.ceil(f.w / GRID) * GRID + 10
-  const stepY = Math.ceil(f.h / GRID) * GRID + 10
+  // Rows are spaced further apart than columns so there is room under each table for the names on the printed plan.
+  const stepY = Math.ceil(f.h / GRID) * GRID + 50
   let roomH = room.h
   for (let attempt = 0; attempt < 200; attempt++) {
     for (let y = MARGIN + f.h / 2; y + f.h / 2 <= roomH - MARGIN; y += stepY) {
@@ -196,7 +197,8 @@ export function validateLayout(raw: unknown, tableCount: number, seats: number):
     if (![0, 90, 180, 270].includes(t.rot as number)) return bad('A table has an unsupported rotation.')
     if (!finite(t.x) || !finite(t.y)) return bad('A table has no position.')
     seen.add(t.n as number)
-    tables.push(clampTable({ n: t.n as number, shape: t.shape, x: snap(t.x), y: snap(t.y), rot: t.rot as Rotation }, room, seats))
+    // Whole numbers only: the editor snaps to whichever grid the admin chose (or none), so the server must not move things to a grid of its own.
+    tables.push(clampTable({ n: t.n as number, shape: t.shape, x: Math.round(t.x), y: Math.round(t.y), rot: t.rot as Rotation }, room, seats))
   }
 
   if (!Array.isArray(r.labels) || r.labels.length > MAX_LABELS) return bad('Too many labels.')
@@ -214,8 +216,8 @@ export function validateLayout(raw: unknown, tableCount: number, seats: number):
     const w = clamp(Math.round(l.w as number), 40, 800), h = clamp(Math.round(l.h as number), 30, 400)
     labels.push({
       id, text, w, h,
-      x: clamp(snap(l.x as number), 0, Math.max(0, room.w - w)),
-      y: clamp(snap(l.y as number), 0, Math.max(0, room.h - h)),
+      x: clamp(Math.round(l.x as number), 0, Math.max(0, room.w - w)),
+      y: clamp(Math.round(l.y as number), 0, Math.max(0, room.h - h)),
     })
   }
 

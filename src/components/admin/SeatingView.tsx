@@ -13,13 +13,14 @@ import DraftSeating from '@/components/admin/DraftSeating'
 export default function SeatingView({ eventId }: { eventId: string }) {
   const [available, setAvailable] = useState(false)
   const [draftReady, setDraftReady] = useState(false)
+  const [locked, setLocked] = useState(false)
   const [view, setView] = useState<'list' | 'plan' | 'draft'>('list')
 
   useEffect(() => {
     let live = true
     fetch(`/api/admin/events/seating-layout?eventId=${eventId}`)
       .then(r => (r.ok ? r.json() : null))
-      .then(d => { if (live) setAvailable(!!d?.available) })
+      .then(d => { if (live) { setAvailable(!!d?.available); setLocked(!!d?.locked) } })
       .catch(() => {})
     fetch(`/api/admin/events/seating-draft?eventId=${eventId}`)
       .then(r => (r.ok ? r.json() : null))
@@ -33,11 +34,25 @@ export default function SeatingView({ eventId }: { eventId: string }) {
   return (
     <div>
       {available && (
-        <div className="px-6 pt-4">
+        <div className="px-6 pt-4 flex flex-wrap items-center gap-3">
           <div className="inline-flex border border-charcoal-600 rounded-lg overflow-hidden" role="group" aria-label="Seating view">
             <button type="button" className={tab(view === 'list')} aria-pressed={view === 'list'} onClick={() => setView('list')}>List</button>
             <button type="button" className={tab(view === 'plan')} aria-pressed={view === 'plan'} onClick={() => setView('plan')}>Floor plan</button>
             {draftReady && <button type="button" className={tab(view === 'draft')} aria-pressed={view === 'draft'} onClick={() => setView('draft')}>Draft seating</button>}
+          </div>
+          <div className="ml-auto flex flex-wrap items-center gap-2 text-xs">
+            <a href={`/admin/events/${eventId}/seating-print?mode=live`} target="_blank" rel="noopener"
+              title={locked ? 'Opens an A3 landscape print of the live seating' : 'Seating is not locked yet, so this plan may change'}
+              className="border border-charcoal-600 rounded-lg px-3 py-1.5 text-gray-200 hover:bg-charcoal-700">
+              Print live seating{!locked ? ' (not locked yet)' : ''}
+            </a>
+            {draftReady && (
+              <a href={`/admin/events/${eventId}/seating-print?mode=draft`} target="_blank" rel="noopener"
+                title="Opens an A3 landscape print of the draft, marked DRAFT"
+                className="border border-charcoal-600 rounded-lg px-3 py-1.5 text-gray-200 hover:bg-charcoal-700">
+                Print draft
+              </a>
+            )}
           </div>
         </div>
       )}
