@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
 import SeatingView from '@/components/admin/SeatingView'
 import { compressImage } from '@/lib/compress-image'
-import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent } from '@/lib/events'
+import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, removedValueOf } from '@/lib/events'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
 import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
@@ -530,7 +530,11 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
   // rather than overstating revenue until the admin panels agree with it.
   const refundedTotal = paid.reduce((s, r) => s + (Number(r.refunded_amount_aed) || 0), 0)
   const upgradePendingTotal = paid.reduce((s, r) => s + (Number(r.upgrade_due_aed) || 0), 0)
-  const ticketRevenue = ticketRevenueGross - refundedTotal - upgradePendingTotal
+  // People taken off a booking are no longer in the ticket list above, but their
+  // money was collected: add their ticket value back, then the refund that was
+  // deducted leaves only what BILD kept.
+  const removedValueTotal = paid.reduce((s, r) => s + removedValueOf(r), 0)
+  const ticketRevenue = ticketRevenueGross - refundedTotal - upgradePendingTotal + removedValueTotal
   // Until the extra lines have loaded these read as ticket-only, which is what
   // the panel showed before - never a number that is briefly too optimistic.
   const totalCost = ticketCost + (extra?.costs || 0) + (extra?.stripeFeeAed || 0)
@@ -1029,7 +1033,8 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
 
   const extraRevenueTotal = revenue.reduce((s, r) => s + r.amountAed, 0)
   const extraCostsTotal = costs.reduce((s, c) => s + c.amountAed, 0)
-  const netTicketRevenue = ticketRevenueTotal - refundedTotal - upgradePendingTotal
+  const removedValueTotal = paid.reduce((s, r) => s + removedValueOf(r), 0)
+  const netTicketRevenue = ticketRevenueTotal - refundedTotal - upgradePendingTotal + removedValueTotal
   const profit = (netTicketRevenue + extraRevenueTotal) - (ticketCostTotal + extraCostsTotal + stripeFeeAed)
 
   const input = 'w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500'
@@ -1215,6 +1220,12 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-gray-400">Refunds given</span>
               <span className="text-red-400 font-medium">-{aed(refundedTotal)} AED</span>
+            </div>
+          )}
+          {removedValueTotal > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-gray-400">Tickets of people removed from bookings (refunds above)</span>
+              <span className="text-green-400 font-medium">{aed(removedValueTotal)} AED</span>
             </div>
           )}
           {upgradePendingTotal > 0 && (
@@ -1800,7 +1811,7 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
 }) {
   const router = useRouter()
   const [openId, setOpenId] = useState<string | null>(null)
-  const [mode, setMode] = useState<'refund' | 'tickets' | 'email' | 'stripe' | null>(null)
+  const [mode, setMode] = useState<'refund' | 'tickets' | 'email' | 'stripe' | 'remove' | null>(null)
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
   const [listOpen, setListOpen] = useState(false)
@@ -1823,7 +1834,7 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
   // glance rather than only inside individual bookings.
   const refundedTotal = registrations.reduce((s, r) => s + (Number(r.refunded_amount_aed) || 0), 0)
 
-  function toggle(id: string, next: 'refund' | 'tickets' | 'email' | 'stripe') {
+  function toggle(id: string, next: 'refund' | 'tickets' | 'email' | 'stripe' | 'remove') {
     if (openId === id && mode === next) { setOpenId(null); setMode(null); return }
     setOpenId(id); setMode(next)
   }
@@ -2119,15 +2130,18 @@ const dietaryLabelFor = (d?: string | null, note?: string | null) =>
 function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }: {
   reg: EventRegistration
   tickets: EventTicket[]
-  open: 'refund' | 'tickets' | 'email' | 'stripe' | null
-  onToggle: (next: 'refund' | 'tickets' | 'email' | 'stripe') => void
+  open: 'refund' | 'tickets' | 'email' | 'stripe' | 'remove' | null
+  onToggle: (next: 'refund' | 'tickets' | 'email' | 'stripe' | 'remove') => void
   onClose: () => void
   onDone: () => void
   onDelete: () => void
 }) {
   const guests = reg.guest_names || []
   const refunded = Number(reg.refunded_amount_aed) || 0
-  const remaining = Math.round(((Number(reg.amount_aed) || 0) - refunded) * 100) / 100
+  // The booking's own amount no longer includes anyone taken off it, but the
+  // card payment still does, so what is left to refund counts their value too.
+  const removedPeople = reg.removed_people || []
+  const remaining = Math.round(((Number(reg.amount_aed) || 0) + removedValueOf(reg) - refunded) * 100) / 100
   const buyerPrice = tickets.find(t => t.id === reg.ticket_id)?.price_aed
 
   return (
@@ -2192,6 +2206,14 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
         </div>
       </div>
 
+      {removedPeople.length > 0 && (
+        <div className="px-4 pb-3">
+          <p className="text-gray-500 text-xs border-l-2 border-red-500/40 pl-3">
+            Removed from this booking: {removedPeople.map(p => `${p.name} (${p.refunded_aed > 0 ? `${aed(p.refunded_aed)} AED refunded` : 'no refund'}${p.kept_aed > 0 ? `, ${aed(p.kept_aed)} AED kept` : ''})`).join('; ')}
+          </p>
+        </div>
+      )}
+
       {reg.admin_note && (
         <div className="px-4 pb-3">
           <p className="text-gray-500 text-xs whitespace-pre-line border-l-2 border-gold-500/40 pl-3">
@@ -2213,6 +2235,17 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
             >
               <Ticket size={13} /> Change tickets
             </button>
+            {guests.length > 0 && (
+              <button
+                onClick={() => onToggle('remove')}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  open === 'remove' ? 'bg-gold-500 text-white' : 'bg-charcoal-700 hover:bg-red-500/20 hover:text-red-400 text-gray-300'
+                }`}
+                title="Take one person off this booking, free their place and refund their ticket"
+              >
+                <Users size={13} /> Remove a person
+              </button>
+            )}
             <button
               onClick={() => onToggle('email')}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
@@ -2258,6 +2291,9 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
       )}
       {open === 'refund' && (
         <RefundPanel reg={reg} remaining={remaining} onCancel={onClose} onDone={onDone} />
+      )}
+      {open === 'remove' && (
+        <RemovePersonPanel reg={reg} tickets={tickets} onCancel={onClose} onDone={onDone} />
       )}
       {open === 'email' && (
         <ResendConfirmationPanel reg={reg} onCancel={onClose} onDone={onDone} />
@@ -2681,6 +2717,167 @@ function ResendConfirmationPanel({ reg, onCancel, onDone }: {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+// Takes one person off a booking: the buyer or any guest. Their place is freed,
+// their ticket refunded (less an admin fee if BILD keeps one) and the rest of
+// the booking carries on. See src/app/api/admin/events/registrations/remove-person.
+function RemovePersonPanel({ reg, tickets, onCancel, onDone }: {
+  reg: EventRegistration
+  tickets: EventTicket[]
+  onCancel: () => void
+  onDone: () => void
+}) {
+  const guests = reg.guest_names || []
+  const buyerTicket = tickets.find(t => t.id === reg.ticket_id) || tickets.find(t => t.name === reg.ticket_name)
+  const people = [
+    { who: 'buyer' as 'buyer' | number, name: `${reg.first_name} ${reg.last_name}`.trim(), role: 'Purchaser', ticketName: reg.ticket_name, price: reg.is_complimentary ? 0 : Number(buyerTicket?.price_aed) || 0 },
+    ...guests.map((g, i) => ({ who: i as 'buyer' | number, name: g.name, role: `Guest ${i + 1}`, ticketName: g.ticket_name, price: reg.is_complimentary ? 0 : Number(g.price_aed) || 0 })),
+  ]
+  const [pick, setPick] = useState<'buyer' | number | null>(null)
+  const chosen = pick === null ? null : people.find(p => p.who === pick) || null
+  const [gross, setGross] = useState('')
+  const [fee, setFee] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    try { return window.localStorage.getItem('bild:adminFee') || '' } catch { return '' }
+  })
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  // The person is already off the booking (only the refund or its email had a
+  // problem), so the screen is locked until it is closed and reloaded. Otherwise
+  // a second click would act on a list that has already changed.
+  const [finished, setFinished] = useState(false)
+
+  function choose(who: 'buyer' | number) {
+    setPick(who)
+    const p = people.find(x => x.who === who)
+    setGross(p ? String(p.price) : '')
+    setError('')
+  }
+
+  const grossValue = parseFloat(gross)
+  const feeValue = fee.trim() === '' ? 0 : parseFloat(fee)
+  const validGross = Number.isFinite(grossValue) && grossValue >= 0
+  const validFee = Number.isFinite(feeValue) && feeValue >= 0
+  const payout = validGross && validFee ? Math.round((grossValue - feeValue) * 100) / 100 : NaN
+  const kept = chosen && Number.isFinite(payout) ? Math.round((chosen.price - payout) * 100) / 100 : NaN
+  const isBuyer = pick === 'buyer'
+  const nextLead = guests[0]?.name
+
+  async function submit() {
+    setError('')
+    if (!chosen) return setError('Choose who is being removed.')
+    if (!validGross || !validFee) return setError('Please enter valid amounts.')
+    if (grossValue > chosen.price) return setError(`Their ticket was ${aed(chosen.price)} AED, so at most that can be refunded.`)
+    if (feeValue > grossValue) return setError('The admin fee cannot be more than the amount being refunded.')
+    const refundLine = payout > 0 ? `${aed(payout)} AED goes back to the card${feeValue > 0 ? `; BILD keeps ${aed(feeValue)} AED as an admin fee` : ''}.` : 'No money is refunded.'
+    const buyerLine = isBuyer ? ` ${nextLead || 'The first guest'} becomes the name on the booking; the contact email and card stay the same.` : ''
+    if (!confirm(`Remove ${chosen.name} from this booking? Their place is freed and they come off the door list.${buyerLine} ${refundLine}`)) return
+
+    setBusy(true)
+    const res = await fetch('/api/admin/events/registrations/remove-person', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: reg.id, who: pick, grossAed: grossValue, adminFeeAed: feeValue, note: note.trim() }),
+    })
+    const d = await res.json().catch(() => ({}))
+    setBusy(false)
+    if (!res.ok) return setError(d.error || 'Could not remove them.')
+    try { window.localStorage.setItem('bild:adminFee', fee.trim()) } catch { /* private window */ }
+    if (d.refundError) {
+      setFinished(true)
+      return setError(`${d.removed} has been taken off the booking, but the refund of ${aed(d.owedAed)} AED did not go through: ${d.refundError} Nothing has been paid back yet. Use "Refund minus admin fee" with "no longer attending" unticked to send it.`)
+    }
+    if (d.refund && d.refund.emailed === false) {
+      setFinished(true)
+      return setError(`${d.removed} has been taken off and ${aed(d.refund.refundedAed)} AED refunded, but the confirmation email could not be sent: ${d.refund.emailError || 'unknown reason'} Let them know another way.`)
+    }
+    onDone()
+  }
+
+  const field = 'w-32 bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500'
+
+  return (
+    <div className="px-4 py-4 border-t border-charcoal-600 bg-charcoal-900/50">
+      <p className="text-white text-sm font-semibold mb-1">Remove a person</p>
+      <p className="text-gray-500 text-xs mb-3">
+        Takes one person off this booking, frees their place and refunds their ticket. Everyone else stays.
+      </p>
+
+      <div className="space-y-1.5 mb-4">
+        {people.map(p => (
+          <label key={String(p.who)} className={`flex items-center gap-3 rounded-lg border px-3 py-2 cursor-pointer ${pick === p.who ? 'border-gold-500 bg-gold-500/10' : 'border-charcoal-600 bg-charcoal-800'}`}>
+            <input type="radio" name={`remove-${reg.id}`} checked={pick === p.who} disabled={finished} onChange={() => choose(p.who)} className="accent-gold-500" />
+            <span className="text-sm text-gray-100 flex-1 min-w-0 truncate">{p.name || <em className="text-gray-500">Unnamed</em>}<span className="text-gray-500 text-xs ml-2">{p.role}</span></span>
+            <span className="text-gray-400 text-xs shrink-0">{p.ticketName || 'Ticket'} · {p.price > 0 ? `${aed(p.price)} AED` : 'Free'}</span>
+          </label>
+        ))}
+      </div>
+
+      {chosen && (
+        <>
+          {isBuyer && (
+            <p className="text-amber-400/90 text-xs mb-3 leading-relaxed">
+              This is the person who paid. {nextLead || 'The first guest'} becomes the name on the booking, so the door list, seating and exports show them.
+              The contact email and phone stay as they are, so the refund and its confirmation still go to the person who paid.
+            </p>
+          )}
+          {chosen.price > 0 ? (
+            <div className="flex flex-wrap items-end gap-4 mb-3">
+              <label className="block">
+                <span className="text-gray-400 text-xs block mb-1">Amount being refunded</span>
+                <input type="number" min="0" step="0.01" max={chosen.price} value={gross} onChange={e => setGross(e.target.value)} className={field} />
+              </label>
+              <span className="text-gray-600 text-lg pb-2">&minus;</span>
+              <label className="block">
+                <span className="text-gray-400 text-xs block mb-1">Admin fee BILD keeps</span>
+                <input type="number" min="0" step="0.01" value={fee} onChange={e => setFee(e.target.value)} placeholder="0.00" className={field} />
+              </label>
+              <span className="text-gray-600 text-lg pb-2">=</span>
+              <div className="pb-1">
+                <span className="text-gray-400 text-xs block mb-1">Buyer receives</span>
+                <p className={`font-display text-2xl font-bold leading-none ${Number.isFinite(payout) && payout > 0 ? 'text-green-400' : 'text-gray-600'}`}>
+                  {Number.isFinite(payout) && payout > 0 ? `${aed(payout)} AED` : '-'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-xs mb-3">This ticket was free, so there is nothing to refund.</p>
+          )}
+          {chosen.price > 0 && Number.isFinite(kept) && kept > 0 && (
+            <p className="text-gray-500 text-xs mb-3">BILD keeps {aed(kept)} AED of this ticket.</p>
+          )}
+
+          <input
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder="Why (optional), e.g. cannot attend"
+            className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500 mb-3"
+          />
+          <p className="text-gray-500 text-xs mb-3 inline-flex items-center gap-1.5">
+            <Mail size={12} />
+            {chosen.price > 0 && payout > 0
+              ? (reg.email ? <>A refund confirmation goes to {reg.email}, copied to the BILD inbox.</> : <>No email address on this booking, so no confirmation can be sent.</>)
+              : <>No email is sent when nothing is refunded.</>}
+          </p>
+        </>
+      )}
+
+      {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+
+      <div className="flex gap-2">
+        <button onClick={submit} disabled={busy || !chosen || finished}
+          className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+          {busy ? <Loader2 size={15} className="animate-spin" /> : <Users size={15} />}
+          Remove {chosen ? (chosen.name.split(' ')[0] || 'person') : 'person'}{chosen && payout > 0 ? ` and refund ${aed(payout)} AED` : ''}
+        </button>
+        <button onClick={finished ? onDone : onCancel} className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">
+          {finished ? 'Close and reload the booking' : 'Cancel'}
+        </button>
+      </div>
     </div>
   )
 }

@@ -47,6 +47,17 @@ export type RefundOptions = {
   forceClose?: boolean
   // Shown on the customer's confirmation so the arithmetic is transparent.
   adminFeeAed?: number
+  // The booking stays open whatever Stripe says is left. Used when one person
+  // is taken off a booking: the money may happen to equal everything Stripe
+  // still holds (the others were free tickets), but the others are still coming.
+  keepOpen?: boolean
+  // Ticket value of people already taken off this booking. The booking's own
+  // amount no longer includes them, but the payment behind it does, so a booking
+  // with no Stripe payment needs it added to know how much can still go back.
+  extraValueAed?: number
+  // Who was taken off, so the customer's email says that instead of "you are
+  // still booked in".
+  removedPersonName?: string
 }
 
 // What Stripe says is still refundable on this booking, in AED.
@@ -138,14 +149,14 @@ export async function refundRegistration(
   reg: Registration,
   options: RefundOptions,
 ): Promise<RefundOutcome> {
-  const { amountAed, note, forceClose, adminFeeAed } = options
+  const { amountAed, note, forceClose, adminFeeAed, keepOpen, removedPersonName, extraValueAed } = options
   const requested = Math.round(amountAed * 100) / 100
   if (!Number.isFinite(requested) || requested <= 0) {
     throw new Error('Please enter an amount greater than zero.')
   }
 
   const alreadyRecorded = Number(reg.refunded_amount_aed) || 0
-  const bookingValue = Number(reg.amount_aed) || 0
+  const bookingValue = (Number(reg.amount_aed) || 0) + (Number(extraValueAed) || 0)
 
   let stripeRefundId: string | null = null
   let isFull: boolean
@@ -189,7 +200,7 @@ export async function refundRegistration(
     isFull = alreadyRecorded + requested >= bookingValue
   }
 
-  const closes = isFull || forceClose === true
+  const closes = keepOpen ? false : isFull || forceClose === true
   const totalRefunded = Math.round((alreadyRecorded + requested) * 100) / 100
   const trimmed = typeof note === 'string' ? note.trim().slice(0, 300) : ''
   const line = `${new Date().toLocaleDateString('en-GB')}: refunded ${requested} AED${trimmed ? ` (${trimmed})` : ''}`
@@ -264,6 +275,7 @@ export async function refundRegistration(
       originallyChargedAed: info?.chargedAed,
       previouslyRefundedAed: alreadyRecorded,
       stillAttending: !closes,
+      removedPersonName,
       reason: trimmed || undefined,
     })
     emailed = outcome.ok

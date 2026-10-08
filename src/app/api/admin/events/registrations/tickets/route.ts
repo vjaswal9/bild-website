@@ -114,9 +114,20 @@ export async function POST(req: NextRequest) {
   // is actually paid - see the webhook's event_upgrade handling.
   if (reg.stripe_session_id && difference >= 0) {
     try {
+      // Anyone taken off the booking earlier was part of what was collected, so
+      // their ticket value stays in the ledger's revenue (their refund is
+      // netted off separately). Best effort: the column only exists once the
+      // remove-a-person database update has been run.
+      let removedValue = 0
+      const { data: removedRow, error: removedErr } = await supabaseAdmin
+        .from('event_registrations').select('removed_people').eq('id', id).maybeSingle()
+      if (!removedErr && Array.isArray((removedRow as { removed_people?: unknown[] } | null)?.removed_people)) {
+        removedValue = ((removedRow as { removed_people: { price_aed?: number }[] }).removed_people)
+          .reduce((s, p) => s + (Number(p.price_aed) || 0), 0)
+      }
       await supabaseAdmin
         .from('payments')
-        .update({ revenue_aed: newTotal })
+        .update({ revenue_aed: Math.round((newTotal + removedValue) * 100) / 100 })
         .eq('stripe_session_id', reg.stripe_session_id)
     } catch (e) {
       console.error('Could not update the payment ledger after a ticket change:', e)

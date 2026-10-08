@@ -684,6 +684,8 @@ export async function sendRefundConfirmation(opts: {
   // refund adds up on the page instead of appearing to contradict the first.
   previouslyRefundedAed?: number
   stillAttending: boolean
+  // Set when one person was taken off a larger booking: the rest is unchanged.
+  removedPersonName?: string
   reason?: string
 }): Promise<{ ok: boolean; reason?: string }> {
   if (!apiKey) {
@@ -719,7 +721,9 @@ export async function sendRefundConfirmation(opts: {
         The money goes back to the card you paid with. Your bank usually takes 5 to 10 working days to show it,
         and that timing is set by them rather than by us.
       </p>
-      ${opts.stillAttending
+      ${opts.removedPersonName
+        ? `<p>The ticket for <strong style="color:#F4F1EC">${esc(opts.removedPersonName)}</strong> has been cancelled and that place released. <strong style="color:#F4F1EC">The rest of your booking is unchanged</strong> and we look forward to seeing everyone else.</p>`
+        : opts.stillAttending
         ? `<p><strong style="color:#F4F1EC">You are still booked in for this event.</strong> Your place is unchanged and we look forward to seeing you.</p>`
         : `<p>Your booking has been cancelled and your place released. We hope to see you at the next one.</p>`}
       ${opts.reason ? `<p style="color:#9a9384;font-size:13px">Reference: ${esc(opts.reason)}</p>` : ''}

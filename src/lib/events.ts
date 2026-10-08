@@ -116,6 +116,34 @@ export type EventRegistration = {
   // can exclude it from both revenue and cost, rather than showing BILD as
   // having paid to host them.
   is_complimentary?: boolean
+  // People taken off this booking after it was paid (see
+  // src/lib/remove-person.ts). Absent until the database update has been run.
+  removed_people?: RemovedPerson[] | null
+  // Only set when the person who paid was the one removed: first_name and
+  // last_name then hold the guest who took over as the booking's lead, and
+  // these keep who paid.
+  payer_first_name?: string | null
+  payer_last_name?: string | null
+}
+
+export type RemovedPerson = {
+  name: string
+  role: 'buyer' | 'guest'
+  ticket_name: string | null
+  // What their ticket was worth when they were taken off.
+  price_aed: number
+  // What went back to the card, and what BILD kept.
+  refunded_aed: number
+  kept_aed: number
+  at: string
+  note?: string
+}
+
+// The ticket value of everyone taken off a booking. The booking's own amount
+// and ticket list no longer include them, so event revenue adds this back and
+// then subtracts what was refunded, which leaves exactly what BILD kept.
+export function removedValueOf(r: { removed_people?: RemovedPerson[] | null }): number {
+  return (r.removed_people || []).reduce((s, p) => s + (Number(p.price_aed) || 0), 0)
 }
 
 // An event is "past" once its end (or start, if no end) is behind us.
