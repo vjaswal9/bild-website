@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
 import SeatingView from '@/components/admin/SeatingView'
 import { compressImage } from '@/lib/compress-image'
-import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, removedValueOf } from '@/lib/events'
+import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
 import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
@@ -530,10 +530,10 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
   // rather than overstating revenue until the admin panels agree with it.
   const refundedTotal = paid.reduce((s, r) => s + (Number(r.refunded_amount_aed) || 0), 0)
   const upgradePendingTotal = paid.reduce((s, r) => s + (Number(r.upgrade_due_aed) || 0), 0)
-  // People taken off a booking are no longer in the ticket list above, but their
-  // money was collected: add their ticket value back, then the refund that was
-  // deducted leaves only what BILD kept.
-  const removedValueTotal = paid.reduce((s, r) => s + removedValueOf(r), 0)
+  // People taken off a booking, and value given up by downgrades, are no longer
+  // in the ticket list above, but that money was collected: add it back, then the
+  // refund that was deducted leaves only what BILD kept.
+  const removedValueTotal = paid.reduce((s, r) => s + valueGivenUpOf(r), 0)
   const ticketRevenue = ticketRevenueGross - refundedTotal - upgradePendingTotal + removedValueTotal
   // Until the extra lines have loaded these read as ticket-only, which is what
   // the panel showed before - never a number that is briefly too optimistic.
@@ -1033,7 +1033,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
 
   const extraRevenueTotal = revenue.reduce((s, r) => s + r.amountAed, 0)
   const extraCostsTotal = costs.reduce((s, c) => s + c.amountAed, 0)
-  const removedValueTotal = paid.reduce((s, r) => s + removedValueOf(r), 0)
+  const removedValueTotal = paid.reduce((s, r) => s + valueGivenUpOf(r), 0)
   const netTicketRevenue = ticketRevenueTotal - refundedTotal - upgradePendingTotal + removedValueTotal
   const profit = (netTicketRevenue + extraRevenueTotal) - (ticketCostTotal + extraCostsTotal + stripeFeeAed)
 
@@ -1224,7 +1224,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
           )}
           {removedValueTotal > 0 && (
             <div className="flex items-baseline justify-between gap-3">
-              <span className="text-gray-400">Tickets of people removed from bookings (refunds above)</span>
+              <span className="text-gray-400">Value of removed people and downgrades (refunds above)</span>
               <span className="text-green-400 font-medium">{aed(removedValueTotal)} AED</span>
             </div>
           )}
@@ -2138,10 +2138,11 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
 }) {
   const guests = reg.guest_names || []
   const refunded = Number(reg.refunded_amount_aed) || 0
-  // The booking's own amount no longer includes anyone taken off it, but the
-  // card payment still does, so what is left to refund counts their value too.
+  // The booking's own amount no longer includes anyone taken off it or the
+  // value of a downgrade, but the card payment still does, so what is left to
+  // refund counts that too.
   const removedPeople = reg.removed_people || []
-  const remaining = Math.round(((Number(reg.amount_aed) || 0) + removedValueOf(reg) - refunded) * 100) / 100
+  const remaining = Math.round(((Number(reg.amount_aed) || 0) + valueGivenUpOf(reg) - refunded) * 100) / 100
   const buyerPrice = tickets.find(t => t.id === reg.ticket_id)?.price_aed
 
   return (

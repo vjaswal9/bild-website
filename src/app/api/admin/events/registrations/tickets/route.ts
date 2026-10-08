@@ -105,32 +105,35 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // The ledger records what this booking is now worth to BILD - but only for
-  // a lateral move or a downgrade, where the money already collected still
-  // covers it (a downgrade's refund below brings it back down to match). An
-  // upgrade is the opposite: the extra has NOT been collected yet, so bumping
-  // this row to newTotal here would count it before it exists. The upgrade
-  // payment gets its own ledger row, keyed on its own Stripe session, once it
-  // is actually paid - see the webhook's event_upgrade handling.
-  if (reg.stripe_session_id && difference >= 0) {
+  // The Money ledger is deliberately NOT touched here. It records what was
+  // collected for the sale (revenue_aed) and subtracts what has been given back
+  // (refunded_aed). This used to lower revenue_aed to the new, cheaper total
+  // AND then record the refund of the difference, so a downgrade took the same
+  // money off twice (a 717 AED booking downgraded to 628 with 89 refunded showed
+  // as 539 instead of 628). Leaving revenue_aed alone is right in every case: a
+  // downgrade's refund brings the net down by itself, a downgrade with no refund
+  // keeps what was collected, and an upgrade is collected separately and gets
+  // its own ledger row when it is paid (see the webhook's event_upgrade
+  // handling).
+  //
+  // The per-event figures work from the booking's current ticket prices, so a
+  // downgrade is remembered on the booking instead: the value given up is added
+  // to downgrade_value_aed and those screens add it back. Best effort, because
+  // the column only exists once supabase/event-downgrade-value.sql has been run,
+  // and a missing column must never stop a ticket change.
+  if (difference > 0) {
     try {
-      // Anyone taken off the booking earlier was part of what was collected, so
-      // their ticket value stays in the ledger's revenue (their refund is
-      // netted off separately). Best effort: the column only exists once the
-      // remove-a-person database update has been run.
-      let removedValue = 0
-      const { data: removedRow, error: removedErr } = await supabaseAdmin
-        .from('event_registrations').select('removed_people').eq('id', id).maybeSingle()
-      if (!removedErr && Array.isArray((removedRow as { removed_people?: unknown[] } | null)?.removed_people)) {
-        removedValue = ((removedRow as { removed_people: { price_aed?: number }[] }).removed_people)
-          .reduce((s, p) => s + (Number(p.price_aed) || 0), 0)
+      const { data: cur, error: curErr } = await supabaseAdmin
+        .from('event_registrations').select('downgrade_value_aed').eq('id', id).maybeSingle()
+      if (!curErr) {
+        const before = Number((cur as { downgrade_value_aed?: number | null } | null)?.downgrade_value_aed) || 0
+        await supabaseAdmin
+          .from('event_registrations')
+          .update({ downgrade_value_aed: Math.round((before + difference) * 100) / 100 })
+          .eq('id', id)
       }
-      await supabaseAdmin
-        .from('payments')
-        .update({ revenue_aed: Math.round((newTotal + removedValue) * 100) / 100 })
-        .eq('stripe_session_id', reg.stripe_session_id)
     } catch (e) {
-      console.error('Could not update the payment ledger after a ticket change:', e)
+      console.error('Could not record the value given up by a downgrade:', e)
     }
   }
 

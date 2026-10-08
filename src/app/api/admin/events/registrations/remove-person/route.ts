@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
           note: `${plan.removed.name} removed from the booking${note ? `, ${note}` : ''}`,
           adminFeeAed: plan.removed.kept_aed > 0 ? plan.removed.kept_aed : undefined,
           keepOpen: true,
-          extraValueAed: (plan.update.removed_people as { price_aed?: number }[]).reduce((s, p) => s + (Number(p.price_aed) || 0), 0),
+          extraValueAed: (plan.update.removed_people as { price_aed?: number }[]).reduce((s, p) => s + (Number(p.price_aed) || 0), 0) + (Number(reg.downgrade_value_aed) || 0),
           removedPersonName: plan.removed.name,
         },
       )

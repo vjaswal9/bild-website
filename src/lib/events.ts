@@ -124,6 +124,12 @@ export type EventRegistration = {
   // these keep who paid.
   payer_first_name?: string | null
   payer_last_name?: string | null
+  // Ticket value given up by downgrades ("Change tickets" to a cheaper package).
+  // The booking's amount and ticket list show the new, lower total, but the
+  // money collected was the old one, so event revenue adds this back and then
+  // subtracts whatever was actually refunded. Absent until the database update
+  // has been run.
+  downgrade_value_aed?: number | null
 }
 
 export type RemovedPerson = {
@@ -144,6 +150,12 @@ export type RemovedPerson = {
 // then subtracts what was refunded, which leaves exactly what BILD kept.
 export function removedValueOf(r: { removed_people?: RemovedPerson[] | null }): number {
   return (r.removed_people || []).reduce((s, p) => s + (Number(p.price_aed) || 0), 0)
+}
+
+// Everything a booking was worth when it was paid that its current ticket list
+// no longer shows: people removed from it and value given up by downgrades.
+export function valueGivenUpOf(r: { removed_people?: RemovedPerson[] | null; downgrade_value_aed?: number | null }): number {
+  return Math.round((removedValueOf(r) + (Number(r.downgrade_value_aed) || 0)) * 100) / 100
 }
 
 // An event is "past" once its end (or start, if no end) is behind us.
