@@ -244,7 +244,7 @@ function EventListCard({
               onClick={onToggleAttendees}
               className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
             >
-              {attendeesOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />} Attendees
+              {attendeesOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />} Attendees &amp; Waiting-List
             </button>
             {ev.seating_enabled && (
               <button
@@ -306,6 +306,7 @@ function EventListCard({
       {attendeesOpen && (
         <div className="border-t border-charcoal-700">
           <ReadOnlyAttendeesList eventId={ev.id} registrations={registrations} />
+          <ReadOnlyWaitlist eventId={ev.id} />
         </div>
       )}
 
@@ -344,7 +345,7 @@ function EventListCard({
   )
 }
 
-// Read-only attendee list for the "Attendees" button - same information as
+// Read-only attendee list for the "Attendees & Waiting-List" button - same information as
 // the Manage panel's attendee rows, but with no Refund/Delete actions.
 type FlatAttendee = {
   key: string
@@ -438,6 +439,99 @@ function ReadOnlyAttendeesList({ eventId, registrations }: { eventId: string; re
           )}
         </>
       )}
+    </div>
+  )
+}
+
+// Read-only waiting list for the "Attendees & Waiting-List" button: who is
+// waiting, who has been offered a place, and how many tickets that adds up to.
+// No Offer / Booked / Remove buttons here - those stay under Manage.
+function ReadOnlyWaitlist({ eventId }: { eventId: string }) {
+  const [entries, setEntries] = useState<WaitEntry[] | null>(null)
+  const [seatsFree, setSeatsFree] = useState<number | null>(null)
+  const [capacityLimit, setCapacityLimit] = useState<number | null>(null)
+  const [waitlistOpen, setWaitlistOpen] = useState(true)
+  const [error, setError] = useState('')
+  const [showAll, setShowAll] = useState(false)
+
+  useEffect(() => {
+    let live = true
+    fetch(`/api/admin/events/waitlist?eventId=${eventId}`)
+      .then(async r => ({ ok: r.ok, d: await r.json().catch(() => ({})) }))
+      .then(({ ok, d }) => {
+        if (!live) return
+        if (!ok) return setError(d.error || 'Could not load the waiting list.')
+        setEntries(d.entries || [])
+        setSeatsFree(d.seatsFree ?? null)
+        setCapacityLimit(d.capacityLimit ?? null)
+        setWaitlistOpen(d.waitlistOpen !== false)
+      })
+      .catch(() => { if (live) setError('Could not load the waiting list.') })
+    return () => { live = false }
+  }, [eventId])
+
+  const heading = <p className="text-gray-500 text-xs uppercase tracking-wide mb-3">Waiting list</p>
+
+  if (error) return <div className="px-6 pb-5">{heading}<p className="text-red-400 text-sm">{error}</p></div>
+  if (entries === null) return <div className="px-6 pb-5 text-gray-500 text-sm flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Loading the waiting list...</div>
+  // An event with no ticket limit cannot sell out, so there is nothing to wait for.
+  if (capacityLimit == null) {
+    return <div className="px-6 pb-5 border-t border-charcoal-700 pt-5">{heading}<p className="text-gray-500 text-sm">This event has no ticket limit, so there is no waiting list.</p></div>
+  }
+
+  const active = entries.filter(e => e.status === 'waiting' || e.status === 'invited')
+  const waiting = entries.filter(e => e.status === 'waiting')
+  const invited = entries.filter(e => e.status === 'invited')
+  const ticketsWaiting = waiting.reduce((s, e) => s + (Number(e.tickets_wanted) || 1), 0)
+  const rows = showAll ? entries : active
+  const date = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dubai' })
+
+  return (
+    <div className="px-6 pb-5 border-t border-charcoal-700 pt-5">
+      {heading}
+      <div className="flex flex-wrap items-center gap-6 mb-4">
+        <div>
+          <p className="text-2xl font-display font-bold text-gold-400">{ticketsWaiting}</p>
+          <p className="text-gray-400 text-xs">Tickets wanted <span className="text-gray-600">({waiting.length} {waiting.length === 1 ? 'person' : 'people'} waiting)</span></p>
+        </div>
+        {invited.length > 0 && (
+          <div><p className="text-2xl font-display font-bold text-gold-200">{invited.length}</p><p className="text-gray-400 text-xs">Offered a place</p></div>
+        )}
+        <div>
+          <p className={`text-2xl font-display font-bold ${seatsFree ? 'text-green-400' : 'text-white'}`}>{seatsFree ?? '-'}</p>
+          <p className="text-gray-400 text-xs">Seats free now</p>
+        </div>
+        {!waitlistOpen && <p className="text-amber-400/90 text-xs">The waiting list is closed to new entries.</p>}
+      </div>
+
+      {rows.length === 0 ? (
+        <p className="text-gray-500 text-sm">{entries.length === 0 ? 'Nobody is on the waiting list.' : 'Nobody is waiting right now.'}</p>
+      ) : (
+        <div className="space-y-2">
+          {rows.map((e, i) => (
+            <div key={e.id} className="flex items-center gap-4 bg-charcoal-700/50 rounded-xl px-6 py-3">
+              <span className="shrink-0 w-7 h-7 rounded-full bg-charcoal-600 text-gray-300 text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-sm font-semibold truncate">{e.first_name} {e.last_name}</p>
+                <p className="text-gray-400 text-xs truncate">
+                  {e.email}{e.phone ? ` · ${e.phone}` : ''} · wants {e.tickets_wanted} ticket{e.tickets_wanted === 1 ? '' : 's'}
+                  {' · joined '}{date(e.created_at)}
+                  {e.invited_at && ` · offered ${date(e.invited_at)}`}
+                </p>
+              </div>
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${WAIT_TONE[e.status]}`}>
+                {e.status === 'invited' ? 'Offered' : e.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      {entries.length !== active.length && (
+        <button onClick={() => setShowAll(v => !v)} className="text-gold-400 hover:underline text-xs font-medium mt-3">
+          {showAll ? 'Show only people still waiting' : `Show all ${entries.length}, including removed and declined`}
+        </button>
+      )}
+      <p className="text-gray-600 text-xs mt-3">To offer a place or remove someone, use Manage &rarr; Waitlist.</p>
     </div>
   )
 }
