@@ -2958,6 +2958,11 @@ function RemovePersonPanel({ reg, tickets, onCancel, onDone }: {
               ? (reg.email ? <>A refund confirmation goes to {reg.email}, copied to the BILD inbox.</> : <>No email address on this booking, so no confirmation can be sent.</>)
               : <>No email is sent when nothing is refunded.</>}
           </p>
+          {chosen.price > 0 && (
+            <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+              The card processing fee the buyer paid at checkout is not refunded (Stripe keeps its own fee), and the confirmation email explains this to them.
+            </p>
+          )}
         </>
       )}
 
@@ -3131,6 +3136,11 @@ function RefundPanel({ reg, remaining, onCancel, onDone }: {
         {reg.email
           ? <>A refund confirmation goes to {reg.email}, copied to the BILD inbox.</>
           : <>No email address on this booking, so no confirmation can be sent.</>}
+      </p>
+      <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+        The card processing fee the buyer paid at checkout is not refunded: Stripe keeps its own fee on a refund, and that
+        fee covers it. The confirmation email explains this to the buyer, which is why they may get back slightly less than
+        was charged to their card.
       </p>
 
       {error && <p className="text-red-400 text-sm mb-3">{error}</p>}

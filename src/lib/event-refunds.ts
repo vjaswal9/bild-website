@@ -58,6 +58,10 @@ export type RefundOptions = {
   // Who was taken off, so the customer's email says that instead of "you are
   // still booked in".
   removedPersonName?: string
+  // True only when the card processing fee was handed back too (an event that
+  // sold out while they were paying). Otherwise the email explains why the card
+  // fee is not part of the refund.
+  cardFeeRefunded?: boolean
 }
 
 // What Stripe says is still refundable on this booking, in AED.
@@ -112,7 +116,7 @@ export async function refundEverything(reg: Registration, note: string): Promise
     throw new Error('Could not find the original Stripe payment for this booking.')
   }
   if (info.refundableAed <= 0) throw new Error('Stripe has already refunded this payment in full.')
-  return refundRegistration(reg, { amountAed: info.refundableAed, note, forceClose: true })
+  return refundRegistration(reg, { amountAed: info.refundableAed, note, forceClose: true, cardFeeRefunded: true })
 }
 
 // Throws if the booking cannot be read, rather than returning null.
@@ -149,7 +153,7 @@ export async function refundRegistration(
   reg: Registration,
   options: RefundOptions,
 ): Promise<RefundOutcome> {
-  const { amountAed, note, forceClose, adminFeeAed, keepOpen, removedPersonName, extraValueAed } = options
+  const { amountAed, note, forceClose, adminFeeAed, keepOpen, removedPersonName, extraValueAed, cardFeeRefunded } = options
   const requested = Math.round(amountAed * 100) / 100
   if (!Number.isFinite(requested) || requested <= 0) {
     throw new Error('Please enter an amount greater than zero.')
@@ -276,6 +280,7 @@ export async function refundRegistration(
       previouslyRefundedAed: alreadyRecorded,
       stillAttending: !closes,
       removedPersonName,
+      cardFeeRefunded,
       reason: trimmed || undefined,
     })
     emailed = outcome.ok

@@ -686,6 +686,10 @@ export async function sendRefundConfirmation(opts: {
   stillAttending: boolean
   // Set when one person was taken off a larger booking: the rest is unchanged.
   removedPersonName?: string
+  // The card processing fee was handed back as well (BILD's fault, e.g. the
+  // event sold out while they were paying). Absent or false: the email explains
+  // that the fee is not part of the refund.
+  cardFeeRefunded?: boolean
   reason?: string
 }): Promise<{ ok: boolean; reason?: string }> {
   if (!apiKey) {
@@ -721,6 +725,12 @@ export async function sendRefundConfirmation(opts: {
         The money goes back to the card you paid with. Your bank usually takes 5 to 10 working days to show it,
         and that timing is set by them rather than by us.
       </p>
+      ${opts.cardFeeRefunded ? '' : `<p style="color:#9a9384;font-size:14px">
+        <strong style="color:#F4F1EC">About the card processing fee.</strong> The small card processing fee added at
+        checkout goes to our payment provider, Stripe, to cover the cost of taking your payment. Stripe does not return
+        it when a payment is refunded, so it is not part of this refund. That is why the amount refunded can be a little
+        lower than the amount charged to your card.
+      </p>`}
       ${opts.removedPersonName
         ? `<p>The ticket for <strong style="color:#F4F1EC">${esc(opts.removedPersonName)}</strong> has been cancelled and that place released. <strong style="color:#F4F1EC">The rest of your booking is unchanged</strong> and we look forward to seeing everyone else.</p>`
         : opts.stillAttending
