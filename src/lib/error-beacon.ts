@@ -24,6 +24,14 @@ const IGNORED_MESSAGES = [
   /failed to fetch|load failed|networkerror|network request failed|fetch failed/i,
   /the operation was aborted|aborterror|the user aborted|request aborted/i,
   /importing a module script failed/i,
+  // Scripts that other apps inject into the page: the Dark Reader extension,
+  // Firefox for iPhone's own helper, and the bridge phone apps (Instagram,
+  // Facebook, WhatsApp, Google) add to their built-in browsers. None of them
+  // is our code, and none of them breaks the page.
+  /\bDarkReader\b/i,
+  /__firefox__/i,
+  /window\.webkit|webkit\.messageHandlers|__gCrWeb|_AutofillCallbackHandler/i,
+  /java object is gone|wkwebview|can't find variable: (webkit|android)\b/i,
 ]
 const EXTENSION = /^(chrome|moz|safari|safari-web|edge)-extension:/i
 
