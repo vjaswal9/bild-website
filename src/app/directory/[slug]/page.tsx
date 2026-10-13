@@ -284,7 +284,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
           <MapPin size={14} /> {biz.location}
         </p>
         {(() => {
-          const memberSince = formatMemberSince(biz.bild_member_since || biz.created_at?.slice(0, 7))
+          const memberSince = isNonMember ? null : formatMemberSince(biz.bild_member_since || biz.created_at?.slice(0, 7))
           return memberSince && (
             <p className="flex items-center gap-1.5 text-sm text-charcoal-400 mb-6">
               <CalendarDays size={14} /> BILD member since {memberSince}

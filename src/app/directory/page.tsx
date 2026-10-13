@@ -56,7 +56,8 @@ export default async function DirectoryPage() {
     isVerified: true,
     bildOffer: b.bild_offer || undefined,
     logoUrl: b.logo_url || undefined,
-    memberSince: b.bild_member_since || (b.created_at ? b.created_at.slice(0, 7) : undefined),
+    // A non-BILD business has no member-since date.
+    memberSince: b.is_bild_member === false ? undefined : (b.bild_member_since || (b.created_at ? b.created_at.slice(0, 7) : undefined)),
     tagline: b.tagline || undefined,
     establishedYear: b.established_year || undefined,
     // An approved submission with a document on file is verified

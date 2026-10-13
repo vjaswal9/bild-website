@@ -39,6 +39,9 @@ const EDITABLE = [
   'listing_fee_exempt',
   'listing_paid_until',
   'membership_manually_verified',
+  // Whether the business is a BILD member. Drives the listing and Featured fee,
+  // the "Non-BILD" label and the member-since line on the public profile.
+  'is_bild_member',
 ] as const
 
 export async function POST(req: NextRequest) {
@@ -63,13 +66,18 @@ export async function POST(req: NextRequest) {
         update[key] = normalizeWebsiteUrl(v)
       } else if (key === 'document_expiry_date' || key === 'listing_paid_until') {
         update[key] = typeof v === 'string' && v.trim() ? v.trim() : null
-      } else if (key === 'listing_fee_exempt' || key === 'membership_manually_verified') {
+      } else if (key === 'listing_fee_exempt' || key === 'membership_manually_verified' || key === 'is_bild_member') {
         update[key] = v === true || v === 'true'
       } else {
         update[key] = typeof v === 'string' ? stripDashes(v.trim()) : v
       }
     }
   }
+
+  // A business marked as non-BILD has no membership to have verified. Clearing
+  // it means that switching them back to member later asks for verification
+  // again instead of quietly counting as verified.
+  if (update.is_bild_member === false) update.membership_manually_verified = false
 
   // If the review link changed and the admin didn't also fill in a Place ID
   // manually (the edit form always sends this field, blank or not - a blank

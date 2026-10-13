@@ -9,6 +9,7 @@ import EditBusinessForm from './EditBusinessForm'
 import AdminNav from '@/components/admin/AdminNav'
 import { MemberContact, isVerifiedMemberContact } from '@/lib/member-match'
 import ModalPortal from '@/components/ui/ModalPortal'
+import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
 // The anon Supabase client used to live here, purely so the licence button
 // could sign a document URL in the browser. That is done on the server now, so
@@ -271,6 +272,28 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, membership_manually_verified: verified }),
+    })
+    if (res.ok) {
+      window.location.reload()
+    } else {
+      alert('Something went wrong. Please try again.')
+      setProcessing(null)
+    }
+  }
+
+  // Some submissions say they are BILD members when they are not. This changes
+  // the answer: it sets the business to non-BILD (or back to member), which
+  // changes the fee they pay and what the public profile says.
+  async function handleSetMembership(sub: BusinessSubmission, isMember: boolean) {
+    const msg = isMember
+      ? `Mark ${sub.business_name} as a BILD member?\n\nTheir listing fee becomes ${LISTING_MEMBER_FEE_AED} AED and Featured ${FEATURED_MEMBER_FEE_AED} AED. It will show as unverified until you verify it or a paid member matches their email or phone.`
+      : `Mark ${sub.business_name} as NON-BILD?\n\nTheir listing fee becomes ${LISTING_NON_MEMBER_FEE_AED} AED instead of ${LISTING_MEMBER_FEE_AED} AED, and Featured ${FEATURED_NON_MEMBER_FEE_AED} AED instead of ${FEATURED_MEMBER_FEE_AED} AED, for any payment link not yet paid and for renewals. The public profile shows "Non-BILD Business" and no "BILD member since". Anything they have already paid is not changed.`
+    if (!confirm(msg)) return
+    setProcessing(sub.id)
+    const res = await fetch('/api/admin/business/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: sub.id, is_bild_member: isMember }),
     })
     if (res.ok) {
       window.location.reload()
@@ -642,7 +665,17 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                         </span>
                       )}
                       {sub.is_bild_member === false && (
-                        <span className="text-xs bg-charcoal-700 text-gray-300 px-2 py-0.5 rounded-full">Non-BILD</span>
+                        <span className="inline-flex items-center gap-1 text-xs bg-charcoal-700 text-gray-300 px-2 py-0.5 rounded-full">
+                          Non-BILD
+                          <button
+                            onClick={() => handleSetMembership(sub, true)}
+                            disabled={processing === sub.id}
+                            className="ml-1 text-gray-400 hover:text-white underline disabled:opacity-50"
+                            title="Mark this business as a BILD member instead"
+                          >
+                            Change
+                          </button>
+                        </span>
                       )}
                       {sub.is_bild_member !== false && sub.membership_manually_verified && (
                         <span className="inline-flex items-center gap-1 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full" title="Manually verified by an admin (overrides the automatic email/phone match)">
@@ -666,6 +699,14 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                             title="I've manually confirmed this business is a BILD member (e.g. from a spreadsheet not yet imported)"
                           >
                             Verify manually
+                          </button>
+                          <button
+                            onClick={() => handleSetMembership(sub, false)}
+                            disabled={processing === sub.id}
+                            className="ml-1 text-red-300 hover:text-white underline disabled:opacity-50"
+                            title="They are not a BILD member: change them to non-BILD"
+                          >
+                            Not a member
                           </button>
                         </span>
                       )}
@@ -757,6 +798,13 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                   </div>
                   <div className="space-y-3">
                     <Detail label="BILD Member" value={sub.is_bild_member === false ? 'No' : isVerifiedMember(sub, members) ? 'Yes (verified)' : 'Yes (unverified - no match in paid members)'} highlight={sub.is_bild_member !== false && !isVerifiedMember(sub, members)} />
+                    <button
+                      onClick={() => handleSetMembership(sub, sub.is_bild_member === false)}
+                      disabled={processing === sub.id}
+                      className="-mt-1 text-xs text-gold-400 hover:underline disabled:opacity-50"
+                    >
+                      {sub.is_bild_member === false ? 'Mark as a BILD member' : 'Mark as non-BILD'}
+                    </button>
                     <Detail label="Registered in" value={sub.business_country === 'UK' ? '🇬🇧 UK' : '🇦🇪 UAE'} />
                     {sub.established_year && <Detail label="Established" value={sub.established_year} />}
                     {sub.years_in_business && <Detail label="Years in Business" value={sub.years_in_business} />}
