@@ -62,8 +62,13 @@ export async function POST(req: NextRequest) {
 
   Sentry.withScope(scope => {
     scope.setTag('flow', 'browser')
+    // The page the error happened on, as a tag so it shows at the top of the
+    // issue and can be filtered on.
+    scope.setTag('page', scrubString(e.p).slice(0, 190))
     scope.setLevel('error')
-    scope.setContext('browser', {
+    // Not called "browser": Sentry already has a built-in Browser context (name
+    // and version) and shows that one instead of this, which hid the page.
+    scope.setContext('browser_report', {
       page: scrubString(e.p),
       source: scrubString(e.s),
       line: e.l,
