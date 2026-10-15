@@ -1072,6 +1072,8 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
+  // The line being edited (the form below is the same one used to add a line).
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Same per-attendee unit logic as EventDataPanel: one unit per buyer and
   // per named guest, priced by looking up their ticket type by name - and a
@@ -1152,19 +1154,37 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
     if (!Number.isFinite(amount) || amount <= 0) return setError('Please enter an amount greater than zero.')
     setBusy(true)
     const res = await fetch('/api/admin/events/finances', {
-      method: 'POST',
+      method: editingId ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        ...(editingId ? { id: editingId } : {}),
         eventId, type: adding, date: form.date, description: form.description.trim(),
         amountAed: amount, kind: form.kind, category: form.category,
       }),
     })
-    const d = await res.json()
+    const d = await res.json().catch(() => ({}))
     setBusy(false)
     if (!res.ok) return setError(d.error || 'Could not save.')
     setForm(blank)
     setAdding(null)
+    setEditingId(null)
     load()
+  }
+
+  // Opens the form filled in with a line's current details.
+  function startEdit(type: 'revenue' | 'cost', id: string) {
+    setError('')
+    if (type === 'revenue') {
+      const r = revenue.find(x => x.id === id)
+      if (!r || r.locked) return
+      setForm({ ...blank, date: r.date, kind: r.kind, description: r.description, amountAed: String(r.amountAed) })
+    } else {
+      const c = costs.find(x => x.id === id)
+      if (!c) return
+      setForm({ ...blank, date: c.date, category: c.category, description: c.description, amountAed: String(c.amountAed) })
+    }
+    setEditingId(id)
+    setAdding(type)
   }
 
   async function removeLine(id: string, type: 'revenue' | 'cost') {
@@ -1273,8 +1293,9 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             }))}
             total={extraRevenueTotal}
             onDelete={id => removeLine(id, 'revenue')}
+            onEdit={id => startEdit('revenue', id)}
             deleting={deleting}
-            onAdd={() => { setForm({ ...blank, kind: 'sponsorship' }); setError(''); setAdding('revenue') }}
+            onAdd={() => { setForm({ ...blank, kind: 'sponsorship' }); setError(''); setEditingId(null); setAdding('revenue') }}
             addLabel="Add revenue line"
             emptyLabel="No additional revenue recorded."
           />
@@ -1287,8 +1308,9 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             }))}
             total={extraCostsTotal}
             onDelete={id => removeLine(id, 'cost')}
+            onEdit={id => startEdit('cost', id)}
             deleting={deleting}
-            onAdd={() => { setForm({ ...blank, category: 'DJ & music' }); setError(''); setAdding('cost') }}
+            onAdd={() => { setForm({ ...blank, category: 'DJ & music' }); setError(''); setEditingId(null); setAdding('cost') }}
             addLabel="Add cost line"
             emptyLabel="No additional costs recorded."
           />
@@ -1296,7 +1318,9 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
           {adding && (
             <div className="bg-charcoal-900 border border-charcoal-600 rounded-xl p-4">
               <p className="text-white text-sm font-semibold mb-3">
-                {adding === 'revenue' ? 'New revenue line' : 'New cost line'}
+                {editingId
+                  ? (adding === 'revenue' ? 'Edit revenue line' : 'Edit cost line')
+                  : (adding === 'revenue' ? 'New revenue line' : 'New cost line')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                 <label className="block">
@@ -1311,6 +1335,8 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
                     </select>
                   ) : (
                     <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className={input}>
+                      {/* A line saved under a category that is no longer in the list keeps it. */}
+                      {!(EVENT_COST_CATEGORIES as readonly string[]).includes(form.category) && <option value={form.category}>{form.category}</option>}
                       {EVENT_COST_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   )}
@@ -1339,10 +1365,10 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
                   onClick={addLine} disabled={busy}
                   className="inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-600 disabled:opacity-60 text-white px-4 py-2 rounded-lg text-sm font-semibold"
                 >
-                  {busy ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />} Save line
+                  {busy ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />} {editingId ? 'Save changes' : 'Save line'}
                 </button>
                 <button
-                  onClick={() => { setAdding(null); setError('') }}
+                  onClick={() => { setAdding(null); setEditingId(null); setError('') }}
                   className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white"
                 >
                   Cancel
@@ -1414,13 +1440,14 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
 }
 
 function LineGroup({
-  title, tone, rows, total, onDelete, deleting, onAdd, addLabel, emptyLabel,
+  title, tone, rows, total, onDelete, onEdit, deleting, onAdd, addLabel, emptyLabel,
 }: {
   title: string
   tone: 'green' | 'red'
   rows: { id: string; date: string; tag: string; description: string; amountAed: number; locked?: boolean }[]
   total: number
   onDelete: (id: string) => void
+  onEdit: (id: string) => void
   deleting: string | null
   onAdd: () => void
   addLabel: string
@@ -1452,7 +1479,17 @@ function LineGroup({
                   <td className="py-2.5 pr-4 text-gray-400 whitespace-nowrap">{r.tag}</td>
                   <td className="py-2.5 pr-4 text-white">{r.description}</td>
                   <td className={`py-2.5 text-right font-medium whitespace-nowrap ${colour}`}>{aed(r.amountAed)}</td>
-                  <td className="py-2.5 pl-3 text-right w-8">
+                  <td className="py-2.5 pl-3 text-right whitespace-nowrap w-16">
+                    {!r.locked && (
+                      <button
+                        onClick={() => onEdit(r.id)}
+                        className="text-gray-600 hover:text-gold-400 transition-colors mr-2"
+                        title="Edit line"
+                        aria-label={`Edit ${r.description}`}
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
                     {r.locked ? (
                       <span className="text-gray-600" title="A card payment recorded automatically from Stripe, so it cannot be deleted here"><Lock size={13} /></span>
                     ) : (

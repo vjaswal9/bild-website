@@ -208,3 +208,72 @@ export async function DELETE(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
+
+// Changes a line that was typed in by hand. The same checks as adding one.
+//
+// Only the hand-typed lines can be edited here: the revenue query is limited to
+// source = 'manual', so a real Stripe payment (merchandise, tickets) cannot be
+// reached from this route, and a line can only be changed on the event it
+// belongs to.
+export async function PUT(req: NextRequest) {
+  if (!(await guard(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const b = await req.json().catch(() => ({} as Record<string, unknown>))
+  const id = String(b.id || '')
+  const eventId = String(b.eventId || '')
+  const type = String(b.type || '')
+  const amount = Number(b.amountAed)
+  const description = String(b.description || '').trim()
+  const date = String(b.date || '').trim()
+
+  if (!id || !eventId) return NextResponse.json({ error: 'Missing line or event.' }, { status: 400 })
+  if (type !== 'revenue' && type !== 'cost') {
+    return NextResponse.json({ error: 'Unknown line type.' }, { status: 400 })
+  }
+  if (!description) return NextResponse.json({ error: 'Please describe the line item.' }, { status: 400 })
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return NextResponse.json({ error: 'Please enter an amount greater than zero.' }, { status: 400 })
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return NextResponse.json({ error: 'Please give a valid date.' }, { status: 400 })
+  }
+  const rounded = Math.round(amount * 100) / 100
+
+  if (type === 'revenue') {
+    const kind = String(b.kind || 'sponsorship')
+    if (!REVENUE_KINDS.has(kind)) {
+      return NextResponse.json({ error: 'Unknown revenue type.' }, { status: 400 })
+    }
+    const { data, error } = await supabaseAdmin
+      .from('payments')
+      .update({
+        paid_at: `${date}T12:00:00.000Z`,
+        kind,
+        description,
+        gross_aed: rounded,
+        revenue_aed: rounded,
+      })
+      .eq('id', id)
+      .eq('event_id', eventId)
+      .eq('source', 'manual')
+      .select('id')
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!data || data.length === 0) return NextResponse.json({ error: 'That line was not found. It may have been deleted, or it is not one you can edit here.' }, { status: 404 })
+    return NextResponse.json({ ok: true })
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('operating_costs')
+    .update({
+      incurred_on: date,
+      category: String(b.category || 'Other'),
+      description,
+      amount_aed: rounded,
+    })
+    .eq('id', id)
+    .eq('event_id', eventId)
+    .select('id')
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data || data.length === 0) return NextResponse.json({ error: 'That line was not found. It may have been deleted.' }, { status: 404 })
+  return NextResponse.json({ ok: true })
+}
