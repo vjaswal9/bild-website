@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
+import { summariseMerchPayments } from '@/lib/event-merch'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,13 +84,14 @@ export async function GET(req: NextRequest) {
         amountAed: Number(r.revenue_aed) || 0,
         locked: false,
       })),
-      ...(cardRes.data || []).map(r => ({
-        id: r.id,
-        date: String(r.paid_at).slice(0, 10),
-        kind: r.kind,
-        description: r.description || '',
-        // Net of anything refunded.
-        amountAed: Math.round(((Number(r.revenue_aed) || 0) - (Number(r.refunded_aed) || 0)) * 100) / 100,
+      // One line per kind of item ("BILD Garba 2026 merchandise: 12 sold"), not one
+      // per 20 AED payment, net of refunds.
+      ...summariseMerchPayments(cardRes.data || []).map(m => ({
+        id: m.id,
+        date: m.date,
+        kind: 'other',
+        description: m.sold != null ? `${m.description}: ${m.sold} sold` : `${m.description}: ${m.payments} payment${m.payments === 1 ? '' : 's'}`,
+        amountAed: m.amountAed,
         locked: true,
       })),
     ].sort((a, b) => b.date.localeCompare(a.date)),
