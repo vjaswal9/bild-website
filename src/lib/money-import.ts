@@ -1,4 +1,4 @@
-import { cardFeeFils } from '@/lib/fees'
+import { cardFeeFils, cardFeeFilsAt, LEGACY_CARD_FEE } from '@/lib/fees'
 import type { PaymentKind } from '@/lib/money'
 
 // Pure helpers for the "Import history from Stripe" tool, kept apart from the
@@ -35,7 +35,9 @@ export function asUuid(value: unknown): string | null {
 export function upgradeRevenueFromGross(grossAed: number): number {
   const grossFils = Math.round(grossAed * 100)
   for (let due = Math.floor(grossAed); due >= 1; due--) {
+    // Today's surcharge, or the one in force before it was raised.
     if (due * 100 + cardFeeFils(due) === grossFils) return due
+    if (due * 100 + cardFeeFilsAt(due, LEGACY_CARD_FEE.percent, LEGACY_CARD_FEE.fixedAed) === grossFils) return due
   }
   return grossAed
 }

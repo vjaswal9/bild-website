@@ -16,7 +16,10 @@ async function moneyGuard(req: NextRequest): Promise<boolean> {
   return verifyMoneyToken(req.cookies.get(MONEY_COOKIE)?.value)
 }
 
-export const maxDuration = 60
+// Reading every charge and checkout from Stripe and repairing the ledger took
+// longer than a minute once the ledger passed 400 payments (the run was cut off
+// at 60 seconds on 15 October 2026).
+export const maxDuration = 300
 
 // Rebuilds the payment ledger from Stripe.
 //

@@ -8,6 +8,7 @@ import { readWithRetry } from '@/lib/db-retry'
 import { googleReviewsLinkFor } from '@/lib/google-reviews-link'
 import { loadRegistration, refundEverything } from '@/lib/event-refunds'
 import { merchSaleFor } from '@/lib/event-merch'
+import { asUuid } from '@/lib/money-import'
 import { getChargeDetails, type ChargeDetails } from '@/lib/stripe-charge-details'
 import { seatingPositionFor } from '@/lib/seating-code'
 import { PaymentKind } from '@/lib/money'
@@ -588,6 +589,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true })
     }
 
+    // A membership checkout carries the member's id as its reference. Anything
+    // else that gets this far (a Payment Link sale with a reference this site does
+    // not know, a checkout made outside the website) is not a membership, and
+    // must not be treated as one: it used to fail on a database error, which
+    // made Stripe retry it for days and raised a fatal alert each time. It is
+    // acknowledged and left for the Money import to pick up.
+    if (session.client_reference_id && !asUuid(session.client_reference_id)) {
+      console.warn('Checkout with a reference that is not a member id, ignored:', session.client_reference_id)
+      return NextResponse.json({ received: true, ignored: true })
+    }
     const memberId = session.client_reference_id
 
     const update = {
