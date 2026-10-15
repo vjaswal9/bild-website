@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import AdminNav from '@/components/admin/AdminNav'
 import DashboardClient from './DashboardClient'
+import { daysUntilDubai } from '@/lib/dubai-date'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -10,9 +11,9 @@ type Row = Record<string, unknown>
 const LICENSE_ALERT_DAYS = 3
 const WEEKS = 8
 
+// Counted in Dubai days, so it does not slip a day when the server (UTC) and Dubai disagree about the date.
 function daysUntil(dateStr: string): number {
-  const ms = new Date(dateStr).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)
-  return Math.round(ms / (24 * 60 * 60 * 1000))
+  return daysUntilDubai(dateStr)
 }
 
 // Buckets rows into WEEKS trailing 7-day windows ending today, oldest first.

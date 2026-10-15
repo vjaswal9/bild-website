@@ -997,8 +997,8 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
                   </div>
                   <p className="text-gray-500 text-xs truncate mt-0.5 pl-7">
                     {e.email}{e.phone ? ` · ${e.phone}` : ''} · wants {e.tickets_wanted} ticket{e.tickets_wanted === 1 ? '' : 's'}
-                    {' · joined '}{new Date(e.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                    {e.invited_at && ` · offered ${new Date(e.invited_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+                    {' · joined '}{new Date(e.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dubai' })}
+                    {e.invited_at && ` · offered ${new Date(e.invited_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dubai' })}`}
                   </p>
                   <WaitChoices entry={e} indent />
                 </div>
@@ -1447,7 +1447,7 @@ function LineGroup({
               {rows.map(r => (
                 <tr key={r.id} className="border-t border-charcoal-700">
                   <td className="py-2.5 pr-4 text-gray-500 whitespace-nowrap w-20">
-                    {new Date(r.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    {new Date(r.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' })}
                   </td>
                   <td className="py-2.5 pr-4 text-gray-400 whitespace-nowrap">{r.tag}</td>
                   <td className="py-2.5 pr-4 text-white">{r.description}</td>
@@ -2563,7 +2563,7 @@ function StripeCheckPanel({ reg, onCancel }: { reg: EventRegistration; onCancel:
                       <div key={r.id} className="flex items-baseline justify-between gap-3 text-xs">
                         <span className="text-gray-500 font-mono truncate">{r.id}</span>
                         <span className="text-gray-300 shrink-0">
-                          {aed(r.amountAed)} AED · {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} · {r.status}
+                          {aed(r.amountAed)} AED · {new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' })} · {r.status}
                         </span>
                       </div>
                     ))}

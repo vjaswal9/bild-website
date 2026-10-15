@@ -9,6 +9,7 @@ import EditBusinessForm from './EditBusinessForm'
 import AdminNav from '@/components/admin/AdminNav'
 import { MemberContact, isVerifiedMemberContact } from '@/lib/member-match'
 import ModalPortal from '@/components/ui/ModalPortal'
+import { daysUntilDubai } from '@/lib/dubai-date'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
 // The anon Supabase client used to live here, purely so the licence button
@@ -36,9 +37,9 @@ function isVerifiedMember(sub: BusinessSubmission, members: MemberContact[]): bo
   return !!sub.membership_manually_verified || isVerifiedMemberContact({ email: sub.email, phone: sub.phone }, members)
 }
 
+// Same answer on the server and in the browser; see src/lib/dubai-date.ts.
 function daysUntil(dateStr: string): number {
-  const ms = new Date(dateStr).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)
-  return Math.round(ms / (24 * 60 * 60 * 1000))
+  return daysUntilDubai(dateStr)
 }
 
 // Billing status for the annual listing fee, independent of admin
