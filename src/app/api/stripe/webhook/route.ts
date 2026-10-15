@@ -7,6 +7,7 @@ import { sendWelcomeEmail, sendEventConfirmation, sendTicketSaleAlert, sendTicke
 import { readWithRetry } from '@/lib/db-retry'
 import { googleReviewsLinkFor } from '@/lib/google-reviews-link'
 import { loadRegistration, refundEverything } from '@/lib/event-refunds'
+import { merchSaleFor } from '@/lib/event-merch'
 import { seatingPositionFor } from '@/lib/seating-code'
 import { PaymentKind } from '@/lib/money'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
@@ -194,7 +195,29 @@ export async function POST(req: NextRequest) {
       client_reference_id?: string | null
       customer_email?: string | null
       amount_total?: number | null
+      payment_link?: string | null
       metadata?: Record<string, string> | null
+    }
+
+    // Something sold at an event through a Payment Link and a QR code (see
+    // src/lib/event-merch.ts). No booking is involved: it is recorded as income
+    // on that event, with the real Stripe fee, which BILD absorbs.
+    const merch = merchSaleFor(session)
+    if (merch) {
+      const grossAed = (session.amount_total ?? 0) / 100
+      if (grossAed > 0) {
+        const charge = await getChargeDetails(session.id)
+        await recordPayment({
+          kind: 'other',
+          description: merch.label,
+          eventId: merch.eventId,
+          grossAed,
+          revenueAed: grossAed,
+          stripeSessionId: session.id,
+          charge,
+        })
+      }
+      return NextResponse.json({ received: true, merchandise: true })
     }
 
     // Event ticket purchases carry metadata.type === 'event'.

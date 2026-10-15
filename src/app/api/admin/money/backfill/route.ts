@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, MONEY_COOKIE, verifyAdminToken, verifyMoneyToken } from '@/lib/admin-auth'
 import { PaymentKind } from '@/lib/money'
 import { classifyCheckout, asUuid, upgradeRevenueFromGross } from '@/lib/money-import'
+import { merchSaleFor } from '@/lib/event-merch'
 
 export const dynamic = 'force-dynamic'
 
@@ -118,7 +119,9 @@ export async function POST(req: NextRequest) {
       const info = pi ? byPaymentIntent.get(pi) : undefined
       if (!info) skippedNoCharge++
 
-      const kind = classifyCheckout(s.metadata as Record<string, string> | null)
+      // Something sold at an event by Payment Link and QR code, not a booking.
+      const merch = merchSaleFor(s as { client_reference_id?: string | null; payment_link?: string | { id?: string } | null })
+      const kind = merch ? 'other' : classifyCheckout(s.metadata as Record<string, string> | null)
       const grossAed = (s.amount_total ?? 0) / 100
       if (grossAed <= 0) continue
 
@@ -127,7 +130,10 @@ export async function POST(req: NextRequest) {
       let referenceId: string | null = null
       let description = 'Payment'
 
-      if (kind === 'event_ticket') {
+      if (merch) {
+        eventId = merch.eventId
+        description = merch.label
+      } else if (kind === 'event_ticket') {
         const regId = asUuid(s.metadata?.registration_id)
         const reg = regId ? regMap.get(regId) : undefined
         referenceId = regId

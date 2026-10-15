@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   const eventId = req.nextUrl.searchParams.get('eventId')
   if (!eventId) return NextResponse.json({ error: 'Missing eventId.' }, { status: 400 })
 
-  const [revRes, costRes, evRes, feeRes] = await Promise.all([
+  const [revRes, costRes, evRes, feeRes, cardRes] = await Promise.all([
     supabaseAdmin
       .from('payments')
       .select('id, paid_at, kind, description, revenue_aed')
@@ -45,11 +45,22 @@ export async function GET(req: NextRequest) {
       .from('payments')
       .select('stripe_fee_aed, fee_passed_on_aed')
       .eq('event_id', eventId),
+    // Things sold at the event by Payment Link and QR code (merchandise): real
+    // card payments recorded by the webhook, not typed in by hand. Shown with the
+    // hand-typed lines so the event's revenue is complete, but read-only.
+    supabaseAdmin
+      .from('payments')
+      .select('id, paid_at, kind, description, revenue_aed, refunded_aed')
+      .eq('event_id', eventId)
+      .eq('kind', 'other')
+      .in('source', ['webhook', 'backfill'])
+      .order('paid_at', { ascending: false }),
   ])
 
   if (revRes.error) return NextResponse.json({ error: revRes.error.message }, { status: 500 })
   if (costRes.error) return NextResponse.json({ error: costRes.error.message }, { status: 500 })
   if (feeRes.error) return NextResponse.json({ error: feeRes.error.message }, { status: 500 })
+  if (cardRes.error) return NextResponse.json({ error: cardRes.error.message }, { status: 500 })
 
   // Negative would mean the surcharge over-recovered the fee, which is a gain
   // rather than a cost - floored at zero exactly as the Money dashboard does.
@@ -62,14 +73,26 @@ export async function GET(req: NextRequest) {
     // Defaults to true when any line already exists, so an event that was
     // filled in before this flag existed does not appear empty.
     enabled: evRes.data?.has_extra_finances
-      ?? ((revRes.data?.length || 0) + (costRes.data?.length || 0) > 0),
-    revenue: (revRes.data || []).map(r => ({
-      id: r.id,
-      date: String(r.paid_at).slice(0, 10),
-      kind: r.kind,
-      description: r.description || '',
-      amountAed: Number(r.revenue_aed) || 0,
-    })),
+      ?? ((revRes.data?.length || 0) + (costRes.data?.length || 0) + (cardRes.data?.length || 0) > 0),
+    revenue: [
+      ...(revRes.data || []).map(r => ({
+        id: r.id,
+        date: String(r.paid_at).slice(0, 10),
+        kind: r.kind,
+        description: r.description || '',
+        amountAed: Number(r.revenue_aed) || 0,
+        locked: false,
+      })),
+      ...(cardRes.data || []).map(r => ({
+        id: r.id,
+        date: String(r.paid_at).slice(0, 10),
+        kind: r.kind,
+        description: r.description || '',
+        // Net of anything refunded.
+        amountAed: Math.round(((Number(r.revenue_aed) || 0) - (Number(r.refunded_aed) || 0)) * 100) / 100,
+        locked: true,
+      })),
+    ].sort((a, b) => b.date.localeCompare(a.date)),
     costs: (costRes.data || []).map(c => ({
       id: c.id,
       date: String(c.incurred_on).slice(0, 10),

@@ -1054,7 +1054,7 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
 /* Additional revenue & costs for one event                            */
 /* ------------------------------------------------------------------ */
 
-type ExtraRevenueLine = { id: string; date: string; kind: string; description: string; amountAed: number }
+type ExtraRevenueLine = { id: string; date: string; kind: string; description: string; amountAed: number; locked?: boolean }
 type ExtraCostLine = { id: string; date: string; category: string; description: string; amountAed: number }
 
 const aed = (n: number) => n.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -1269,6 +1269,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
               tag: EVENT_REVENUE_KINDS.find(k => k.value === r.kind)?.label ?? r.kind,
               description: r.description,
               amountAed: r.amountAed,
+              locked: r.locked,
             }))}
             total={extraRevenueTotal}
             onDelete={id => removeLine(id, 'revenue')}
@@ -1417,7 +1418,7 @@ function LineGroup({
 }: {
   title: string
   tone: 'green' | 'red'
-  rows: { id: string; date: string; tag: string; description: string; amountAed: number }[]
+  rows: { id: string; date: string; tag: string; description: string; amountAed: number; locked?: boolean }[]
   total: number
   onDelete: (id: string) => void
   deleting: string | null
@@ -1452,14 +1453,18 @@ function LineGroup({
                   <td className="py-2.5 pr-4 text-white">{r.description}</td>
                   <td className={`py-2.5 text-right font-medium whitespace-nowrap ${colour}`}>{aed(r.amountAed)}</td>
                   <td className="py-2.5 pl-3 text-right w-8">
-                    <button
-                      onClick={() => onDelete(r.id)}
-                      disabled={deleting === r.id}
-                      className="text-gray-600 hover:text-red-400 transition-colors"
-                      title="Delete line"
-                    >
-                      {deleting === r.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                    </button>
+                    {r.locked ? (
+                      <span className="text-gray-600" title="A card payment recorded automatically from Stripe, so it cannot be deleted here"><Lock size={13} /></span>
+                    ) : (
+                      <button
+                        onClick={() => onDelete(r.id)}
+                        disabled={deleting === r.id}
+                        className="text-gray-600 hover:text-red-400 transition-colors"
+                        title="Delete line"
+                      >
+                        {deleting === r.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
