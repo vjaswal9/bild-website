@@ -1,0 +1,122 @@
+# Runs BILD's scheduled jobs (backups, reminders, reports, the daily photo check).
+#
+# These used to be Vercel Cron jobs. Vercel's free plan allows only 2 cron jobs
+# and BILD has 11, so GitHub now does the scheduling instead: at each time below
+# it calls the same job address on the website, with the same secret, that Vercel
+# used to call. The jobs themselves are unchanged (src/app/api/cron/*).
+#
+# Times are UTC. GitHub can start a run a few minutes late. A job that does not
+# answer with success fails the run, and GitHub emails the repository owner.
+#
+# Needs one repository secret, CRON_SECRET: the same value as CRON_SECRET in Vercel
+# (GitHub, repository Settings, Secrets and variables, Actions, New secret).
+#
+# To run one by hand: the Actions tab, "Scheduled jobs", Run workflow, pick the job.
+# Keep these times in step with docs in the admin manual if you change them.
+name: Scheduled jobs
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # health
+    - cron: '0 5 * * 1'   # members-backup
+    - cron: '15 6 * * *'   # document-expiry
+    - cron: '30 5 * * 1'   # abandoned-join-report
+    - cron: '0 7 * * *'   # listing-renewal-reminder
+    - cron: '0 4 * * 1'   # link-check
+    - cron: '45 3 * * *'   # tidy-checkouts
+    - cron: '0 4 * * *'   # event-sales-report
+    - cron: '0 8 1 * *'   # monthly-listing-stats
+    - cron: '45 5 * * 1'   # directory-leads-report
+    - cron: '30 3 * * *'   # image-scan
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which job to run now
+        type: choice
+        required: true
+        options:
+          - health
+          - members-backup
+          - document-expiry
+          - abandoned-join-report
+          - listing-renewal-reminder
+          - link-check
+          - tidy-checkouts
+          - event-sales-report
+          - monthly-listing-stats
+          - directory-leads-report
+          - image-scan
+
+permissions: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call the job
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SCHEDULE: ${{ github.event.schedule }}
+          CHOSEN: ${{ inputs.job }}
+          SITE: https://www.bild.ae
+        run: |
+          set -u
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "CRON_SECRET is not set in this repository's secrets, so the job was not called." >&2
+            exit 1
+          fi
+
+          # Which job: the one picked by hand, or the one this time slot is for.
+          JOB="${CHOSEN:-}"
+          if [ -z "$JOB" ]; then
+            case "$SCHEDULE" in
+            '0 6 * * *') JOB=health ;;
+            '0 5 * * 1') JOB=members-backup ;;
+            '15 6 * * *') JOB=document-expiry ;;
+            '30 5 * * 1') JOB=abandoned-join-report ;;
+            '0 7 * * *') JOB=listing-renewal-reminder ;;
+            '0 4 * * 1') JOB=link-check ;;
+            '45 3 * * *') JOB=tidy-checkouts ;;
+            '0 4 * * *') JOB=event-sales-report ;;
+            '0 8 1 * *') JOB=monthly-listing-stats ;;
+            '45 5 * * 1') JOB=directory-leads-report ;;
+            '30 3 * * *') JOB=image-scan ;;
+              *) echo "No job is set up for the schedule '$SCHEDULE'." >&2; exit 1 ;;
+            esac
+          fi
+
+          # Only these addresses can ever be called.
+          case "$JOB" in
+            health) URL_PATH=/api/health ;;
+            members-backup) URL_PATH=/api/cron/members-backup ;;
+            document-expiry) URL_PATH=/api/cron/document-expiry ;;
+            abandoned-join-report) URL_PATH=/api/cron/abandoned-join-report ;;
+            listing-renewal-reminder) URL_PATH=/api/cron/listing-renewal-reminder ;;
+            link-check) URL_PATH=/api/cron/link-check ;;
+            tidy-checkouts) URL_PATH=/api/cron/tidy-checkouts ;;
+            event-sales-report) URL_PATH=/api/cron/event-sales-report ;;
+            monthly-listing-stats) URL_PATH=/api/cron/monthly-listing-stats ;;
+            directory-leads-report) URL_PATH=/api/cron/directory-leads-report ;;
+            image-scan) URL_PATH=/api/cron/image-scan ;;
+            *) echo "Unknown job '$JOB'." >&2; exit 1 ;;
+          esac
+
+          echo "Running $JOB"
+          BODY=$(mktemp)
+          # www, not the bare domain: the bare domain redirects, and a redirect
+          # can drop the secret. No automatic retry: some jobs send emails, and
+          # running one twice would send them twice. A failure is reported instead.
+          STATUS=$(curl -sS --max-time 330 -o "$BODY" -w '%{http_code}' \
+            -H "Authorization: Bearer $CRON_SECRET" "$SITE$URL_PATH") || {
+            echo "Could not reach $SITE$URL_PATH" >&2
+            exit 1
+          }
+          echo "$JOB answered HTTP $STATUS ($(wc -c < "$BODY") bytes)"
+          case "$STATUS" in
+            2??) exit 0 ;;
+            *)
+              echo "The job did not succeed. Start of its answer:" >&2
+              head -c 300 "$BODY" >&2; echo >&2
+              exit 1 ;;
+          esac
