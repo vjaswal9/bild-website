@@ -3,7 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, MONEY_COOKIE, verifyAdminToken, verifyMoneyToken } from '@/lib/admin-auth'
 import { PaymentKind } from '@/lib/money'
-import { classifyCheckout, asUuid, upgradeRevenueFromGross } from '@/lib/money-import'
+import { classifyCheckout, asUuid, upgradeRevenueFromGross, repairPatch } from '@/lib/money-import'
 import { merchSaleFor } from '@/lib/event-merch'
 
 export const dynamic = 'force-dynamic'
@@ -203,15 +203,16 @@ export async function POST(req: NextRequest) {
     //    import. But it also meant this tool could never repair a refund, so
     //    a refund issued in the Stripe dashboard stayed invisible to the
     //    Money dashboard permanently, with no way back except editing the
-    //    row by hand. This pass is narrow on purpose: refunded_aed, and a
-    //    charge id where one was never recorded.
+    //    row by hand. This pass is narrow on purpose: refunded_aed, a charge
+    //    id where one was never recorded, and a Stripe fee where the webhook
+    //    stored 0 (see repairPatch).
     let corrected = 0
     const bySession = new Map(rows.map(r => [r.stripe_session_id, r]))
     const sessionIds = rows.map(r => r.stripe_session_id)
     for (let i = 0; i < sessionIds.length; i += 200) {
       const { data: existing, error: readError } = await supabaseAdmin
         .from('payments')
-        .select('id, stripe_session_id, refunded_aed, stripe_charge_id')
+        .select('id, stripe_session_id, refunded_aed, stripe_charge_id, stripe_fee_aed')
         .in('stripe_session_id', sessionIds.slice(i, i + 200))
       if (readError) {
         return NextResponse.json({ error: readError.message }, { status: 500 })
@@ -219,13 +220,7 @@ export async function POST(req: NextRequest) {
       for (const row of existing || []) {
         const fresh = bySession.get(row.stripe_session_id as string)
         if (!fresh) continue
-        const patch: Record<string, unknown> = {}
-        if (Math.abs((Number(row.refunded_aed) || 0) - fresh.refunded_aed) >= 0.005) {
-          patch.refunded_aed = fresh.refunded_aed
-        }
-        if (!row.stripe_charge_id && fresh.stripe_charge_id) {
-          patch.stripe_charge_id = fresh.stripe_charge_id
-        }
+        const patch = repairPatch(row, fresh)
         if (Object.keys(patch).length === 0) continue
         const { error: fixError } = await supabaseAdmin.from('payments').update(patch).eq('id', row.id)
         if (fixError) {

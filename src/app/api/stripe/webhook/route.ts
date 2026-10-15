@@ -8,53 +8,10 @@ import { readWithRetry } from '@/lib/db-retry'
 import { googleReviewsLinkFor } from '@/lib/google-reviews-link'
 import { loadRegistration, refundEverything } from '@/lib/event-refunds'
 import { merchSaleFor } from '@/lib/event-merch'
+import { getChargeDetails, type ChargeDetails } from '@/lib/stripe-charge-details'
 import { seatingPositionFor } from '@/lib/seating-code'
 import { PaymentKind } from '@/lib/money'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
-
-type ExpandedCharge = {
-  id?: string
-  receipt_url?: string | null
-  balance_transaction?: { fee?: number | null } | string | null
-}
-
-type ExpandedCheckoutSession = {
-  payment_intent?: { latest_charge?: ExpandedCharge | string | null } | string | null
-}
-
-type ChargeDetails = {
-  receiptUrl?: string
-  chargeId?: string
-  // What Stripe actually deducted, in AED. Taken from the balance
-  // transaction rather than estimated, so international card and currency
-  // conversion surcharges are included instead of assumed away.
-  stripeFeeAed: number
-}
-
-// Best-effort fetch of the Stripe receipt URL and the real fee for a
-// completed checkout. Never throws: a failure here must not block the DB
-// update or the confirmation email.
-async function getChargeDetails(sessionId: string): Promise<ChargeDetails> {
-  try {
-    const full = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['payment_intent.latest_charge.balance_transaction'],
-    }) as unknown as ExpandedCheckoutSession
-    const pi = full.payment_intent
-    if (!pi || typeof pi === 'string') return { stripeFeeAed: 0 }
-    const charge = pi.latest_charge
-    if (!charge || typeof charge === 'string') return { stripeFeeAed: 0 }
-    const bt = charge.balance_transaction
-    const feeMinor = bt && typeof bt !== 'string' ? (bt.fee ?? 0) : 0
-    return {
-      receiptUrl: charge.receipt_url ?? undefined,
-      chargeId: charge.id ?? undefined,
-      stripeFeeAed: Math.round(feeMinor) / 100,
-    }
-  } catch (e) {
-    console.error('Could not fetch Stripe charge details:', e)
-    return { stripeFeeAed: 0 }
-  }
-}
 
 // Writes one row to the payment ledger. Everything the Money dashboard
 // reports comes from this table, so it is recorded for every flow, but a

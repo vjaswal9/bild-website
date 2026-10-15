@@ -39,3 +39,32 @@ export function upgradeRevenueFromGross(grossAed: number): number {
   }
   return grossAed
 }
+
+// What a ledger row that already exists should be corrected to, given what
+// Stripe now says about the same payment. Deliberately narrow: only figures that
+// legitimately change or only become known after the payment was first recorded.
+//
+//  - refunded_aed: a refund issued later.
+//  - stripe_charge_id: where one was never recorded.
+//  - stripe_fee_aed: the webhook records a payment the instant it completes, and
+//    Stripe does not always have the fee ready by then, so it stored 0. A real fee
+//    is only ever filled in over a 0; a fee already on the row is never changed.
+//
+// Everything else on the row (description, revenue split, any manual correction)
+// is left exactly as it is.
+export function repairPatch(
+  row: { refunded_aed?: number | string | null; stripe_charge_id?: string | null; stripe_fee_aed?: number | string | null },
+  fresh: { refunded_aed: number; stripe_charge_id: string | null; stripe_fee_aed: number },
+): Record<string, number | string> {
+  const patch: Record<string, number | string> = {}
+  if (Math.abs((Number(row.refunded_aed) || 0) - fresh.refunded_aed) >= 0.005) {
+    patch.refunded_aed = fresh.refunded_aed
+  }
+  if (!row.stripe_charge_id && fresh.stripe_charge_id) {
+    patch.stripe_charge_id = fresh.stripe_charge_id
+  }
+  if ((Number(row.stripe_fee_aed) || 0) < 0.005 && fresh.stripe_fee_aed >= 0.005) {
+    patch.stripe_fee_aed = fresh.stripe_fee_aed
+  }
+  return patch
+}
