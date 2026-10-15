@@ -867,6 +867,8 @@ export async function sendImageReviewAdminAlert(opts: { newlyFlagged: number; to
 // Waitlist: told them they are on the list.
 export async function sendWaitlistJoinedEmail(opts: {
   to: string; firstName?: string; eventTitle: string; ticketsWanted: number
+  // The mix of ticket types they asked for, when the form took it.
+  ticketChoices?: { ticket_name: string; quantity: number }[]
 }) {
   const first = esc(opts.firstName?.split(' ')[0] || 'there')
   const n = opts.ticketsWanted
@@ -877,7 +879,7 @@ export async function sendWaitlistJoinedEmail(opts: {
     bodyHtml: `
       <p>Hi ${first},</p>
       <p>You are on the waitlist for <strong>${esc(opts.eventTitle)}</strong>, for
-      ${n} ticket${n === 1 ? '' : 's'}.</p>
+      ${n} ticket${n === 1 ? '' : 's'}${opts.ticketChoices && opts.ticketChoices.length ? `: ${esc(opts.ticketChoices.map(c => `${c.quantity} x ${c.ticket_name}`).join(', '))}` : ''}.</p>
       <p>The event is sold out. If a place frees up, which happens when someone cancels, we will email you with a
       link to book. Places are offered in the order people joined the list.</p>
       <p style="color:#9a9384;font-size:14px">
@@ -893,6 +895,7 @@ export async function sendWaitlistJoinedEmail(opts: {
 export async function sendWaitlistJoinedAdminAlert(opts: {
   eventTitle: string; name: string; email: string; phone?: string
   ticketsWanted: number; totalWaiting: number; totalTicketsWaiting: number
+  ticketChoices?: { ticket_name: string; quantity: number }[]
 }) {
   const html = adminAlertShell({
     heading: 'Someone joined an event waitlist',
@@ -900,7 +903,7 @@ export async function sendWaitlistJoinedAdminAlert(opts: {
       <p><strong>${esc(opts.eventTitle)}</strong></p>
       <p>${esc(opts.name)} &middot; <a href="mailto:${esc(opts.email)}" style="color:#C8861A">${esc(opts.email)}</a>
       ${opts.phone ? `&middot; ${esc(opts.phone)}` : ''}</p>
-      <p>Wants ${opts.ticketsWanted} ticket${opts.ticketsWanted === 1 ? '' : 's'}.</p>
+      <p>Wants ${opts.ticketsWanted} ticket${opts.ticketsWanted === 1 ? '' : 's'}${opts.ticketChoices && opts.ticketChoices.length ? `: <strong>${esc(opts.ticketChoices.map(c => `${c.quantity} x ${c.ticket_name}`).join(', '))}</strong>` : ''}.</p>
       <p><strong>${opts.totalTicketsWaiting} ticket${opts.totalTicketsWaiting === 1 ? '' : 's'}</strong> now on the waitlist for this event,
       from ${opts.totalWaiting} ${opts.totalWaiting === 1 ? 'person' : 'people'}. The full list is in Admin, Events, Manage.</p>
     `,

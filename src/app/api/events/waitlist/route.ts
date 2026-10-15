@@ -4,6 +4,7 @@ import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
 import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
 import { sendWaitlistJoinedEmail, sendWaitlistJoinedAdminAlert } from '@/lib/email'
 import { reportError } from '@/lib/report-error'
+import { cleanTicketChoices, describeTicketChoices, type WaitTicketChoice } from '@/lib/waitlist-tickets'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (!isValidEmail(email)) {
     return NextResponse.json({ error: 'Please check your email address, it does not look valid.' }, { status: 400 })
   }
-  const ticketsWanted = Number.isFinite(wanted) ? Math.min(Math.max(Math.round(wanted), 1), 10) : 1
+  let ticketsWanted = Number.isFinite(wanted) ? Math.min(Math.max(Math.round(wanted), 1), 10) : 1
 
   const { data: event } = await supabaseAdmin
     .from('events')
@@ -44,6 +45,22 @@ export async function POST(req: NextRequest) {
   }
   if (event.waitlist_open === false) {
     return NextResponse.json({ error: 'The waitlist for this event is closed.' }, { status: 400 })
+  }
+
+  // Which ticket types they want. The booking page sends a mix of types
+  // ([{ ticketId, quantity }]); an older page that is still open in somebody's
+  // browser sends only a number, and that still works exactly as before.
+  let choices: WaitTicketChoice[] | null = null
+  if (Array.isArray(b.ticketChoices) && b.ticketChoices.length > 0) {
+    const { data: ticketRows } = await supabaseAdmin
+      .from('event_tickets')
+      .select('id, name, active')
+      .eq('event_id', eventId)
+    const cleaned = cleanTicketChoices(b.ticketChoices, (ticketRows || []) as { id: string; name: string; active: boolean }[])
+    if (!cleaned.ok) return NextResponse.json({ error: cleaned.error }, { status: 400 })
+    choices = cleaned.choices
+    // The total is always worked out here, never taken from the browser.
+    ticketsWanted = cleaned.total
   }
 
   const normalised = normaliseEmail(email)
@@ -73,9 +90,18 @@ export async function POST(req: NextRequest) {
 
   // An existing entry keeps its original created_at, so signing up twice
   // cannot move anybody up the queue.
-  const { error } = existing
-    ? await supabaseAdmin.from('event_waitlist').update(fields).eq('id', existing.id)
-    : await supabaseAdmin.from('event_waitlist').insert([{ ...fields, event_id: eventId, email: normalised }])
+  const write = (row: Record<string, unknown>) => existing
+    ? supabaseAdmin.from('event_waitlist').update(row).eq('id', existing.id)
+    : supabaseAdmin.from('event_waitlist').insert([{ ...row, event_id: eventId, email: normalised }])
+
+  let { error } = await write({ ...fields, ticket_preferences: choices })
+  // Until supabase/event-waitlist-ticket-types.sql has been run the column does
+  // not exist. Do not lose the request: keep the count and put the mix of types
+  // in the note, where an admin can still read it.
+  if (error && (error.code === '42703' || error.code === 'PGRST204' || /ticket_preferences/.test(error.message || ''))) {
+    const note = [fields.note, choices ? `Wants: ${describeTicketChoices(choices)}` : null].filter(Boolean).join(' | ').slice(0, 300) || null
+    ;({ error } = await write({ ...fields, note }))
+  }
 
   if (error) {
     reportError('Waitlist write failed:', error)
@@ -97,6 +123,7 @@ export async function POST(req: NextRequest) {
     firstName,
     eventTitle: event.title,
     ticketsWanted,
+    ticketChoices: choices || undefined,
   })
   await sendWaitlistJoinedAdminAlert({
     eventTitle: event.title,
@@ -104,6 +131,7 @@ export async function POST(req: NextRequest) {
     email: normalised,
     phone: phone || undefined,
     ticketsWanted,
+    ticketChoices: choices || undefined,
     totalWaiting: peopleWaiting,
     totalTicketsWaiting: ticketsWaiting,
   })

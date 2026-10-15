@@ -171,7 +171,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   // A sold-out capped event offers the waitlist; one without a cap cannot
   // sell out, so it never reaches here.
   if (soldOut && waitlistOpen) {
-    return <WaitlistForm eventId={event.id} eventTitle={event.title} />
+    return <WaitlistForm eventId={event.id} eventTitle={event.title} tickets={tickets.filter(t => t.active !== false).map(t => ({ id: t.id, name: t.name, price_aed: t.price_aed }))} />
   }
 
   if (soldOut) {

@@ -7,6 +7,7 @@ import AdminNav from '@/components/admin/AdminNav'
 import SeatingView from '@/components/admin/SeatingView'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
+import { readTicketChoices, describeTicketChoices, waitingTotalsByType } from '@/lib/waitlist-tickets'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
 import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
@@ -504,6 +505,8 @@ function ReadOnlyWaitlist({ eventId }: { eventId: string }) {
         {!waitlistOpen && <p className="text-amber-400/90 text-xs">The waiting list is closed to new entries.</p>}
       </div>
 
+      <WaitTypeSummary entries={entries} />
+
       {rows.length === 0 ? (
         <p className="text-gray-500 text-sm">{entries.length === 0 ? 'Nobody is on the waiting list.' : 'Nobody is waiting right now.'}</p>
       ) : (
@@ -518,6 +521,7 @@ function ReadOnlyWaitlist({ eventId }: { eventId: string }) {
                   {' · joined '}{date(e.created_at)}
                   {e.invited_at && ` · offered ${date(e.invited_at)}`}
                 </p>
+                <WaitChoices entry={e} />
               </div>
               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${WAIT_TONE[e.status]}`}>
                 {e.status === 'invited' ? 'Offered' : e.status}
@@ -793,8 +797,51 @@ type WaitEntry = {
   email: string
   phone: string | null
   tickets_wanted: number
+  // The mix of ticket types asked for. Empty for entries made before ticket
+  // types were asked for: those keep showing just their count.
+  ticket_preferences?: unknown
+  note?: string | null
   status: 'waiting' | 'invited' | 'converted' | 'declined' | 'removed'
   invited_at: string | null
+}
+
+// "Waiting by ticket type" for the waiting-list panels. Entries from before ticket
+// types were asked for have none to count, so they are mentioned, not guessed.
+function WaitTypeSummary({ entries }: { entries: WaitEntry[] }) {
+  const totals = waitingTotalsByType(entries)
+  if (totals.length === 0) return null
+  const untyped = entries.filter(e => e.status === 'waiting' && readTicketChoices(e.ticket_preferences).length === 0)
+  return (
+    <div className="mb-4">
+      <p className="text-gray-500 text-xs uppercase tracking-wide mb-2">Waiting by ticket type</p>
+      <div className="flex flex-wrap gap-2">
+        {totals.map(t => (
+          <span key={t.name} className="inline-flex items-center gap-2 bg-charcoal-700/60 rounded-full px-3 py-1 text-xs">
+            <span className="text-gold-400 font-bold">{t.quantity}</span><span className="text-gray-300">{t.name}</span>
+          </span>
+        ))}
+      </div>
+      {untyped.length > 0 && (
+        <p className="text-gray-600 text-xs mt-1.5">
+          Not counted: {untyped.length} earlier {untyped.length === 1 ? 'entry' : 'entries'} ({untyped.reduce((s, e) => s + (Number(e.tickets_wanted) || 1), 0)} tickets) made before ticket types were asked for.
+        </p>
+      )}
+    </div>
+  )
+}
+
+// The ticket types one entry asked for, and any note, under their details.
+function WaitChoices({ entry, indent }: { entry: WaitEntry; indent?: boolean }) {
+  const choices = readTicketChoices(entry.ticket_preferences)
+  if (choices.length === 0 && !entry.note) return null
+  return (
+    <>
+      {choices.length > 0 && (
+        <p className={`text-gold-400/90 text-xs mt-0.5 ${indent ? 'pl-7' : ''}`}>{describeTicketChoices(choices)}</p>
+      )}
+      {entry.note && <p className={`text-gray-500 text-xs italic mt-0.5 ${indent ? 'pl-7' : ''}`}>{entry.note}</p>}
+    </>
+  )
 }
 
 const WAIT_TONE: Record<string, string> = {
@@ -924,6 +971,8 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
 
       {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
+      <WaitTypeSummary entries={entries} />
+
       {entries.length === 0 ? (
         <p className="text-gray-500 text-sm">Nobody on the waitlist yet.</p>
       ) : !listOpen ? (
@@ -951,6 +1000,7 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
                     {' · joined '}{new Date(e.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     {e.invited_at && ` · offered ${new Date(e.invited_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
                   </p>
+                  <WaitChoices entry={e} indent />
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {(e.status === 'waiting' || e.status === 'invited') && (

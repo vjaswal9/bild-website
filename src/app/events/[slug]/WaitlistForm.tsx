@@ -1,14 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Check, Users } from 'lucide-react'
+import { Loader2, Check, Users, Minus, Plus } from 'lucide-react'
 import { isValidEmail, emailProblem } from '@/lib/email-validate'
 import { btnPrimary } from '@/lib/ui'
 
 // Shown in place of the booking form once a capped event sells out. Replaces
 // "email events@bild.ae", which put the request in an inbox where nobody could
 // see how many were waiting or who asked first.
-export default function WaitlistForm({ eventId, eventTitle }: { eventId: string; eventTitle: string }) {
+const MAX_TICKETS = 10
+
+export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
+  eventId: string
+  eventTitle: string
+  // The ticket types on sale. With two or more, people say which they want.
+  tickets?: { id: string; name: string; price_aed: number }[]
+}) {
+  const byType = tickets.length >= 2
+  // How many of each ticket type they want, by ticket id.
+  const [qty, setQty] = useState<Record<string, number>>({})
+  const totalByType = Object.values(qty).reduce((s, n) => s + n, 0)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -25,12 +36,18 @@ export default function WaitlistForm({ eventId, eventTitle }: { eventId: string;
     if (!firstName.trim()) return setError('Please give your first name.')
     const mailProblem = emailProblem(email)
     if (mailProblem) return setError(mailProblem)
+    if (byType && totalByType < 1) return setError('Please choose the tickets you would like.')
+    if (byType && totalByType > MAX_TICKETS) return setError(`The waiting list takes up to ${MAX_TICKETS} tickets per person. For more, please email events@bild.ae.`)
 
     setBusy(true)
     const res = await fetch('/api/events/waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventId, firstName, lastName, email, phone, ticketsWanted }),
+      body: JSON.stringify({
+        eventId, firstName, lastName, email, phone,
+        ticketsWanted: byType ? totalByType : ticketsWanted,
+        ...(byType ? { ticketChoices: tickets.filter(t => (qty[t.id] || 0) > 0).map(t => ({ ticketId: t.id, quantity: qty[t.id] })) } : {}),
+      }),
     })
     const d = await res.json().catch(() => ({}))
     setBusy(false)
@@ -93,18 +110,49 @@ export default function WaitlistForm({ eventId, eventTitle }: { eventId: string;
         </label>
       </div>
 
-      <label className="block mt-3 max-w-[14rem]">
-        <span className="text-charcoal-600 text-xs block mb-1">How many tickets do you need?</span>
-        <select
-          value={ticketsWanted}
-          onChange={e => setTicketsWanted(Number(e.target.value))}
-          className={`${field} border-gold-200`}
-        >
-          {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-            <option key={n} value={n}>{n} {n === 1 ? 'ticket' : 'tickets'}</option>
-          ))}
-        </select>
-      </label>
+      {byType ? (
+        <div className="mt-4">
+          <p className="text-charcoal-700 text-sm font-medium mb-2">Which tickets would you like?</p>
+          <div className="space-y-2">
+            {tickets.map(t => {
+              const n = qty[t.id] || 0
+              // Changes by a step from the latest count, so quick taps are never lost.
+              const step = (d: number) => setQty(q => ({ ...q, [t.id]: Math.max(0, Math.min(MAX_TICKETS, (q[t.id] || 0) + d)) }))
+              return (
+                <div key={t.id} className={`flex items-center justify-between gap-3 rounded-xl border bg-white px-3.5 py-2.5 ${n > 0 ? 'border-gold-500' : 'border-gold-200'}`}>
+                  <div className="min-w-0">
+                    <p className="text-charcoal-800 text-sm font-medium truncate">{t.name}</p>
+                    <p className="text-charcoal-500 text-xs">{t.price_aed > 0 ? `${t.price_aed} AED` : 'Free'}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button type="button" onClick={() => step(-1)} disabled={n === 0} aria-label={`One fewer ${t.name}`}
+                      className="w-8 h-8 rounded-full border border-gold-200 flex items-center justify-center text-charcoal-700 disabled:opacity-30"><Minus size={14} /></button>
+                    <span className="w-6 text-center text-sm font-semibold text-charcoal-800" aria-live="polite">{n}</span>
+                    <button type="button" onClick={() => step(1)} disabled={totalByType >= MAX_TICKETS} aria-label={`One more ${t.name}`}
+                      className="w-8 h-8 rounded-full border border-gold-200 flex items-center justify-center text-charcoal-700 disabled:opacity-30"><Plus size={14} /></button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <p className={`text-xs mt-2 ${tried && totalByType < 1 ? 'text-ruby-500' : 'text-charcoal-500'}`}>
+            {totalByType < 1 ? 'Choose at least one ticket. You can mix types.' : `${totalByType} ticket${totalByType === 1 ? '' : 's'} in total.`}
+          </p>
+        </div>
+      ) : (
+        <label className="block mt-3 max-w-[14rem]">
+          <span className="text-charcoal-600 text-xs block mb-1">How many tickets do you need?</span>
+          <select
+            value={ticketsWanted}
+            onChange={e => setTicketsWanted(Number(e.target.value))}
+            className={`${field} border-gold-200`}
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+              <option key={n} value={n}>{n} {n === 1 ? 'ticket' : 'tickets'}</option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {error && <p className="text-ruby-500 text-sm mt-3">{error}</p>}
 
