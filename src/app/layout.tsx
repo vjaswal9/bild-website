@@ -18,7 +18,8 @@ const SITE_URL = 'https://www.bild.ae'
 // tailwind.config.ts maps onto font-sans / font-display.
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  // 300 (light) is not used anywhere on the site, so it is not downloaded.
+  weight: ['400', '500', '600', '700'],
   variable: '--font-inter',
   display: 'swap',
 })
@@ -120,9 +121,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: jsonLd(orgJsonLd) }}
         />
         <GoogleAnalytics />
+        {/* First stop for keyboard and screen-reader users: skips the
+            navigation. Invisible until it receives focus. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-charcoal-800 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        >
+          Skip to main content
+        </a>
         <ScrollProgress />
         <Navbar />
-        <main className="flex-1 pt-20 md:pt-24"><PageTransition>{children}</PageTransition></main>
+        <main id="main" tabIndex={-1} className="flex-1 pt-20 md:pt-24 outline-none"><PageTransition>{children}</PageTransition></main>
         <Footer />
         <BackToTop />
       </body>

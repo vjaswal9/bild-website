@@ -2,6 +2,9 @@ import PageHero from '@/components/ui/PageHero'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import RenewalForm from './RenewalForm'
 
+// A personal one-time link: it must never appear in search results.
+export const metadata = { title: 'Renew Your Document', robots: { index: false, follow: false } }
+
 export const dynamic = 'force-dynamic'
 
 function InfoState({ title, message }: { title: string; message: string }) {

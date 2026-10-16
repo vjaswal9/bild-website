@@ -5,6 +5,9 @@ import StatsPanel from '@/components/directory/StatsPanel'
 import { statsForBusiness } from '@/lib/directory-stats'
 import BusinessTestimonialsForm, { type OwnTestimonial } from '@/components/directory/BusinessTestimonialsForm'
 
+// A personal one-time link: it must never appear in search results.
+export const metadata = { title: 'Manage Your Listing', robots: { index: false, follow: false } }
+
 export const dynamic = 'force-dynamic'
 
 function InfoState({ title, message }: { title: string; message: string }) {

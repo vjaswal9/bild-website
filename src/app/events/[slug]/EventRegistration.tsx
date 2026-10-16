@@ -643,7 +643,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         </div>
       )}
 
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p className="text-ruby-600 text-sm mb-4">{error}</p>}
 
       <button
         onClick={register}

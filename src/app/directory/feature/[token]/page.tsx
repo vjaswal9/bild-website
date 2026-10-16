@@ -4,6 +4,9 @@ import PayButton from '@/components/directory/PayButton'
 import { FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED, FEATURED_BENEFITS } from '@/lib/featured-copy'
 import { Check } from 'lucide-react'
 
+// A personal one-time link: it must never appear in search results.
+export const metadata = { title: 'Get Featured', robots: { index: false, follow: false } }
+
 export const dynamic = 'force-dynamic'
 
 function InfoState({ title, message }: { title: string; message: string }) {

@@ -3,6 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import PayButton from '@/components/directory/PayButton'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
+// A personal one-time link: it must never appear in search results.
+export const metadata = { title: 'Activate Your Listing', robots: { index: false, follow: false } }
+
 export const dynamic = 'force-dynamic'
 
 function InfoState({ title, message }: { title: string; message: string }) {

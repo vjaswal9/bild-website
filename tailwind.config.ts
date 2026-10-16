@@ -44,6 +44,12 @@ const config: Config = {
         },
         // Deep Indian red — secondary accent
         ruby: {
+          // The light tints are for validation rings and soft borders. They
+          // were used in nine places with no definition here, so Tailwind
+          // generated nothing and the "invalid field" glow never appeared.
+          200: '#ebc0c7',
+          300: '#dc95a0',
+          400: '#c75f70',
           500: '#9B2335',
           600: '#7e1c2b',
         },

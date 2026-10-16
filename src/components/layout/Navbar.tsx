@@ -34,6 +34,9 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const hideJoinButton = pathname === '/directory'
 
+  // Close the mobile menu whenever the page changes (back button, links elsewhere).
+  useEffect(() => { setOpen(false) }, [pathname])
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', onScroll)
@@ -104,6 +107,8 @@ export default function Navbar() {
           className="lg:hidden p-2 rounded-lg text-charcoal-700"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
+          aria-expanded={open}
+          aria-controls="mobile-menu"
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
@@ -111,7 +116,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="lg:hidden bg-cream border-t border-gold-100 px-4 py-4 flex flex-col gap-3">
+        <div id="mobile-menu" className="lg:hidden bg-cream border-t border-gold-100 px-4 py-4 flex flex-col gap-3">
           {links.map((link) => (
             <Link
               key={link.href}

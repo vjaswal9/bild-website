@@ -697,7 +697,7 @@ export default function SubmitBusinessPage() {
               </div>
             </fieldset>
 
-            {error && <p className="text-red-500 text-sm text-center bg-red-50 border border-red-200 rounded-xl p-3">{error}</p>}
+            {error && <p className="text-ruby-600 text-sm text-center bg-ruby-500/10 border border-ruby-200 rounded-xl p-3">{error}</p>}
 
             <button
               type="submit"
