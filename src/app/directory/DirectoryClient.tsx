@@ -234,7 +234,11 @@ function FeaturedRow({ biz }: { biz: DisplayBusiness }) {
 function ListingRow({ biz }: { biz: DisplayBusiness }) {
   const href = biz.slug ? `/directory/${biz.slug}` : '#'
   const offer = splitOffer(biz.bildOffer)
-  const rule = 'lg:border-l lg:border-gold-200/60 lg:pl-5'
+  // xl, not lg: from lg up the page also carries a 228px filter sidebar, so at
+  // 1024 to 1150px wide a row has only about 650px and the three fixed columns
+  // (530px plus gaps) left the business name with 0 to 70px. Its text then ran
+  // over the next column. xl (1280px) leaves the name about 250px.
+  const rule = 'xl:border-l xl:border-gold-200/60 xl:pl-5'
   // Searching hides the Featured section above, so without this a paid
   // placement would arrive in the results looking like every other listing.
   // The gold rail and badge are the same language as the dark panels, kept
@@ -251,7 +255,7 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
     >
       <BusinessAvatar name={biz.name} logoUrl={biz.logoUrl} size="tileSm" />
 
-      <div className="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-[1fr_180px_200px_150px] gap-x-5 gap-y-3 items-start">
+      <div className="flex-1 min-w-0 grid grid-cols-1 xl:grid-cols-[1fr_180px_200px_150px] gap-x-5 gap-y-3 items-start">
         <div className="min-w-0">
           {featured && (
             <p className="inline-flex items-center gap-1 bg-gold-500 text-charcoal-900 text-[9px] font-bold uppercase tracking-[0.14em] px-2 py-0.5 mb-1.5">
