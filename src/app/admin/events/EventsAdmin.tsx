@@ -206,7 +206,8 @@ function EventListCard({
 
   return (
     <div ref={scrollRef} className="bg-charcoal-800 rounded-2xl border border-charcoal-700 overflow-hidden">
-      <div className="flex items-start justify-between p-5 gap-4">
+      {/* On a phone the details sit above the buttons; from sm up they sit side by side. */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-start sm:justify-between p-4 sm:p-5 gap-4">
         <div className="flex items-start gap-4 min-w-0">
           {ev.flyer_url && ev.flyer_url.startsWith('http') && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -214,7 +215,7 @@ function EventListCard({
           )}
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h3 className="font-display text-lg font-bold text-white truncate">{ev.title}</h3>
+              <h3 className="font-display text-lg font-bold text-white break-words sm:truncate">{ev.title}</h3>
               <StatusBadge status={ev.status} past={past} />
             </div>
             <p className="text-gray-400 text-sm flex items-center gap-1.5">
@@ -230,34 +231,34 @@ function EventListCard({
             </p>
           </div>
         </div>
-        <div className="flex items-start gap-2 shrink-0">
-          <a href={`/events/${ev.slug}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white p-2" title="View public page">
+        <div className="flex flex-row-reverse sm:flex-row items-start gap-2 sm:shrink-0">
+          <a href={`/events/${ev.slug}`} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white p-2" title="View public page" aria-label="View public page">
             <ExternalLink size={16} />
           </a>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 flex-1 sm:flex-none">
             <button
               onClick={onToggleData}
-              className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+              className="inline-flex items-center justify-center sm:justify-start gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2.5 sm:py-2 rounded-lg text-sm font-semibold transition-colors"
             >
               {dataOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />} Event Data
             </button>
             <button
               onClick={onToggleAttendees}
-              className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+              className="col-span-2 sm:col-span-1 inline-flex items-center justify-center sm:justify-start gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2.5 sm:py-2 rounded-lg text-sm font-semibold transition-colors"
             >
               {attendeesOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />} Attendees &amp; Waiting-List
             </button>
             {ev.seating_enabled && (
               <button
                 onClick={onToggleSeating}
-                className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+                className="inline-flex items-center justify-center sm:justify-start gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2.5 sm:py-2 rounded-lg text-sm font-semibold transition-colors"
               >
                 {seatingOpen ? <ChevronUp size={15} /> : <Armchair size={15} />} Seating
               </button>
             )}
             <button
               onClick={handleManageClick}
-              className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
+              className="inline-flex items-center justify-center sm:justify-start gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-2.5 sm:py-2 rounded-lg text-sm font-semibold transition-colors"
             >
               {expanded ? <ChevronUp size={15} /> : <Lock size={15} />} Manage
             </button>
