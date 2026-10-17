@@ -24,7 +24,7 @@ const pages = [
   '/', '/events', '/directory', '/join', '/about', '/contact', '/photo-vault',
   '/knowledge-base', '/faces-of-bild', '/testimonials', '/testimonials/submit',
   '/directory/submit', '/directory/get-featured', '/terms', '/privacy',
-  '/refund-policy', '/community-rules',
+  '/refund-policy', '/code-of-conduct',
 ]
 for (const p of pages) {
   const r = await get(p)
@@ -38,6 +38,10 @@ const home = await get('/')
 ok(/href="#main"/.test(home.text) && /<main id="main"/.test(home.text), 'skip-to-content link and main landmark present')
 ok(/<html lang="en"/.test(home.text), 'html lang is set')
 ok(!/<img(?![^>]*\balt=)/.test(home.text), 'every <img> on the home page has an alt attribute')
+
+// The old Community Rules address must still reach the renamed page.
+const old = await get('/community-rules')
+ok((old.status === 308 || old.status === 301) && /\/code-of-conduct$/.test(old.headers.get('location') || ''), '/community-rules redirects to /code-of-conduct')
 
 // 3. Personal one-time links must not be indexable.
 for (const p of ['/events/upgrade/x', '/directory/pay/x', '/directory/renew/x', '/directory/manage/x', '/directory/feature/x']) {
