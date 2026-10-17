@@ -36,7 +36,7 @@ export default async function BusinessGoogleReviews({ placeId }: { placeId: stri
         <a href={data.reviewUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gold-600 hover:text-gold-700 underline underline-offset-4">
           Leave a Review
         </a>
-        <span className="hidden sm:inline text-charcoal-300">·</span>
+        <span className="hidden sm:inline text-charcoal-600">·</span>
         <a href={data.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-charcoal-600 hover:text-gold-600 underline underline-offset-4">
           See all {data.totalReviews} reviews on Google
         </a>

@@ -15,11 +15,11 @@ function Delta({ now, before }: { now: number; before: number }) {
   }
   const pct = Math.round(((now - before) / before) * 100)
   if (pct === 0) {
-    return <span className="text-xs font-medium text-charcoal-400 inline-flex items-center gap-0.5"><Minus size={12} /> level</span>
+    return <span className="text-xs font-medium text-charcoal-600 inline-flex items-center gap-0.5"><Minus size={12} /> level</span>
   }
   const up = pct > 0
   return (
-    <span className={`text-xs font-semibold inline-flex items-center gap-0.5 ${up ? 'text-emerald-600' : 'text-charcoal-400'}`}>
+    <span className={`text-xs font-semibold inline-flex items-center gap-0.5 ${up ? 'text-emerald-600' : 'text-charcoal-600'}`}>
       {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
       {up ? '+' : ''}{pct}%
     </span>
@@ -46,7 +46,7 @@ function Sparkline({ daily }: { daily: { day: string; count: number }[] }) {
           </div>
         ))}
       </div>
-      <div className="flex justify-between text-[10px] text-charcoal-400 mt-1">
+      <div className="flex justify-between text-[10px] text-charcoal-600 mt-1">
         <span>30 days ago</span>
         <span>{total} view{total === 1 ? '' : 's'} in total</span>
         <span>today</span>
@@ -76,31 +76,31 @@ export default function StatsPanel({
           <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-gold-100 text-gold-700 px-2.5 py-1 rounded-full">Featured</span>
         )}
       </div>
-      <p className="text-sm text-charcoal-500 mb-6">
+      <p className="text-sm text-charcoal-600 mb-6">
         The last 30 days, compared with the 30 before it. Repeat visits from the same person count once a day, and
         automated traffic is excluded.
       </p>
 
       {!hasAnything ? (
-        <p className="text-sm text-charcoal-500 bg-cream border border-gold-100 rounded-xl px-4 py-3">
+        <p className="text-sm text-charcoal-600 bg-cream border border-gold-100 rounded-xl px-4 py-3">
           Nothing recorded yet. Figures start appearing within a day of your listing going live.
         </p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-cream border border-gold-100 rounded-xl p-4">
-              <div className="flex items-center gap-1.5 text-charcoal-500 text-xs font-medium uppercase tracking-wide mb-1">
+              <div className="flex items-center gap-1.5 text-charcoal-600 text-xs font-medium uppercase tracking-wide mb-1">
                 <Eye size={13} /> Profile views
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-3xl font-bold text-charcoal-800">{views}</span>
                 <Delta now={views} before={prev30.view || 0} />
               </div>
-              <p className="text-charcoal-400 text-xs mt-1">{allTime.view || 0} all time</p>
+              <p className="text-charcoal-600 text-xs mt-1">{allTime.view || 0} all time</p>
             </div>
 
-            <div className={`rounded-xl p-4 border ${isFeatured ? 'bg-cream border-gold-100' : 'bg-charcoal-50 border-charcoal-200'}`}>
-              <div className="flex items-center gap-1.5 text-charcoal-500 text-xs font-medium uppercase tracking-wide mb-1">
+            <div className={`rounded-xl p-4 border ${isFeatured ? 'bg-cream border-gold-100' : 'bg-stone-50 border-stone-200'}`}>
+              <div className="flex items-center gap-1.5 text-charcoal-600 text-xs font-medium uppercase tracking-wide mb-1">
                 {isFeatured ? <TrendingUp size={13} /> : <Lock size={13} />} Enquiries
               </div>
               {isFeatured ? (
@@ -109,22 +109,22 @@ export default function StatsPanel({
                     <span className="font-display text-3xl font-bold text-charcoal-800">{clicks}</span>
                     <Delta now={clicks} before={totalClicks(prev30)} />
                   </div>
-                  <p className="text-charcoal-400 text-xs mt-1">people who tapped through to you</p>
+                  <p className="text-charcoal-600 text-xs mt-1">people who tapped through to you</p>
                 </>
               ) : (
                 <>
-                  <div className="font-display text-3xl font-bold text-charcoal-300">&mdash;</div>
-                  <p className="text-charcoal-400 text-xs mt-1">Featured listings only</p>
+                  <div className="font-display text-3xl font-bold text-charcoal-600">&mdash;</div>
+                  <p className="text-charcoal-600 text-xs mt-1">Featured listings only</p>
                 </>
               )}
             </div>
           </div>
 
-          <p className="text-charcoal-500 text-xs font-medium uppercase tracking-wide mb-2">Views, last 30 days</p>
+          <p className="text-charcoal-600 text-xs font-medium uppercase tracking-wide mb-2">Views, last 30 days</p>
           <Sparkline daily={daily} />
 
           <div className="mt-6">
-            <p className="text-charcoal-500 text-xs font-medium uppercase tracking-wide mb-2">Where people went next</p>
+            <p className="text-charcoal-600 text-xs font-medium uppercase tracking-wide mb-2">Where people went next</p>
             {isFeatured ? (
               <ul className="divide-y divide-gold-100 border-y border-gold-100">
                 {CLICK_KINDS.map(k => (
@@ -135,12 +135,12 @@ export default function StatsPanel({
                 ))}
               </ul>
             ) : (
-              <div className="relative rounded-xl border border-charcoal-200 overflow-hidden">
-                <ul className="divide-y divide-charcoal-100 blur-[3px] select-none" aria-hidden="true">
+              <div className="relative rounded-xl border border-stone-200 overflow-hidden">
+                <ul className="divide-y divide-stone-200 blur-[3px] select-none" aria-hidden="true">
                   {CLICK_KINDS.map(k => (
                     <li key={k} className="flex items-center justify-between px-4 py-2">
-                      <span className="text-sm text-charcoal-500">{KIND_LABEL[k]}</span>
-                      <span className="text-sm font-semibold text-charcoal-400">&mdash;</span>
+                      <span className="text-sm text-charcoal-600">{KIND_LABEL[k]}</span>
+                      <span className="text-sm font-semibold text-charcoal-600">&mdash;</span>
                     </li>
                   ))}
                 </ul>

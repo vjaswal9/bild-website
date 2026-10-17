@@ -17,7 +17,7 @@ function InfoState({ title, message }: { title: string; message: string }) {
       <div className="py-20 max-w-xl mx-auto px-4 text-center">
         <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-4">{title}</h2>
         <p className="text-charcoal-600">{message}</p>
-        <p className="text-charcoal-400 text-sm mt-6">
+        <p className="text-charcoal-600 text-sm mt-6">
           Need help? Email <a href="mailto:connect@bild.ae" className="text-gold-600">connect@bild.ae</a>
         </p>
       </div>
@@ -99,7 +99,7 @@ export default async function ManageListingPage({ params }: { params: Promise<{ 
           ) : (
             <div className="bg-cream border border-gold-200 rounded-2xl p-6">
               <h2 className="font-display text-xl font-bold text-charcoal-800">Featured content</h2>
-              <p className="text-sm text-charcoal-500 mt-1">
+              <p className="text-sm text-charcoal-600 mt-1">
                 {biz.featured_paid_until
                   ? 'Your Featured placement has lapsed. Everything you added before is saved and reappears the moment you renew.'
                   : 'Featured listings can add a longer bio, a photo gallery, a video, member offers and a downloadable brochure.'}

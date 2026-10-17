@@ -36,7 +36,7 @@ export default function CommunityStats() {
           <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-3">
             A network that is already thriving
           </h2>
-          <p className="text-charcoal-500 mt-3 max-w-xl mx-auto">
+          <p className="text-charcoal-600 mt-3 max-w-xl mx-auto">
             You are not joining something new. You are joining something that already works.
           </p>
         </Reveal>
@@ -69,7 +69,7 @@ export default function CommunityStats() {
                 {stat.suffix && <span className="align-baseline text-xl">{stat.suffix}</span>}
               </p>
               <p className="text-charcoal-800 font-semibold text-sm mt-3">{stat.label}</p>
-              <p className="text-charcoal-500 text-xs mt-1">{stat.sublabel}</p>
+              <p className="text-charcoal-600 text-xs mt-1">{stat.sublabel}</p>
             </div>
           ))}
         </Reveal>

@@ -24,7 +24,7 @@ export default async function BusinessGoogleRatingSummary({ placeId }: { placeId
         ))}
       </span>
       <span className="text-charcoal-700 font-semibold text-sm">{data.rating.toFixed(1)}</span>
-      <span className="text-charcoal-500 text-sm group-hover:text-gold-600 transition-colors">
+      <span className="text-charcoal-600 text-sm group-hover:text-gold-600 transition-colors">
         ({data.totalReviews})
       </span>
       <GoogleWordmark className="h-3 w-auto" />

@@ -37,7 +37,7 @@ export default async function GetFeaturedPage() {
               </li>
             ))}
           </ul>
-          <p className="text-center text-charcoal-500 text-sm mb-10">
+          <p className="text-center text-charcoal-600 text-sm mb-10">
             {FEATURED_MEMBER_FEE_AED} AED/quarter for BILD members · {FEATURED_NON_MEMBER_FEE_AED} AED/quarter for non-BILD businesses
           </p>
           <div className="bg-cream border border-gold-200 rounded-2xl p-6">
@@ -57,7 +57,7 @@ export default async function GetFeaturedPage() {
             >
               List your business <ArrowRight size={15} />
             </Link>
-            <p className="text-charcoal-500 text-xs mt-3 max-w-sm mx-auto leading-relaxed">
+            <p className="text-charcoal-600 text-xs mt-3 max-w-sm mx-auto leading-relaxed">
               Submitting is free. Once your listing is approved you can add Featured placement at any time.
             </p>
           </div>

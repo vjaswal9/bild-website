@@ -62,10 +62,10 @@ export default async function EventSuccessPage({
                 Ticket: <span className="font-semibold">{reg.ticket_name}</span>
               </p>
             )}
-            <p className="text-charcoal-500 text-sm mb-2">
+            <p className="text-charcoal-600 text-sm mb-2">
               A confirmation has been sent to {reg.email}. See you there!
             </p>
-            <p className="text-charcoal-500 text-sm mb-8">
+            <p className="text-charcoal-600 text-sm mb-8">
               Nothing in your inbox, or need to change something? Email{' '}
               <a href="mailto:events@bild.ae" className="text-gold-600 hover:underline">events@bild.ae</a>.
             </p>

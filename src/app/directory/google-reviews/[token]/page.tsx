@@ -20,7 +20,7 @@ function InfoState({ title, message }: { title: string; message: string }) {
       <div className="py-20 max-w-xl mx-auto px-4 text-center">
         <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-4">{title}</h2>
         <p className="text-charcoal-600">{message}</p>
-        <p className="text-charcoal-400 text-sm mt-6">
+        <p className="text-charcoal-600 text-sm mt-6">
           Need help? Email <a href="mailto:connect@bild.ae" className="text-gold-600">connect@bild.ae</a>
         </p>
       </div>
@@ -67,7 +67,7 @@ export default async function GoogleReviewsLinkPage({ params }: { params: { toke
               <li>Copy the link it shows you. It starts with <strong className="text-charcoal-800">g.page/r/</strong></li>
               <li>Paste it below and press Connect</li>
             </ol>
-            <p className="text-xs text-charcoal-500 mt-4">
+            <p className="text-xs text-charcoal-600 mt-4">
               A link copied from Google search results or Google Maps will not work. If you paste one, we will tell you straight away.
             </p>
           </div>

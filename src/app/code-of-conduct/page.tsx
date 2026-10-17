@@ -53,7 +53,7 @@ export default async function CodeOfConductPage() {
             <p>Follow and support us by sharing BILD and joining us at BILD events.</p>
             <p>Let&rsquo;s grow stronger together, BILD Lads, Ladies, and Families!</p>
 
-            <p className="text-sm text-charcoal-500">
+            <p className="text-sm text-charcoal-600">
               Please note: These social media platforms are for informational and networking purposes only. The
               opinions expressed by members are their own and do not reflect the views of the Group Admin (including
               the Founder). Group Admins are not responsible for the accuracy of shared content or any consequences

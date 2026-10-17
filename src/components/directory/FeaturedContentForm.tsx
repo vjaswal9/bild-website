@@ -162,7 +162,7 @@ export default function FeaturedContentForm({
       <div className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
         <div>
           <label className={labelCls}>Extended Bio</label>
-          <p className="text-sm text-charcoal-500 mb-2">
+          <p className="text-sm text-charcoal-600 mb-2">
             <strong className="text-charcoal-700">What this is:</strong> a longer description shown on your profile page underneath your
             short directory description. Room to explain your services properly.
           </p>
@@ -171,11 +171,11 @@ export default function FeaturedContentForm({
 
         <div>
           <label className={labelCls}>Photo Gallery ({gallery.length}/6)</label>
-          <p className="text-sm text-charcoal-500 mb-2">
+          <p className="text-sm text-charcoal-600 mb-2">
             <strong className="text-charcoal-700">What this is:</strong> a set of photos shown as a grid partway down your profile page,
             below your description. Use them to show your products, your work, your premises or your team. Only Featured listings have this.
           </p>
-          <p className="text-xs text-charcoal-500 bg-cream border border-gold-200 rounded-lg px-3 py-2 mb-3">
+          <p className="text-xs text-charcoal-600 bg-cream border border-gold-200 rounded-lg px-3 py-2 mb-3">
             <strong className="text-charcoal-700">Recommended size:</strong> square, <strong>800 x 800 pixels</strong> or larger. JPG or PNG.
             Photos are shown as squares, so keep the subject centred. Up to 6 images.
           </p>
@@ -202,7 +202,7 @@ export default function FeaturedContentForm({
         <div>
           <label className={labelCls}>Video Link</label>
           <input type="text" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="YouTube or Instagram Reel link" className={inputBase} />
-          <p className="text-xs text-charcoal-500 mt-1.5">
+          <p className="text-xs text-charcoal-600 mt-1.5">
             <strong className="text-charcoal-700">What this is:</strong> one video embedded in your profile page, under your photos.
             Paste the full link, for example https://youtube.com/watch?v=... or an Instagram Reel URL. Nothing is uploaded - the video stays on YouTube or Instagram.
           </p>
@@ -210,11 +210,11 @@ export default function FeaturedContentForm({
 
         <div>
           <label className={labelCls}>Brochure (PDF)</label>
-          <p className="text-sm text-charcoal-500 mb-2">
+          <p className="text-sm text-charcoal-600 mb-2">
             <strong className="text-charcoal-700">What this is:</strong> a PDF visitors can download from your profile page, such as a
             brochure, menu, price list or company profile. Only Featured listings have this.
           </p>
-          <p className="text-xs text-charcoal-500 bg-cream border border-gold-200 rounded-lg px-3 py-2 mb-3">
+          <p className="text-xs text-charcoal-600 bg-cream border border-gold-200 rounded-lg px-3 py-2 mb-3">
             <strong className="text-charcoal-700">Requirements:</strong> one PDF, up to <strong>{BROCHURE_MAX_MB} MB</strong>. It saves as soon as it
             uploads, so there is no need to press Save Changes for this. Uploading a new PDF replaces the old one.
           </p>
@@ -229,7 +229,7 @@ export default function FeaturedContentForm({
                 type="button"
                 onClick={removeBrochure}
                 disabled={!!brochureBusy}
-                className="text-charcoal-400 hover:text-ruby-500 disabled:opacity-50 shrink-0"
+                className="text-charcoal-600 hover:text-ruby-500 disabled:opacity-50 shrink-0"
                 title="Remove brochure"
               >
                 {brochureBusy === 'removing' ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
@@ -264,7 +264,7 @@ export default function FeaturedContentForm({
                   className={inputBase}
                 />
                 {offers.length > 1 && (
-                  <button type="button" onClick={() => setOffers(prev => prev.filter((_, j) => j !== i))} className="px-3 text-charcoal-400 hover:text-ruby-500">
+                  <button type="button" onClick={() => setOffers(prev => prev.filter((_, j) => j !== i))} className="px-3 text-charcoal-600 hover:text-ruby-500">
                     <X size={16} />
                   </button>
                 )}

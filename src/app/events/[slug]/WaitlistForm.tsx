@@ -69,7 +69,7 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
           We have emailed you to confirm. If a place frees up we will be in touch with a link to book. Places are
           offered in the order people joined.
         </p>
-        <p className="text-charcoal-500 text-xs mt-3">Nothing is reserved and nothing has been charged.</p>
+        <p className="text-charcoal-600 text-xs mt-3">Nothing is reserved and nothing has been charged.</p>
       </div>
     )
   }
@@ -122,7 +122,7 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
                 <div key={t.id} className={`flex items-center justify-between gap-3 rounded-xl border bg-white px-3.5 py-2.5 ${n > 0 ? 'border-gold-500' : 'border-gold-200'}`}>
                   <div className="min-w-0">
                     <p className="text-charcoal-800 text-sm font-medium truncate">{t.name}</p>
-                    <p className="text-charcoal-500 text-xs">{t.price_aed > 0 ? `${t.price_aed} AED` : 'Free'}</p>
+                    <p className="text-charcoal-600 text-xs">{t.price_aed > 0 ? `${t.price_aed} AED` : 'Free'}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button type="button" onClick={() => step(-1)} disabled={n === 0} aria-label={`One fewer ${t.name}`}
@@ -135,7 +135,7 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
               )
             })}
           </div>
-          <p className={`text-xs mt-2 ${tried && totalByType < 1 ? 'text-ruby-500' : 'text-charcoal-500'}`}>
+          <p className={`text-xs mt-2 ${tried && totalByType < 1 ? 'text-ruby-500' : 'text-charcoal-600'}`}>
             {totalByType < 1 ? 'Choose at least one ticket. You can mix types.' : `${totalByType} ticket${totalByType === 1 ? '' : 's'} in total.`}
           </p>
         </div>
@@ -161,7 +161,7 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
         {busy ? 'Adding you...' : 'Join the waitlist'}
       </button>
 
-      <p className="text-charcoal-500 text-xs mt-3 text-center leading-relaxed">
+      <p className="text-charcoal-600 text-xs mt-3 text-center leading-relaxed">
         Joining the list does not reserve a place and nothing is charged. We will only use these details to contact
         you about <span className="text-charcoal-600">{eventTitle}</span>.
       </p>

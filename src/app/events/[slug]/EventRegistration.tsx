@@ -163,7 +163,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     return (
       <div className="p-6 bg-gold-50 rounded-xl border border-gold-100">
         <p className="text-charcoal-700 font-medium">Registration for this event isn&rsquo;t open yet.</p>
-        <p className="text-charcoal-500 text-sm mt-1">Check back soon or email events@bild.ae.</p>
+        <p className="text-charcoal-600 text-sm mt-1">Check back soon or email events@bild.ae.</p>
       </div>
     )
   }
@@ -178,7 +178,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     return (
       <div className="p-6 bg-gold-50 rounded-xl border border-gold-100">
         <p className="text-charcoal-700 font-medium">This event is sold out.</p>
-        <p className="text-charcoal-500 text-sm mt-1">The waitlist is closed. Email events@bild.ae if you need help.</p>
+        <p className="text-charcoal-600 text-sm mt-1">The waitlist is closed. Email events@bild.ae if you need help.</p>
       </div>
     )
   }
@@ -322,24 +322,24 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
           part-way down an ordinary ticket form. */}
       {isReferralFlow && (
         <div className="mb-6 p-4 rounded-xl border border-gold-200 bg-gold-50/50">
-          {seatingCheck === 'checking' && <p className="text-sm text-charcoal-500">Checking your invite...</p>}
+          {seatingCheck === 'checking' && <p className="text-sm text-charcoal-600">Checking your invite...</p>}
           {seatingCheck === 'found' && (
             <>
               <p className="flex items-center gap-1.5 text-base font-semibold text-green-700">
                 <Users size={16} className="text-gold-600 shrink-0" /> You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.
               </p>
               {seatingHeadcount != null && seatsPerTable != null && (
-                <p className="text-charcoal-500 text-xs mt-1.5">
+                <p className="text-charcoal-600 text-xs mt-1.5">
                   {seatingHeadcount >= seatsPerTable
                     ? `This table already has its full ${seatsPerTable} seats claimed - book anyway and we'll start a fresh table for your group instead.`
                     : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
                 </p>
               )}
-              <p className="text-charcoal-500 text-xs italic mt-1.5">
+              <p className="text-charcoal-600 text-xs italic mt-1.5">
                 Seating with friends can be requested, and while we will try our best, it cannot be guaranteed.
               </p>
               {referralAnsweredStaying ? (
-                <p className="text-charcoal-500 text-xs mt-3 pt-3 border-t border-gold-200">
+                <p className="text-charcoal-600 text-xs mt-3 pt-3 border-t border-gold-200">
                   Great - carry on below and you&rsquo;ll be seated with them.
                 </p>
               ) : (
@@ -358,7 +358,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                     <button
                       type="button"
                       onClick={leaveTable}
-                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-white border border-charcoal-300 text-charcoal-700 hover:bg-charcoal-100 transition-colors"
+                      className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-white border border-stone-200 text-charcoal-700 hover:bg-stone-100 transition-colors"
                     >
                       Yes, seat me elsewhere
                     </button>
@@ -373,7 +373,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-1 flex items-center gap-2">
         <Ticket size={22} className="text-gold-500" /> Register for this event
       </h2>
-      <p className="text-charcoal-500 text-sm mb-6">
+      <p className="text-charcoal-600 text-sm mb-6">
         Choose how many tickets you need, name each guest{eventCanCostMoney ? ', and pay securely via Stripe' : ''}.
       </p>
 
@@ -393,13 +393,13 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       )}
       <div className="space-y-3 mb-8">
         {tickets.map(t => (
-          <div key={t.id} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-charcoal-200">
+          <div key={t.id} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-stone-200">
             <div className="min-w-0">
               <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="font-semibold text-charcoal-800">{t.name}</span>
                 <span className="font-display font-bold text-charcoal-800">{priceLabel(t)}</span>
               </div>
-              {t.description && <p className="text-sm text-charcoal-500 mt-0.5">{t.description}</p>}
+              {t.description && <p className="text-sm text-charcoal-600 mt-0.5">{t.description}</p>}
               {(t.menu_image_url || t.food_menu_image_url) && (
                 <div className="flex items-center gap-3 mt-1">
                   {t.menu_image_url && (
@@ -428,7 +428,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
             <div className="flex items-center gap-3 shrink-0">
               <button
                 type="button" onClick={() => dec(t.id)} disabled={count(t.id) === 0}
-                className="h-9 w-9 rounded-lg border border-charcoal-300 text-charcoal-700 flex items-center justify-center hover:bg-charcoal-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="h-9 w-9 rounded-lg border border-stone-200 text-charcoal-700 flex items-center justify-center hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label={`Fewer ${t.name}`}
               >
                 <Minus size={16} />
@@ -436,7 +436,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
               <span className="w-6 text-center font-display text-lg font-bold text-charcoal-800">{count(t.id)}</span>
               <button
                 type="button" onClick={() => inc(t.id)} disabled={totalTickets >= MAX_TICKETS_PER_BOOKING}
-                className="h-9 w-9 rounded-lg border border-charcoal-300 text-charcoal-700 flex items-center justify-center hover:bg-charcoal-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="h-9 w-9 rounded-lg border border-stone-200 text-charcoal-700 flex items-center justify-center hover:bg-stone-100 disabled:opacity-40 disabled:cursor-not-allowed"
                 aria-label={`More ${t.name}`}
               >
                 <Plus size={16} />
@@ -450,14 +450,14 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       {totalTickets > 0 && (
         <>
           <p className="text-xs font-semibold uppercase tracking-wide text-gold-600 mb-2">Step 2 · Who&rsquo;s attending?</p>
-          <p className="text-sm text-charcoal-500 mb-4">
+          <p className="text-sm text-charcoal-600 mb-4">
             We check everyone in by name at the door, so please choose a title and give the full name of each person attending{selectedTickets.some(t => t.is_child) ? ', and the age of each child' : ''}{dietaryRequired ? ', and let us know of any dietary requirements' : ''}.
           </p>
           <div className="space-y-5 mb-8">
             {selectedTickets.map(t => (
               <div key={t.id}>
                 <p className="text-sm font-semibold text-charcoal-700 mb-2">
-                  {t.name} <span className="text-charcoal-400 font-normal">· {count(t.id)} {count(t.id) === 1 ? 'ticket' : 'tickets'}</span>
+                  {t.name} <span className="text-charcoal-600 font-normal">· {count(t.id)} {count(t.id) === 1 ? 'ticket' : 'tickets'}</span>
                 </p>
                 <div className="space-y-4">
                   {(attendeesByTicket[t.id] || []).map((a, i) => {
@@ -467,13 +467,13 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                     const missingTitle = tried && !a.title
                     const badAge = tried && t.is_child && ageInvalid(a.age)
                     return (
-                      <div key={i} className={`space-y-2 ${count(t.id) > 1 ? 'pb-4 border-b border-charcoal-100 last:pb-0 last:border-0' : ''}`}>
+                      <div key={i} className={`space-y-2 ${count(t.id) > 1 ? 'pb-4 border-b border-stone-200 last:pb-0 last:border-0' : ''}`}>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <select
                             value={a.title}
                             onChange={e => setTitle(t.id, i, e.target.value)}
                             aria-label={`Title for ${isLead ? 'you' : `guest ${i + 1}`}`}
-                            className={`px-3 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-24 shrink-0 ${missingTitle ? errBorder : 'border-charcoal-200'}`}
+                            className={`px-3 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-24 shrink-0 ${missingTitle ? errBorder : 'border-stone-200'}`}
                           >
                             <option value="" disabled>Title</option>
                             <option value="Mr.">Mr.</option>
@@ -485,7 +485,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                             value={a.name}
                             onChange={e => setName(t.id, i, e.target.value)}
                             placeholder={isLead ? 'Your full name' : 'Guest full name'}
-                            className={`flex-1 px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 ${invalid ? errBorder : 'border-charcoal-200'}`}
+                            className={`flex-1 px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 ${invalid ? errBorder : 'border-stone-200'}`}
                           />
                           {t.is_child && (
                             <input
@@ -497,14 +497,14 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                               onChange={e => setAge(t.id, i, e.target.value)}
                               placeholder="Age"
                               aria-label={`Age of child ${i + 1} on ${t.name}`}
-                              className={`px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-28 shrink-0 ${badAge ? errBorder : 'border-charcoal-200'}`}
+                              className={`px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-28 shrink-0 ${badAge ? errBorder : 'border-stone-200'}`}
                             />
                           )}
                           {dietaryRequired && (
                             <select
                               value={a.dietary}
                               onChange={e => setDietary(t.id, i, e.target.value as Dietary)}
-                              className="px-3 py-3 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-40 shrink-0"
+                              className="px-3 py-3 bg-white border border-stone-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 sm:w-40 shrink-0"
                             >
                               <option value="">No dietary preference</option>
                               <option value="vegetarian">Vegetarian</option>
@@ -519,7 +519,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                             value={a.dietaryNote}
                             onChange={e => setDietaryNote(t.id, i, e.target.value)}
                             placeholder="Please specify (e.g. gluten free, nut allergy)"
-                            className="w-full px-4 py-2.5 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500"
+                            className="w-full px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500"
                           />
                         )}
                       </div>
@@ -532,7 +532,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
 
           {/* Step 3 - contact */}
           <p className="text-xs font-semibold uppercase tracking-wide text-gold-600 mb-2">Step 3 · Your contact details</p>
-          <p className="text-sm text-charcoal-500 mb-3">Your ticket confirmation is emailed here.</p>
+          <p className="text-sm text-charcoal-600 mb-3">Your ticket confirmation is emailed here.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <Field label="Email" value={email} onChange={setEmail} placeholder="you@email.com" type="email" invalid={tried && !isEmail(email)} />
             <Field label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+971 50 000 0000" />
@@ -563,7 +563,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                   Already have a code from a friend who booked first? Enter it below instead of leaving it empty,
                   and you&rsquo;ll join their table rather than starting a new one.
                 </p>
-                <p className="italic text-charcoal-500">
+                <p className="italic text-charcoal-600">
                   Seating with friends can be requested, and while we will try our best, it cannot be guaranteed.
                 </p>
               </div>
@@ -582,7 +582,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                   <a href="mailto:events@bild.ae" className="font-semibold underline">events@bild.ae</a> and we will help.
                 </p>
               )}
-              <label className="flex items-center gap-1.5 text-xs text-charcoal-500 uppercase tracking-wide mb-1 font-medium">
+              <label className="flex items-center gap-1.5 text-xs text-charcoal-600 uppercase tracking-wide mb-1 font-medium">
                 Table code (optional)
               </label>
               <input
@@ -592,16 +592,16 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                 placeholder="e.g. AC4NR - leave blank if you don't have one"
                 maxLength={12}
                 className={`w-full px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-gold-500 ${
-                  seatingCheck === 'notfound' ? errBorder : 'border-charcoal-200'
+                  seatingCheck === 'notfound' ? errBorder : 'border-stone-200'
                 }`}
               />
               <div className="text-xs mt-1.5">
-                {seatingCheck === 'checking' && <span className="text-charcoal-400">Checking...</span>}
+                {seatingCheck === 'checking' && <span className="text-charcoal-600">Checking...</span>}
                 {seatingCheck === 'found' && (
                   <>
                     <p className="text-green-700 font-medium">You&rsquo;ll be joining {seatingOrganiser}&rsquo;s table.</p>
                     {seatingHeadcount != null && seatsPerTable != null && (
-                      <p className="text-charcoal-500 mt-0.5">
+                      <p className="text-charcoal-600 mt-0.5">
                         {seatingHeadcount >= seatsPerTable
                           ? `This table already has its full ${seatsPerTable} seats claimed - book anyway and we'll start a fresh table for your group instead.`
                           : `${seatingHeadcount} of ${seatsPerTable} seats already claimed for this table.`}
@@ -624,7 +624,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
 
       {/* Price breakdown */}
       {totalTickets > 0 && subtotal > 0 && (
-        <div className="rounded-xl border border-charcoal-200 bg-charcoal-50/50 p-4 mb-5 text-sm">
+        <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 mb-5 text-sm">
           <div className="flex justify-between text-charcoal-600">
             <span>Tickets ({totalTickets})</span>
             <span>{money(subtotal)} AED</span>
@@ -633,10 +633,10 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
             <span>Card processing fee</span>
             <span>{money(cardFee)} AED</span>
           </div>
-          <p className="text-charcoal-400 text-xs italic mt-1">
+          <p className="text-charcoal-600 text-xs italic mt-1">
             Card processing fee - charged by the payment provider. BILD does not receive this fee.
           </p>
-          <div className="flex justify-between font-semibold text-charcoal-800 border-t border-charcoal-200 mt-2.5 pt-2.5">
+          <div className="flex justify-between font-semibold text-charcoal-800 border-t border-stone-200 mt-2.5 pt-2.5">
             <span>Total</span>
             <span>{money(grandTotal)} AED</span>
           </div>
@@ -662,7 +662,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
           <>Register{totalTickets > 1 ? ` · ${totalTickets} tickets` : ''}</>
         )}
       </button>
-      <p className="text-center text-charcoal-400 text-xs mt-3">
+      <p className="text-center text-charcoal-600 text-xs mt-3">
         {grandTotal > 0 ? 'Secure payment powered by Stripe. A confirmation is emailed to you.' : 'A confirmation is emailed to you.'}
       </p>
     </div>
@@ -676,13 +676,13 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-xs text-charcoal-500 uppercase tracking-wide mb-1 font-medium">{label}</label>
+      <label className="block text-xs text-charcoal-600 uppercase tracking-wide mb-1 font-medium">{label}</label>
       <input
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 ${invalid ? errBorder : 'border-charcoal-200'}`}
+        className={`w-full px-4 py-3 bg-white border rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 ${invalid ? errBorder : 'border-stone-200'}`}
       />
     </div>
   )

@@ -21,7 +21,7 @@ export default function AddToCalendar({ event }: { event: EventRow }) {
 
   return (
     <div className="mb-8">
-      <p className="text-xs text-charcoal-500 font-medium uppercase tracking-wide mb-2">Add to your calendar</p>
+      <p className="text-xs text-charcoal-600 font-medium uppercase tracking-wide mb-2">Add to your calendar</p>
       <div className="flex flex-wrap gap-3">
         <a href={googleUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
           <CalendarPlus size={16} className="text-gold-500" /> Google Calendar

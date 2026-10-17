@@ -67,7 +67,7 @@ export default function SubmitTestimonialPage() {
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Your full name" className={inputBase} />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Headline <span className="text-charcoal-400 font-normal">(optional, e.g. &ldquo;BILD member since 2022&rdquo;)</span></label>
+            <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Headline <span className="text-charcoal-600 font-normal">(optional, e.g. &ldquo;BILD member since 2022&rdquo;)</span></label>
             <input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="A short line about you" className={inputBase} />
           </div>
           <div>
@@ -97,13 +97,13 @@ export default function SubmitTestimonialPage() {
               rows={5} placeholder="What has your experience with BILD been like?"
               className={`${inputBase} resize-none`}
             />
-            <p className="text-xs text-charcoal-400 mt-1 text-right">{quote.length}/1000</p>
+            <p className="text-xs text-charcoal-600 mt-1 text-right">{quote.length}/1000</p>
           </div>
           {error && <p className="text-sm text-ruby-500 bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">{error}</p>}
           <button type="submit" disabled={submitting} className={`${btnPrimary} w-full py-3`}>
             {submitting ? 'Submitting…' : 'Submit review'}
           </button>
-          <p className="text-xs text-charcoal-400 text-center">
+          <p className="text-xs text-charcoal-600 text-center">
             Reviews are checked by an admin before appearing on the site.
           </p>
         </form>

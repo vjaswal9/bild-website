@@ -221,7 +221,7 @@ export default function SubmitBusinessPage() {
           <p className="text-charcoal-600 mb-2">
             Thank you for submitting your business. Our team will review your listing and you will hear back within 48 hours.
           </p>
-          <p className="text-charcoal-400 text-sm mb-8">Once approved, your business will appear in the BILD directory.</p>
+          <p className="text-charcoal-600 text-sm mb-8">Once approved, your business will appear in the BILD directory.</p>
           <Link href="/directory" className="inline-block bg-gold-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gold-600 transition-colors">
             Back to Directory
           </Link>
@@ -252,7 +252,7 @@ export default function SubmitBusinessPage() {
             (free until {LISTING_GRACE_LABEL}); non-BILD businesses pay {LISTING_NON_MEMBER_FEE_AED} AED/year from approval.
           </div>
 
-          <div className="bg-cream border border-charcoal-200 rounded-2xl p-4 mb-8 text-sm text-charcoal-600">
+          <div className="bg-cream border border-stone-200 rounded-2xl p-4 mb-8 text-sm text-charcoal-600">
             <strong className="text-charcoal-800">A valid business registration document is required.</strong> Both
             UAE-licensed and UK-registered businesses may be listed - select which applies to you below and upload
             the relevant document. If your business operates in a regulated sector (for example financial services,
@@ -289,7 +289,7 @@ export default function SubmitBusinessPage() {
                 <input name="whatsapp" type="tel" placeholder="+971 50 123 4567"
                   value={whatsapp} onChange={e => setWhatsapp(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">Leave blank to use your contact number above for WhatsApp too.</p>
+                <p className="text-xs text-charcoal-600 mt-1">Leave blank to use your contact number above for WhatsApp too.</p>
               </div>
 
               <div>
@@ -304,13 +304,13 @@ export default function SubmitBusinessPage() {
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Website</label>
                 <input name="website" type="text" placeholder="www.yourbusiness.com"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">https:// is optional, we&rsquo;ll add it automatically.</p>
+                <p className="text-xs text-charcoal-600 mt-1">https:// is optional, we&rsquo;ll add it automatically.</p>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Instagram Handle</label>
                 <div className="flex items-center">
-                  <span className="px-3 py-2.5 bg-gold-100 border border-r-0 border-gold-200 rounded-l-xl text-charcoal-500 text-sm">@</span>
+                  <span className="px-3 py-2.5 bg-gold-100 border border-r-0 border-gold-200 rounded-l-xl text-charcoal-600 text-sm">@</span>
                   <input name="instagram" type="text" placeholder="yourbusiness"
                     value={instagramInput}
                     onChange={e => setInstagramInput(e.target.value)}
@@ -321,7 +321,7 @@ export default function SubmitBusinessPage() {
                 {(() => {
                   const typed = instagramInput.trim()
                   if (!typed) {
-                    return <p className="text-xs text-charcoal-400 mt-1.5">Just the handle, not the full link. For example <strong>yourbusiness</strong>, not https://instagram.com/yourbusiness</p>
+                    return <p className="text-xs text-charcoal-600 mt-1.5">Just the handle, not the full link. For example <strong>yourbusiness</strong>, not https://instagram.com/yourbusiness</p>
                   }
                   const handle = normaliseInstagramHandle(typed)
                   if (!handle) {
@@ -338,12 +338,12 @@ export default function SubmitBusinessPage() {
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">LinkedIn Page</label>
                 <input name="linkedin" type="text" placeholder="linkedin.com/company/yourbusiness"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">Optional. https:// is optional too, we&rsquo;ll add it automatically.</p>
+                <p className="text-xs text-charcoal-600 mt-1">Optional. https:// is optional too, we&rsquo;ll add it automatically.</p>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Do you have Google reviews you&apos;d like to display?</label>
-                <p className="text-xs text-charcoal-500 mb-2">
+                <p className="text-xs text-charcoal-600 mb-2">
                   Showing your Google rating builds trust with potential customers browsing the directory, boosts click-throughs to your profile, and gives your listing a visible edge over businesses without reviews.
                 </p>
                 <div className="flex gap-3">
@@ -360,7 +360,7 @@ export default function SubmitBusinessPage() {
                   <div className="mt-3">
                     <input name="google_maps_url" type="text" placeholder="g.page/r/.../review"
                       className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                    <p className="text-xs text-charcoal-400 mt-1">
+                    <p className="text-xs text-charcoal-600 mt-1">
                       From your Google Business Profile: Home → &ldquo;Get more reviews&rdquo; → copy the link shown there.
                       This is the link that lets us pull your star rating and reviews onto your listing.
                     </p>
@@ -395,7 +395,7 @@ export default function SubmitBusinessPage() {
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Tagline</label>
                 <input name="tagline" type="text" maxLength={70} placeholder="e.g. Authentic British-Indian fusion catering"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">A short one-line hook shown under your business name (max 70 characters).</p>
+                <p className="text-xs text-charcoal-600 mt-1">A short one-line hook shown under your business name (max 70 characters).</p>
               </div>
 
               <div>
@@ -406,7 +406,7 @@ export default function SubmitBusinessPage() {
                   className={`${cls(!!description.trim())} resize-none`} />
                 <div className="flex items-center justify-between mt-1">
                   {tried && !description.trim() ? <p className="text-xs text-ruby-500">This field is required.</p> : <span />}
-                  <p className={`text-xs text-right ${countWords(description) >= MAX_DESCRIPTION_WORDS ? 'text-amber-600 font-medium' : 'text-charcoal-400'}`}>
+                  <p className={`text-xs text-right ${countWords(description) >= MAX_DESCRIPTION_WORDS ? 'text-amber-600 font-medium' : 'text-charcoal-600'}`}>
                     {countWords(description)} / {MAX_DESCRIPTION_WORDS} words
                   </p>
                 </div>
@@ -433,7 +433,7 @@ export default function SubmitBusinessPage() {
                     }`}>No, I&apos;m not a member</button>
                 </div>
                 {tried && isBildMember === null && <p className="text-xs text-ruby-500 mt-1">Please select one.</p>}
-                <p className="text-xs text-charcoal-400 mt-1">
+                <p className="text-xs text-charcoal-600 mt-1">
                   BILD members list for {LISTING_MEMBER_FEE_AED} AED/year; non-BILD businesses list for {LISTING_NON_MEMBER_FEE_AED} AED/year.
                 </p>
                 {isBildMember === false && (
@@ -452,12 +452,12 @@ export default function SubmitBusinessPage() {
             {/* Logo */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business Logo</legend>
-              <p className="text-sm text-charcoal-500">
+              <p className="text-sm text-charcoal-600">
                 <strong className="text-charcoal-700">What this is:</strong> your business logo or brand mark. It appears as the small
                 square image on your listing in the directory, and larger at the top of your own profile page. This is how most people
                 will recognise you when browsing.
               </p>
-              <p className="text-xs text-charcoal-500 bg-white border border-gold-200 rounded-lg px-3 py-2">
+              <p className="text-xs text-charcoal-600 bg-white border border-gold-200 rounded-lg px-3 py-2">
                 <strong className="text-charcoal-700">Recommended size:</strong> square, <strong>500 x 500 pixels</strong> or larger (up to 1000 x 1000).
                 PNG or JPG, max 3MB. A square image is important - non-square logos get trimmed on the directory cards.
               </p>
@@ -491,11 +491,11 @@ export default function SubmitBusinessPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-charcoal-700 truncate max-w-[180px]">{logoFile.name}</span>
                       <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(''); setLogoWarning(''); if (logoInputRef.current) logoInputRef.current.value = '' }}
-                        className="text-charcoal-400 hover:text-ruby-500"><X size={16} /></button>
+                        className="text-charcoal-600 hover:text-ruby-500"><X size={16} /></button>
                     </div>
                   )}
                   {logoWarning && <p className="text-xs text-amber-600 mt-2">{logoWarning}</p>}
-                  <p className="text-xs text-charcoal-400 mt-2">Or paste a link instead:</p>
+                  <p className="text-xs text-charcoal-600 mt-2">Or paste a link instead:</p>
                   <input name="logo_url" type="text" placeholder="link-to-your-logo.com/logo.png"
                     className="w-full mt-1 px-3 py-2 border border-gold-200 rounded-lg bg-white text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400" />
                 </div>
@@ -504,13 +504,13 @@ export default function SubmitBusinessPage() {
 
             {/* Banner */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5">
-              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Banner Image <span className="text-charcoal-400 text-sm font-normal">(optional)</span></legend>
-              <p className="text-sm text-charcoal-500">
+              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Banner Image <span className="text-charcoal-600 text-sm font-normal">(optional)</span></legend>
+              <p className="text-sm text-charcoal-600">
                 <strong className="text-charcoal-700">What this is:</strong> a wide photograph displayed like a header across the very top
                 of your profile page, above your logo and name. It sets the tone before anyone reads a word. A team photo, your shop or
                 office, or an example of your work all work well. This is not your logo.
               </p>
-              <p className="text-xs text-charcoal-500 bg-white border border-gold-200 rounded-lg px-3 py-2">
+              <p className="text-xs text-charcoal-600 bg-white border border-gold-200 rounded-lg px-3 py-2">
                 <strong className="text-charcoal-700">Recommended size:</strong> wide landscape, <strong>1600 x 400 pixels</strong> (a 4:1 shape). JPG or PNG, max 5MB.
                 Keep faces and any text near the middle - the top, bottom and edges are trimmed to fit different screen sizes.
               </p>
@@ -536,10 +536,10 @@ export default function SubmitBusinessPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-charcoal-700 truncate max-w-[180px]">{bannerFile.name}</span>
                       <button type="button" onClick={() => { setBannerFile(null); setBannerPreview(''); if (bannerInputRef.current) bannerInputRef.current.value = '' }}
-                        className="text-charcoal-400 hover:text-ruby-500"><X size={16} /></button>
+                        className="text-charcoal-600 hover:text-ruby-500"><X size={16} /></button>
                     </div>
                   )}
-                  <p className="text-xs text-charcoal-400 mt-2">Leave this empty and your profile simply starts with your logo and name.</p>
+                  <p className="text-xs text-charcoal-600 mt-2">Leave this empty and your profile simply starts with your logo and name.</p>
                 </div>
               </div>
             </fieldset>
@@ -547,7 +547,7 @@ export default function SubmitBusinessPage() {
             {/* Business Registration */}
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-4">
               <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Business Registration <span className="text-ruby-500">*</span></legend>
-              <p className="text-sm text-charcoal-500">Is your business registered in the UAE or the UK?</p>
+              <p className="text-sm text-charcoal-600">Is your business registered in the UAE or the UK?</p>
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -577,7 +577,7 @@ export default function SubmitBusinessPage() {
                 </div>
               )}
 
-              <p className="text-sm text-charcoal-500">
+              <p className="text-sm text-charcoal-600">
                 {businessCountry === 'UAE'
                   ? 'Please upload a copy of your valid UAE trade licence or business licence. This is required for verification and will only be seen by the BILD admin team. It will never be shared publicly.'
                   : 'Please upload evidence of your UK business registration (for example, a Companies House registration certificate). This is required for verification and will only be seen by the BILD admin team. It will never be shared publicly.'}
@@ -594,7 +594,7 @@ export default function SubmitBusinessPage() {
                   <span className="text-sm font-medium text-charcoal-600">
                     {businessCountry === 'UAE' ? 'Click to upload your business licence' : 'Click to upload your registration evidence'}
                   </span>
-                  <span className="text-xs text-charcoal-400 mt-1">PDF only, max 10MB</span>
+                  <span className="text-xs text-charcoal-600 mt-1">PDF only, max 10MB</span>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -608,12 +608,12 @@ export default function SubmitBusinessPage() {
                   <FileText size={24} className="text-gold-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-charcoal-800 truncate">{licenseFile.name}</p>
-                    <p className="text-xs text-charcoal-400">{(licenseFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-xs text-charcoal-600">{(licenseFile.size / 1024 / 1024).toFixed(2)} MB</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => { setLicenseFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-                    className="text-charcoal-400 hover:text-red-500 transition-colors"
+                    className="text-charcoal-600 hover:text-red-500 transition-colors"
                     aria-label="Remove file"
                   >
                     <X size={18} />
@@ -634,12 +634,12 @@ export default function SubmitBusinessPage() {
                   className={`px-3 py-2 text-sm ${cls(!!documentExpiryDate)}`}
                 />
                 {tried && !documentExpiryDate && <p className="text-xs text-ruby-500 mt-1">This field is required.</p>}
-                <p className="text-xs text-charcoal-400 mt-1.5">
+                <p className="text-xs text-charcoal-600 mt-1.5">
                   We&rsquo;ll email you a reminder before this date so you can upload a renewed document and keep your listing active.
                 </p>
               </div>
 
-              <p className="text-xs text-charcoal-400 border-t border-gold-200 pt-3">
+              <p className="text-xs text-charcoal-600 border-t border-gold-200 pt-3">
                 Your documents are handled securely and in line with applicable UAE data protection requirements.
               </p>
             </fieldset>
@@ -652,7 +652,7 @@ export default function SubmitBusinessPage() {
                 <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">Year Established</label>
                 <input name="established_year" type="number" min="1900" max="2099" placeholder="e.g. 2018"
                   className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                <p className="text-xs text-charcoal-400 mt-1">The year your business started trading. Shown as &ldquo;Trading since 2018&rdquo;.</p>
+                <p className="text-xs text-charcoal-600 mt-1">The year your business started trading. Shown as &ldquo;Trading since 2018&rdquo;.</p>
               </div>
 
               {isBildMember !== false && (
@@ -660,7 +660,7 @@ export default function SubmitBusinessPage() {
                   <label className="block text-sm font-semibold text-charcoal-700 mb-1.5">BILD Member Since</label>
                   <input name="bild_member_since" type="number" min="2019" max={new Date().getFullYear()} placeholder="e.g. 2022"
                     className="w-full px-4 py-2.5 border border-gold-200 rounded-xl bg-white text-charcoal-800 focus:outline-none focus:ring-2 focus:ring-gold-400" />
-                  <p className="text-xs text-charcoal-400 mt-1">When you personally joined BILD (not when your business started). Shown on your listing as &ldquo;BILD member since&rdquo;.</p>
+                  <p className="text-xs text-charcoal-600 mt-1">When you personally joined BILD (not when your business started). Shown on your listing as &ldquo;BILD member since&rdquo;.</p>
                 </div>
               )}
 
@@ -707,14 +707,14 @@ export default function SubmitBusinessPage() {
               {submitting ? 'Uploading & Submitting...' : 'Submit My Business'}
             </button>
 
-            <p className="text-xs text-center text-charcoal-400">
+            <p className="text-xs text-center text-charcoal-600">
               Your submission will be reviewed within 48 hours. By submitting, you agree to our{' '}
               <Link href="/code-of-conduct" className="text-gold-600 hover:underline">code of conduct</Link>.
             </p>
             {/* Said plainly, because it is true and because the privacy policy
                 already commits to it. Hiding it would be the wrong call on a
                 form this long. */}
-            <p className="text-xs text-center text-charcoal-400">
+            <p className="text-xs text-center text-charcoal-600">
               Once you have entered your email we save your answers as you go, so you can come back and finish
               later and so we can help if you get stuck. See our{' '}
               <Link href="/privacy" className="text-gold-600 hover:underline">privacy policy</Link>.

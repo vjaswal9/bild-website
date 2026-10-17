@@ -45,7 +45,7 @@ export default function GoogleRatingBadge({
             />
           ))}
         </div>
-        <span className={`text-sm ${light ? 'text-charcoal-500' : 'text-white/50'}`}>({totalReviews} reviews)</span>
+        <span className={`text-sm ${light ? 'text-charcoal-600' : 'text-white/50'}`}>({totalReviews} reviews)</span>
       </div>
       <a
         href={mapsUrl}

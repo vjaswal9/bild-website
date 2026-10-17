@@ -76,7 +76,7 @@ export default function RenewalForm({ token, businessName, country }: { token: s
     <form onSubmit={handleSubmit} className="space-y-6">
       <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-4">
         <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Renewed Document</legend>
-        <p className="text-sm text-charcoal-500">
+        <p className="text-sm text-charcoal-600">
           {country === 'UAE'
             ? 'Upload your new UAE trade licence, and confirm its new expiry date.'
             : 'Upload your new UK business registration evidence, and confirm its new expiry date.'}
@@ -86,7 +86,7 @@ export default function RenewalForm({ token, businessName, country }: { token: s
           <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gold-300 rounded-xl cursor-pointer bg-white hover:bg-gold-50 transition-colors">
             <FileText size={32} className="text-gold-400 mb-2" />
             <span className="text-sm font-medium text-charcoal-600">Click to upload your renewed {documentLabel}</span>
-            <span className="text-xs text-charcoal-400 mt-1">PDF only, max 10MB</span>
+            <span className="text-xs text-charcoal-600 mt-1">PDF only, max 10MB</span>
             <input
               ref={fileInputRef}
               type="file"
@@ -101,12 +101,12 @@ export default function RenewalForm({ token, businessName, country }: { token: s
             <FileText size={24} className="text-gold-500 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-charcoal-800 truncate">{licenseFile.name}</p>
-              <p className="text-xs text-charcoal-400">{(licenseFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p className="text-xs text-charcoal-600">{(licenseFile.size / 1024 / 1024).toFixed(2)} MB</p>
             </div>
             <button
               type="button"
               onClick={() => { setLicenseFile(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
-              className="text-charcoal-400 hover:text-red-500 transition-colors"
+              className="text-charcoal-600 hover:text-red-500 transition-colors"
               aria-label="Remove file"
             >
               <X size={18} />

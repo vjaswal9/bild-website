@@ -64,7 +64,7 @@ export default async function EventsPage() {
 
           {/* Events have their own inbox, so a ticket question does not queue
               behind general enquiries. */}
-          <p className="mt-14 text-center text-sm text-charcoal-500">
+          <p className="mt-14 text-center text-sm text-charcoal-600">
             Questions about a booking, a waitlist or a ticket transfer? Email{' '}
             <a href="mailto:events@bild.ae" className="text-gold-600 font-semibold hover:underline">events@bild.ae</a>
           </p>

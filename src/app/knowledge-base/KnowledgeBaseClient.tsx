@@ -81,16 +81,16 @@ export default function KnowledgeBaseClient({
 
         {/* Search */}
         <div className="relative max-w-md mb-6">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-400" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal-600" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search recommendations, e.g. plumber, dentist, fish and chips..."
-            className="w-full pl-11 pr-10 py-3 bg-white border border-charcoal-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500"
+            className="w-full pl-11 pr-10 py-3 bg-white border border-stone-200 rounded-xl text-charcoal-800 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-600 hover:text-charcoal-700">
               <X size={16} />
             </button>
           )}
@@ -113,7 +113,7 @@ export default function KnowledgeBaseClient({
 
         {/* Results */}
         {grouped.length === 0 ? (
-          <p className="text-center text-charcoal-500 py-16">
+          <p className="text-center text-charcoal-600 py-16">
             No recommendations match &ldquo;{search}&rdquo;. Try a different term.
           </p>
         ) : (
@@ -125,7 +125,7 @@ export default function KnowledgeBaseClient({
                   <div className="flex items-center gap-2 mb-5">
                     <Icon size={20} className="text-gold-500" />
                     <h2 className="font-display text-2xl font-bold text-charcoal-800">{cat.name}</h2>
-                    <span className="text-charcoal-400 text-sm">({items.length})</span>
+                    <span className="text-charcoal-600 text-sm">({items.length})</span>
                   </div>
                   <Reveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" stagger={0.07} y={30}>
                     {items.map((e, i) => (
@@ -153,18 +153,18 @@ function Chip({
       className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors ${
         active
           ? 'bg-charcoal-800 text-white border-charcoal-800'
-          : 'bg-white text-charcoal-600 border-charcoal-200 hover:border-charcoal-400'
+          : 'bg-white text-charcoal-600 border-stone-200 hover:border-charcoal-600'
       }`}
     >
       <Icon size={15} /> {label}
-      <span className={active ? 'text-white/60' : 'text-charcoal-400'}>{count}</span>
+      <span className={active ? 'text-white/60' : 'text-charcoal-600'}>{count}</span>
     </button>
   )
 }
 
 function EntryCard({ entry }: { entry: Entry }) {
   return (
-    <div className="bg-white rounded-2xl border border-charcoal-100 shadow-[0_4px_16px_rgba(20,20,20,0.04)] p-5 flex flex-col hover:shadow-[0_8px_28px_rgba(20,20,20,0.08)] transition-shadow">
+    <div className="bg-white rounded-2xl border border-stone-200 shadow-[0_4px_16px_rgba(20,20,20,0.04)] p-5 flex flex-col hover:shadow-[0_8px_28px_rgba(20,20,20,0.08)] transition-shadow">
       <div className="flex items-start justify-between gap-2 mb-2">
         <h3 className="font-display text-lg font-bold text-charcoal-800 leading-snug">{entry.name}</h3>
         {entry.member && (
@@ -174,7 +174,7 @@ function EntryCard({ entry }: { entry: Entry }) {
         )}
       </div>
       {entry.area && (
-        <p className="flex items-center gap-1 text-charcoal-400 text-xs mb-2">
+        <p className="flex items-center gap-1 text-charcoal-600 text-xs mb-2">
           <MapPin size={12} /> {entry.area}
         </p>
       )}

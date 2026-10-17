@@ -14,7 +14,7 @@ function InfoState({ title, message }: { title: string; message: string }) {
       <div className="py-20 max-w-xl mx-auto px-4 text-center">
         <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-4">{title}</h2>
         <p className="text-charcoal-600">{message}</p>
-        <p className="text-charcoal-400 text-sm mt-6">
+        <p className="text-charcoal-600 text-sm mt-6">
           Need help? Email <a href="mailto:connect@bild.ae" className="text-gold-600">connect@bild.ae</a>
         </p>
       </div>

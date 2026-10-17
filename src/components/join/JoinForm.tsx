@@ -40,7 +40,7 @@ function TextField({ label, value, onChange, required, type = 'text', placeholde
         />
         {valid && <Check size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500" />}
       </div>
-      {hint && !invalid && <p className="text-xs text-charcoal-400 mt-1">{hint}</p>}
+      {hint && !invalid && <p className="text-xs text-charcoal-600 mt-1">{hint}</p>}
       {invalid && <p className="text-xs text-ruby-500 mt-1">{!filled ? 'This field is required.' : 'Please enter a valid value.'}</p>}
     </div>
   )
@@ -231,7 +231,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
         <div className="w-16 h-16 bg-ruby-500/10 rounded-full flex items-center justify-center mx-auto mb-5"><XCircle size={32} className="text-ruby-500" /></div>
         <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-3">Not eligible</h2>
         <p className="text-charcoal-600 max-w-md mx-auto">Thank you for your interest in BILD. Unfortunately, membership is open only to individuals who meet our eligibility criteria, so we&apos;re unable to accept your application at this time.</p>
-        <p className="text-sm text-charcoal-500 mt-4">Believe this is a mistake? <a href="mailto:admin@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.</p>
+        <p className="text-sm text-charcoal-600 mt-4">Believe this is a mistake? <a href="mailto:admin@bild.ae" className="text-gold-600 hover:underline">Contact us</a>.</p>
       </div>
     )
   }
@@ -239,7 +239,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
   return (
     <div>
       {/* Reassurance strip */}
-      <div ref={topAnchorRef} className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 mb-6 text-xs text-charcoal-500">
+      <div ref={topAnchorRef} className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 mb-6 text-xs text-charcoal-600">
         <span className="inline-flex items-center gap-1.5"><Clock size={13} className="text-gold-500" /> Takes about 2 minutes</span>
         <span className="inline-flex items-center gap-1.5"><Save size={13} className="text-gold-500" /> Progress saved automatically</span>
         <span className="inline-flex items-center gap-1.5"><ShieldCheck size={13} className="text-gold-500" /> Secure payment by Stripe</span>
@@ -250,10 +250,10 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
         {([[1, 'Eligibility'], [2, 'Your details'], [3, 'Payment']] as [number, string][]).map(([n, label], i) => (
           <div key={n} className="flex items-start">
             <div className="flex flex-col items-center w-24">
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${step > n ? 'bg-gold-500 text-white' : step === n ? 'bg-gold-500 text-white ring-4 ring-gold-200' : 'bg-gold-100 text-charcoal-400'}`}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${step > n ? 'bg-gold-500 text-white' : step === n ? 'bg-gold-500 text-white ring-4 ring-gold-200' : 'bg-gold-100 text-charcoal-600'}`}>
                 {step > n ? <Check size={16} /> : n}
               </div>
-              <span className={`mt-2 text-xs text-center font-medium ${step >= n ? 'text-charcoal-700' : 'text-charcoal-400'}`}>{label}</span>
+              <span className={`mt-2 text-xs text-center font-medium ${step >= n ? 'text-charcoal-700' : 'text-charcoal-600'}`}>{label}</span>
             </div>
             {i < 2 && <div className={`h-0.5 w-8 sm:w-14 mt-4 ${step > n ? 'bg-gold-500' : 'bg-gold-200'}`} />}
           </div>
@@ -275,7 +275,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
               <TextField label="Email Address" value={d.email || ''} onChange={v => set('email', v)} required type="email" placeholder="you@example.com" validate={isEmail} showError={tried1} />
               <div>
                 <p className={labelCls}>{ELIGIBILITY_CONFIRMATION} {req}</p>
-                <p className="text-xs text-charcoal-400 mb-2">Please review our <Link href="/code-of-conduct" className="text-gold-600 hover:underline">membership rules</Link> before answering.</p>
+                <p className="text-xs text-charcoal-600 mb-2">Please review our <Link href="/code-of-conduct" className="text-gold-600 hover:underline">membership rules</Link> before answering.</p>
                 <Toggle value={d.heritageConfirm || ''} onChange={v => set('heritageConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried1 && !d.heritageConfirm} />
               </div>
               <div>
@@ -436,7 +436,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
             {tried2 && step2Missing() && <p className="text-sm text-ruby-500 text-center bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">Please complete the highlighted fields above.</p>}
 
             <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
-              <button type="button" onClick={() => { setStep(1); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+              <button type="button" onClick={() => { setStep(1); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="px-5 py-3 rounded-xl border-2 border-stone-200 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
               <button type="submit" className={`${btnPrimary} flex-1 py-3 text-lg`}>Review &amp; Pay <ArrowRight size={18} /></button>
             </div>
           </form>
@@ -465,7 +465,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
                   ['Marital status', d.maritalStatus], ['Business', d.businessType],
                 ] as [string, string?][]).filter(([, v]) => v).map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-3 border-b border-gold-100 py-1">
-                    <dt className="text-charcoal-500">{k}</dt>
+                    <dt className="text-charcoal-600">{k}</dt>
                     <dd className="text-charcoal-800 font-medium text-right capitalize">{v}</dd>
                   </div>
                 ))}
@@ -475,12 +475,12 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
             {error && <p className="text-ruby-500 text-sm text-center bg-ruby-500/10 border border-ruby-500/20 rounded-xl p-3">{error}</p>}
 
             <div className="flex gap-3 sticky bottom-3 z-20 sm:static">
-              <button type="button" onClick={() => { setStep(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="px-5 py-3 rounded-xl border-2 border-charcoal-300 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
+              <button type="button" onClick={() => { setStep(2); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' })) }} className="px-5 py-3 rounded-xl border-2 border-stone-200 bg-cream text-charcoal-700 font-semibold inline-flex items-center gap-2"><ArrowLeft size={18} /> Back</button>
               <button onClick={pay} disabled={submitting} className={`${btnPrimary} flex-1 py-3 text-lg`}>
                 <Lock size={16} /> {submitting ? 'Redirecting to payment…' : 'Pay 50 AED & Join'}
               </button>
             </div>
-            <p className="flex items-center justify-center gap-1.5 text-xs text-charcoal-400"><ShieldCheck size={13} className="text-gold-500" /> Secured by Stripe. We never see your card details.</p>
+            <p className="flex items-center justify-center gap-1.5 text-xs text-charcoal-600"><ShieldCheck size={13} className="text-gold-500" /> Secured by Stripe. We never see your card details.</p>
           </div>
         )}
       </div>

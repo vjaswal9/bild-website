@@ -263,7 +263,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
           <div className="flex items-start gap-3">
             <Calendar size={18} className="text-gold-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs text-charcoal-500 font-medium uppercase tracking-wide">Date</p>
+              <p className="text-xs text-charcoal-600 font-medium uppercase tracking-wide">Date</p>
               <p className="text-sm text-charcoal-800 font-semibold">{formatEventDate(event.event_date)}</p>
               <p className="text-sm text-charcoal-600">{formatEventTime(event.event_date)}</p>
             </div>
@@ -272,7 +272,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
             <div className="flex items-start gap-3">
               <MapPin size={18} className="text-gold-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs text-charcoal-500 font-medium uppercase tracking-wide">Venue</p>
+                <p className="text-xs text-charcoal-600 font-medium uppercase tracking-wide">Venue</p>
                 {event.venue && <p className="text-sm text-charcoal-800 font-semibold">{event.venue}</p>}
                 {event.location && <p className="text-sm text-charcoal-600">{event.location}</p>}
                 {event.google_maps_url && (
@@ -316,7 +316,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
         {isPast && gallery.length > 0 && <EventGallery items={gallery} />}
 
         {isPast && gallery.length === 0 && (
-          <p className="text-charcoal-500 text-sm">This event has finished. Photos and videos will be added soon.</p>
+          <p className="text-charcoal-600 text-sm">This event has finished. Photos and videos will be added soon.</p>
         )}
       </div>
     </div>

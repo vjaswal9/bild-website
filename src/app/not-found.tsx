@@ -49,7 +49,7 @@ export default function NotFound() {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-charcoal-800 font-semibold text-sm">{r.label}</span>
-                  <span className="block text-charcoal-500 text-xs">{r.description}</span>
+                  <span className="block text-charcoal-600 text-xs">{r.description}</span>
                 </span>
               </Link>
             )
@@ -60,7 +60,7 @@ export default function NotFound() {
           Back to the homepage
         </Link>
 
-        <p className="text-charcoal-500 text-sm mt-8 inline-flex items-center gap-1.5">
+        <p className="text-charcoal-600 text-sm mt-8 inline-flex items-center gap-1.5">
           <Mail size={14} />
           Think this is a mistake?{' '}
           <a href="mailto:connect@bild.ae" className="text-gold-700 font-medium hover:underline">

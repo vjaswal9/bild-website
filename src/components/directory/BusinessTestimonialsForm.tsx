@@ -98,7 +98,7 @@ export default function BusinessTestimonialsForm({
     <div className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-6">
       <div>
         <h2 className="font-display text-xl font-bold text-charcoal-800">Customer Testimonials</h2>
-        <p className="text-sm text-charcoal-500 mt-1">
+        <p className="text-sm text-charcoal-600 mt-1">
           Send us the kind words your customers have already given you and we will show them on your
           profile page. Attach a screenshot of their original email, WhatsApp or text so we can check
           it is genuine. <strong className="text-charcoal-700">The screenshot is only ever seen by BILD admins</strong>,
@@ -121,7 +121,7 @@ export default function BusinessTestimonialsForm({
                     <button
                       type="button"
                       onClick={() => withdraw(t.id)}
-                      className="shrink-0 p-1.5 text-charcoal-400 hover:text-ruby-500 transition-colors"
+                      className="shrink-0 p-1.5 text-charcoal-600 hover:text-ruby-500 transition-colors"
                       title="Remove"
                       aria-label={`Remove the testimonial from ${t.customer_name}`}
                     >
@@ -178,7 +178,7 @@ export default function BusinessTestimonialsForm({
             onChange={e => setProof(e.target.files?.[0] || null)}
             className="block w-full text-sm text-charcoal-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-500/15 file:text-gold-700 hover:file:bg-gold-500/25"
           />
-          <p className="text-xs text-charcoal-500 mt-1.5 flex items-start gap-1.5">
+          <p className="text-xs text-charcoal-600 mt-1.5 flex items-start gap-1.5">
             <Paperclip size={12} className="mt-0.5 shrink-0" />
             A screenshot of the email, WhatsApp or text. Images or PDF, up to 10 MB.
           </p>

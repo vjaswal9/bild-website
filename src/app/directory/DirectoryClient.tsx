@@ -129,9 +129,9 @@ function OutboundLinks({
 // item already leads with its own icon, so the icons do the separating and
 // there is nothing left to strand.
 function MetaLine({ biz, dark }: { biz: DisplayBusiness; dark?: boolean }) {
-  const icon = dark ? 'text-gray-400' : 'text-charcoal-400'
+  const icon = dark ? 'text-gray-400' : 'text-charcoal-600'
   return (
-    <div className={`mt-3 text-xs ${dark ? 'text-gray-300' : 'text-charcoal-500'}`}>
+    <div className={`mt-3 text-xs ${dark ? 'text-gray-300' : 'text-charcoal-600'}`}>
       <div className="flex items-center gap-x-5 gap-y-1 flex-wrap">
         {biz.licenceVerified && (
           <span className="inline-flex items-center gap-1.5">
@@ -262,7 +262,7 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
               <Crown size={10} className="fill-charcoal-900 text-charcoal-900" /> Featured
             </p>
           )}
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal-400 mb-0.5">{biz.category}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-charcoal-600 mb-0.5">{biz.category}</p>
           <h3 className="font-display text-[17px] leading-tight font-bold text-charcoal-800">
             {/* The stretched link. `after` covers the whole card, so anywhere on
                 the row opens the profile, while the accessible name of the link
@@ -276,18 +276,18 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
               {biz.name}
             </Link>
           </h3>
-          {biz.ownerName && <p className="text-xs text-charcoal-500">{biz.ownerName}</p>}
+          {biz.ownerName && <p className="text-xs text-charcoal-600">{biz.ownerName}</p>}
           {(biz.tagline || biz.description) && (
             <p className="text-xs text-charcoal-600 leading-relaxed mt-1 line-clamp-2">{biz.tagline || biz.description}</p>
           )}
         </div>
 
-        <div className={`text-xs text-charcoal-500 space-y-1 min-w-0 ${rule}`}>
+        <div className={`text-xs text-charcoal-600 space-y-1 min-w-0 ${rule}`}>
           <p className="flex items-start gap-1.5">
-            <MapPin size={12} className="text-charcoal-400 mt-0.5 shrink-0" />
+            <MapPin size={12} className="text-charcoal-600 mt-0.5 shrink-0" />
             <span>
               {biz.location}
-              {biz.country === 'UK' && <span className="text-charcoal-400"> (services only)</span>}
+              {biz.country === 'UK' && <span className="text-charcoal-600"> (services only)</span>}
             </span>
           </p>
           {biz.memberSince && formatMemberSince(biz.memberSince) && (
@@ -295,13 +295,13 @@ function ListingRow({ biz }: { biz: DisplayBusiness }) {
           )}
           {biz.licenceVerified && (
             <p className="flex items-start gap-1.5">
-              <CheckCircle size={12} className="text-charcoal-400 mt-0.5 shrink-0" /> Registration checked
+              <CheckCircle size={12} className="text-charcoal-600 mt-0.5 shrink-0" /> Registration checked
             </p>
           )}
           {biz.googleRating && (
             <p className="flex items-center gap-1.5">
               <GoogleGMark className="w-3 h-3 shrink-0" /> {biz.googleRating.toFixed(1)}
-              <span className="text-charcoal-400">({biz.googleReviewCount})</span>
+              <span className="text-charcoal-600">({biz.googleReviewCount})</span>
             </p>
           )}
         </div>
@@ -422,7 +422,7 @@ export default function DirectoryClient({
         }`}
       >
         <span className="leading-snug">{label}</span>
-        <span className="text-charcoal-400 text-xs shrink-0 pt-0.5">{count}</span>
+        <span className="text-charcoal-600 text-xs shrink-0 pt-0.5">{count}</span>
       </button>
     </li>
   )
@@ -443,11 +443,11 @@ export default function DirectoryClient({
             </p>
           </div>
           <div className="hidden lg:block text-right shrink-0 pt-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal-500 leading-[1.7]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal-600 leading-[1.7]">
               British Indians<br />Living in Dubai
             </p>
             <div className="w-8 h-px bg-gold-300 ml-auto my-3" />
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal-400 leading-[1.7]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal-600 leading-[1.7]">
               A stronger<br />network together
             </p>
           </div>
@@ -456,18 +456,18 @@ export default function DirectoryClient({
         {/* ---------------- search ---------------- */}
         <div className="flex flex-col sm:flex-row gap-3 mt-8">
           <div className="relative flex-1">
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal-400 pointer-events-none" />
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal-600 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search businesses, people, services or offers..."
               aria-label="Search the business directory"
-              className="w-full bg-white border border-gold-200 pl-11 pr-10 py-4 text-charcoal-800 placeholder:text-charcoal-400 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+              className="w-full bg-white border border-gold-200 pl-11 pr-10 py-4 text-charcoal-800 placeholder:text-charcoal-600 focus:outline-none focus:ring-2 focus:ring-gold-500 focus:border-transparent"
             />
             {search && (
               <button onClick={() => setSearch('')} aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-400 hover:text-charcoal-700">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal-600 hover:text-charcoal-700">
                 <X size={16} />
               </button>
             )}
@@ -491,7 +491,7 @@ export default function DirectoryClient({
 
         <div className="flex items-center justify-between gap-4 flex-wrap mt-7">
           <div>{googleBadge}</div>
-          <p className="text-xs text-charcoal-500">
+          <p className="text-xs text-charcoal-600">
             {businesses.length} business{businesses.length === 1 ? '' : 'es'}
             <span className="mx-3 text-gold-300">|</span>
             {offerCount} with member offers
@@ -522,7 +522,7 @@ export default function DirectoryClient({
               onChange={e => setOffersOnly(e.target.checked)}
               className="h-4 w-4 accent-gold-500"
             />
-            With a member offer only <span className="text-charcoal-400 text-xs">({offerCount})</span>
+            With a member offer only <span className="text-charcoal-600 text-xs">({offerCount})</span>
           </label>
         </div>
 
@@ -554,7 +554,7 @@ export default function DirectoryClient({
                   />
                   With a member offer only
                 </span>
-                <span className="text-charcoal-400 text-xs">{offerCount}</span>
+                <span className="text-charcoal-600 text-xs">{offerCount}</span>
               </label>
             </div>
 
@@ -572,7 +572,7 @@ export default function DirectoryClient({
                   <span className="flex-1 h-px bg-gold-200" />
                 </div>
                 <h2 className="font-display text-[32px] font-bold text-charcoal-800 leading-tight">Featured in our network</h2>
-                <p className="text-charcoal-500 text-sm mt-1 mb-5">A closer introduction to our featured member businesses.</p>
+                <p className="text-charcoal-600 text-sm mt-1 mb-5">A closer introduction to our featured member businesses.</p>
                 <div className="space-y-4">{featured.map(b => <FeaturedRow key={b.id} biz={b} />)}</div>
               </section>
             )}
@@ -581,17 +581,17 @@ export default function DirectoryClient({
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-4 border-t border-gold-200 pt-7 mb-4">
                 <h2 className="font-display text-[32px] font-bold text-charcoal-800 leading-tight">
                   {isFiltering ? 'Results' : 'All businesses'}
-                  <span className="text-charcoal-400 font-normal"> &middot; {filtered.length}</span>
+                  <span className="text-charcoal-600 font-normal"> &middot; {filtered.length}</span>
                 </h2>
                 {remaining > 0 && (
-                  <p className="text-xs text-charcoal-500 shrink-0 sm:pb-1.5">Showing {remaining} more businesses</p>
+                  <p className="text-xs text-charcoal-600 shrink-0 sm:pb-1.5">Showing {remaining} more businesses</p>
                 )}
               </div>
 
               {filtered.length === 0 ? (
                 <div className="text-center py-16">
                   <p className="text-charcoal-700 font-medium mb-1">No businesses match that.</p>
-                  <p className="text-charcoal-500 text-sm mb-4">Try a different word, or clear the filters.</p>
+                  <p className="text-charcoal-600 text-sm mb-4">Try a different word, or clear the filters.</p>
                   <button onClick={clearFilters} className="text-gold-700 text-sm font-medium underline underline-offset-4">
                     Clear filters
                   </button>
@@ -660,7 +660,7 @@ function TrustBlurb() {
       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gold-600 leading-relaxed mb-2">
         A network of<br />trusted professionals
       </p>
-      <p className="text-xs text-charcoal-500 leading-relaxed mb-3">
+      <p className="text-xs text-charcoal-600 leading-relaxed mb-3">
         All businesses are BILD members and have been through our membership verification process. BILD
         provides this directory as a platform to connect, and does not endorse or guarantee any business listed.
       </p>

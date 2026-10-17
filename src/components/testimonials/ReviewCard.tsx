@@ -10,7 +10,7 @@ export default function ReviewCard({ review }: { review: CarouselReview }) {
         {review.source === 'google' ? (
           <span className="inline-flex items-center gap-1.5 bg-white border border-gold-100 rounded-full pl-2 pr-2.5 py-1">
             <GoogleGMark className="h-3.5 w-3.5" />
-            <span className="text-charcoal-500 text-xs font-medium">Google</span>
+            <span className="text-charcoal-600 text-xs font-medium">Google</span>
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 bg-gold-500/10 border border-gold-200 rounded-full px-2.5 py-1">
@@ -35,7 +35,7 @@ export default function ReviewCard({ review }: { review: CarouselReview }) {
         )}
         <div>
           <p className="font-semibold text-charcoal-800 text-sm">{review.author}</p>
-          {review.subtitle && <p className="text-charcoal-400 text-xs">{review.subtitle}</p>}
+          {review.subtitle && <p className="text-charcoal-600 text-xs">{review.subtitle}</p>}
         </div>
       </div>
     </div>

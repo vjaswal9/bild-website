@@ -37,7 +37,7 @@ export default function DirectoryPromo() {
           {/* Standard */}
           <div className="flex flex-col bg-white rounded-2xl border border-gold-200 p-8 shadow-sm">
             <h3 className="font-display text-2xl font-bold text-charcoal-800">Standard Listing</h3>
-            <p className="text-charcoal-500 text-sm mt-1 mb-5">Everything you need to be found.</p>
+            <p className="text-charcoal-600 text-sm mt-1 mb-5">Everything you need to be found.</p>
 
             <div className="border-t border-gold-100 pt-5 mb-5" />
 
@@ -100,7 +100,7 @@ export default function DirectoryPromo() {
 
         </Reveal>
 
-        <p className="text-center text-sm text-charcoal-500">
+        <p className="text-center text-sm text-charcoal-600">
           Submitting a listing is free, and there is a preferential rate for BILD members. Full details are on the{' '}
           <Link href="/directory" className="text-gold-700 font-medium hover:underline">
             Business Directory page

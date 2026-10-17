@@ -156,7 +156,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                 {country === 'UK' ? '🇬🇧' : '🇦🇪'}
               </span>
               {isNonMember && (
-                <span className="inline-flex items-center bg-charcoal-100 text-charcoal-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center bg-stone-100 text-charcoal-600 text-xs font-medium px-2 py-0.5 rounded-full">
                   Non-BILD Business
                 </span>
               )}
@@ -166,7 +166,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
                 </span>
               )}
             </div>
-            <p className="text-charcoal-500">{biz.owner_name}</p>
+            <p className="text-charcoal-600">{biz.owner_name}</p>
             <span className="inline-block bg-gold-100 text-gold-700 text-xs font-medium px-2.5 py-0.5 rounded-full mt-1.5">
               {biz.category}
             </span>
@@ -190,12 +190,12 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
               </span>
             )}
             {biz.established_year && (
-              <span className="inline-flex items-center gap-1 text-xs text-charcoal-500">
+              <span className="inline-flex items-center gap-1 text-xs text-charcoal-600">
                 <Briefcase size={12} className="text-gold-500" /> Trading since {biz.established_year}
               </span>
             )}
             {country === 'UK' && (
-              <span className="inline-flex items-center gap-1 text-xs text-charcoal-400 italic">
+              <span className="inline-flex items-center gap-1 text-xs text-charcoal-600 italic">
                 {UK_TRANSACT_WARNING}
               </span>
             )}
@@ -206,7 +206,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             previously risked reading as BILD vouching for the business, which
             contradicts the directory disclaimer. */}
         {verified && (
-          <p className="text-xs text-charcoal-500 bg-cream border border-gold-100 rounded-lg px-3 py-2 mb-6 leading-relaxed">
+          <p className="text-xs text-charcoal-600 bg-cream border border-gold-100 rounded-lg px-3 py-2 mb-6 leading-relaxed">
             BILD has received and checked documentation showing the business holds the stated
             {country === 'UK' ? ' UK business registration' : ' UAE trade licence'}. This does not constitute an
             endorsement or guarantee of the business, its services or its regulatory status.
@@ -255,7 +255,7 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-semibold text-charcoal-800 group-hover:text-gold-700">Download our brochure</span>
-              <span className="block text-xs text-charcoal-500 truncate">{biz.featured_brochure_name || 'PDF brochure'}</span>
+              <span className="block text-xs text-charcoal-600 truncate">{biz.featured_brochure_name || 'PDF brochure'}</span>
             </span>
           </TrackedLink>
         )}
@@ -280,13 +280,13 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
           <p className="text-sm text-charcoal-600 mb-6 whitespace-pre-line">{biz.extra_info}</p>
         )}
 
-        <p className="flex items-center gap-1.5 text-sm text-charcoal-500 mb-2">
+        <p className="flex items-center gap-1.5 text-sm text-charcoal-600 mb-2">
           <MapPin size={14} /> {biz.location}
         </p>
         {(() => {
           const memberSince = isNonMember ? null : formatMemberSince(biz.bild_member_since || biz.created_at?.slice(0, 7))
           return memberSince && (
-            <p className="flex items-center gap-1.5 text-sm text-charcoal-400 mb-6">
+            <p className="flex items-center gap-1.5 text-sm text-charcoal-600 mb-6">
               <CalendarDays size={14} /> BILD member since {memberSince}
             </p>
           )
@@ -306,27 +306,27 @@ export default async function BusinessProfilePage({ params }: { params: Promise<
             </TrackedLink>
           )}
           {biz.email && (
-            <TrackedLink businessId={biz.id} kind="click_email" href={`mailto:${biz.email}`} className="text-charcoal-500 hover:text-gold-600 transition-colors" title="Email">
+            <TrackedLink businessId={biz.id} kind="click_email" href={`mailto:${biz.email}`} className="text-charcoal-600 hover:text-gold-600 transition-colors" title="Email">
               <Mail size={socialIconSize} />
             </TrackedLink>
           )}
           {biz.phone && (
-            <TrackedLink businessId={biz.id} kind="click_phone" href={`tel:${biz.phone}`} className="text-charcoal-500 hover:text-gold-600 transition-colors" title="Call">
+            <TrackedLink businessId={biz.id} kind="click_phone" href={`tel:${biz.phone}`} className="text-charcoal-600 hover:text-gold-600 transition-colors" title="Call">
               <Phone size={socialIconSize} />
             </TrackedLink>
           )}
           {biz.website && (
-            <TrackedLink businessId={biz.id} kind="click_website" href={biz.website} target="_blank" rel="noopener noreferrer" className="text-charcoal-500 hover:text-gold-600 transition-colors" title="Website">
+            <TrackedLink businessId={biz.id} kind="click_website" href={biz.website} target="_blank" rel="noopener noreferrer" className="text-charcoal-600 hover:text-gold-600 transition-colors" title="Website">
               <Globe size={socialIconSize} />
             </TrackedLink>
           )}
           {instagramProfile && (
-            <TrackedLink businessId={biz.id} kind="click_instagram" href={instagramProfile.profileUrl} target="_blank" rel="noopener noreferrer" className="text-charcoal-500 hover:text-[#E1306C] transition-colors" title="Instagram">
+            <TrackedLink businessId={biz.id} kind="click_instagram" href={instagramProfile.profileUrl} target="_blank" rel="noopener noreferrer" className="text-charcoal-600 hover:text-[#E1306C] transition-colors" title="Instagram">
               <FaInstagram size={socialIconSize} />
             </TrackedLink>
           )}
           {biz.linkedin && (
-            <a href={biz.linkedin} target="_blank" rel="noopener noreferrer" className="text-charcoal-500 hover:text-[#0A66C2] transition-colors" title="LinkedIn">
+            <a href={biz.linkedin} target="_blank" rel="noopener noreferrer" className="text-charcoal-600 hover:text-[#0A66C2] transition-colors" title="LinkedIn">
               <FaLinkedin size={socialIconSize} />
             </a>
           )}

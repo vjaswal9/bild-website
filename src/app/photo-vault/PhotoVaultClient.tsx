@@ -47,7 +47,7 @@ function PhotoVaultInner({ items, events, instagramPosts }: { items: VaultItem[]
               {filteredPosts.map(post => (
                 <div key={post.id} className="flex flex-col items-center gap-2">
                   <InstagramEmbed url={post.url} />
-                  <p className="text-charcoal-500 text-xs">{post.eventTitle}</p>
+                  <p className="text-charcoal-600 text-xs">{post.eventTitle}</p>
                 </div>
               ))}
             </div>
@@ -61,7 +61,7 @@ function PhotoVaultInner({ items, events, instagramPosts }: { items: VaultItem[]
                 <Camera size={36} className="text-gold-500" />
               </div>
               <h3 className="font-display text-2xl font-bold text-charcoal-800 mb-3">Photos coming soon</h3>
-              <p className="text-charcoal-500 max-w-sm mx-auto">
+              <p className="text-charcoal-600 max-w-sm mx-auto">
                 We&apos;re building our photo library. Check back after our next event to see the memories we&apos;ve made together.
               </p>
             </div>

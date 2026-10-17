@@ -16,7 +16,7 @@ export default function ComingSoonPage() {
           <p className="text-charcoal-600 text-lg mb-3">
             This section is on its way and will be available shortly.
           </p>
-          <p className="text-charcoal-500 mb-10">
+          <p className="text-charcoal-600 mb-10">
             In the meantime, come and be part of the BILD family, or head back to the home page.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

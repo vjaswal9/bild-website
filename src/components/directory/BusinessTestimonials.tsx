@@ -47,7 +47,7 @@ export default async function BusinessTestimonials({
       <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-1">
         What their customers say
       </h2>
-      <p className="text-charcoal-500 text-sm mb-6">
+      <p className="text-charcoal-600 text-sm mb-6">
         {items.length === 1
           ? `A testimonial ${businessName} received from their own customer, checked by BILD.`
           : `Testimonials ${businessName} received from their own customers, checked by BILD.`}

@@ -76,7 +76,7 @@ export default async function AboutPage() {
             {facts.map(f => (
               <div key={f.label} className="bg-cream px-4 py-6 text-center">
                 <p className="font-display text-3xl font-bold text-gold-600 leading-none">{f.value}</p>
-                <p className="text-charcoal-500 text-xs mt-2 leading-snug">{f.label}</p>
+                <p className="text-charcoal-600 text-xs mt-2 leading-snug">{f.label}</p>
               </div>
             ))}
           </Reveal>

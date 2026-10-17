@@ -18,7 +18,7 @@ export const btnPrimary =
 
 // Secondary outline for light backgrounds.
 export const btnOutline =
-  `${btnBase} rounded-xl border-2 border-charcoal-700 text-charcoal-700 hover:bg-charcoal-700 hover:text-white focus-visible:ring-charcoal-500`
+  `${btnBase} rounded-xl border-2 border-charcoal-700 text-charcoal-700 hover:bg-charcoal-700 hover:text-white focus-visible:ring-charcoal-600`
 
 // Outline for dark backgrounds (e.g. the hero).
 export const btnOutlineOnDark =
