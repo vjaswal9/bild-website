@@ -13,11 +13,11 @@ const faqs = [
   },
   {
     q: 'How much does membership cost?',
-    a: 'Membership is a one-off 50 AED fee: one simple payment for access to all BILD events, the community directory, WhatsApp groups, and networking opportunities.',
+    a: 'Membership is a one-off 50 AED fee: one simple payment for access to all BILD events, the member directory, WhatsApp groups, and networking opportunities.',
   },
   {
     q: 'What happens after I sign up?',
-    a: 'Once you complete the sign-up form, our team will reach out within 48 hours to welcome you to BILD, arrange your one-off membership fee, add you to our WhatsApp community, and share details on upcoming events.',
+    a: 'Once you complete the sign-up form, our team will reach out within 48 hours to welcome you to BILD, arrange your one-off membership fee, add you to our WhatsApp groups, and share details on upcoming events.',
   },
   {
     q: 'Is my information secure?',

@@ -10,7 +10,7 @@ import CountUp from '@/components/anim/CountUp'
 const supporting = [
   {
     value: String(SITE_CONFIG.whatsappCommunities),
-    label: 'Specialist WhatsApp communities',
+    label: 'Specialist WhatsApp groups',
     sublabel: 'Parenting, property, food, business and more',
   },
   {
@@ -32,9 +32,9 @@ export default function CommunityStats() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <Reveal className="text-center mb-12">
-          <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">Community by the Numbers</span>
+          <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">BILD by the Numbers</span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-3">
-            A community that is already thriving
+            A network that is already thriving
           </h2>
           <p className="text-charcoal-500 mt-3 max-w-xl mx-auto">
             You are not joining something new. You are joining something that already works.
@@ -49,7 +49,7 @@ export default function CommunityStats() {
               <span className="align-baseline text-3xl md:text-4xl font-black">+</span>
             </p>
             <p className="text-white font-semibold text-lg md:text-xl mt-4">
-              British Indians in the BILD community
+              British Indians in the BILD network
             </p>
             <p className="text-gray-400 text-sm mt-2 max-w-md mx-auto">
               Across the UAE, and still growing every week

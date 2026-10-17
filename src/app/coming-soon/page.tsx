@@ -17,7 +17,7 @@ export default function ComingSoonPage() {
             This section is on its way and will be available shortly.
           </p>
           <p className="text-charcoal-500 mb-10">
-            In the meantime, come and be part of the community, or head back to the home page.
+            In the meantime, come and be part of the BILD family, or head back to the home page.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/join" className={`${btnPrimary} px-8 py-4 text-lg`}>

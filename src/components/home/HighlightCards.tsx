@@ -18,7 +18,7 @@ const cards = [
   },
   {
     icon: Users,
-    title: 'Join the Community',
+    title: 'Join BILD',
     description: 'Become a BILD member and connect with hundreds of British Indians living in Dubai and across the UAE.',
     href: '/join',
     cta: 'Join BILD ⭐',

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   // The section's real name - opt out of the '| BILD' template rather
   // than shortening it, so the brand name stays intact.
   title: { absolute: 'Faces of BILD' },
-  description: 'Photos, reels and stories from the BILD community - British Indians connecting, celebrating and building friendships across Dubai and the UAE.',
+  description: 'Photos, reels and stories from the BILD family - British Indians connecting, celebrating and building friendships across Dubai and the UAE.',
 }
 // The reels and the Google rating are the same for every visitor and change
 // when an admin adds one, not per request. force-no-store also overrode the
@@ -27,7 +27,7 @@ export default async function FacesOfBildPage() {
     <>
       <PageHero
         title="Faces of BILD"
-        subtitle="The people, stories and moments that make our community"
+        subtitle="The people, stories and moments that make BILD"
       >
         {googleReviews && (
           <GoogleRatingBadge rating={googleReviews.rating} totalReviews={googleReviews.totalReviews} mapsUrl={googleReviews.mapsUrl} />
@@ -43,7 +43,7 @@ export default async function FacesOfBildPage() {
               </div>
               <h2 className="font-display text-2xl font-bold text-white mb-3">Coming soon</h2>
               <p className="text-gray-400 max-w-md mx-auto mb-8">
-                We&apos;re putting together a collection of reels celebrating the faces and stories of the BILD community. Follow us on Instagram to see them first.
+                We&apos;re putting together a collection of reels celebrating the faces and stories of the BILD family. Follow us on Instagram to see them first.
               </p>
               <a
                 href={SITE_CONFIG.instagramUrl}

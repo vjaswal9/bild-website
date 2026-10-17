@@ -13,7 +13,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Knowledge Base',
-  description: 'Trusted recommendations from the BILD community - tradespeople, doctors, restaurants, services and more.',
+  description: 'Trusted recommendations from the BILD family - tradespeople, doctors, restaurants, services and more.',
 }
 
 export default async function KnowledgeBasePage() {
@@ -22,7 +22,7 @@ export default async function KnowledgeBasePage() {
   return (
     <>
       <PageHero
-        title="Community Knowledge Base"
+        title="BILD Knowledge Base"
         subtitle="The BILD little black book: trusted recommendations shared by our members, all in one place."
       >
         {googleReviews && (

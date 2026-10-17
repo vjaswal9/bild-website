@@ -7,7 +7,7 @@ export default function MissionStatement() {
         <Reveal x={-40} y={0}>
           <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">Who We Are</span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-4 mb-6">
-            Two cultures. One community.
+            Two cultures. One family.
           </h2>
         </Reveal>
         <Reveal x={40} y={0} delay={0.1}>

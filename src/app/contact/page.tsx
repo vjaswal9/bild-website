@@ -49,7 +49,7 @@ const enquiries = [
   {
     icon: Handshake,
     title: 'Sponsorship and partnerships',
-    body: 'Reaching 2,000+ British Indians across the UAE, at an event or across the community.',
+    body: 'Reaching 2,000+ British Indians across the UAE, at an event or across the network.',
   },
   {
     icon: Newspaper,

@@ -31,7 +31,7 @@ export default function FounderMessage() {
               <Reveal className="space-y-4" stagger={0.15} y={16} delay={0.1}>
                 <p>
                   &ldquo;Hello, I&apos;m Truna, the Founder of BILD. What started as a simple idea, bringing people
-                  together so no one ever feels alone in a new city, has grown into a warm, close-knit community that
+                  together so no one ever feels alone in a new city, has grown into a warm, close-knit network that
                   feels like family.&rdquo;
                 </p>
                 <p>
@@ -39,7 +39,7 @@ export default function FounderMessage() {
                   and create moments that feel special.&rdquo;
                 </p>
                 <p className="text-charcoal-700 font-medium">
-                  &ldquo;BILD is built with heart. It is a community where kindness leads, friendships grow naturally,
+                  &ldquo;BILD is built with heart. It is a family where kindness leads, friendships grow naturally,
                   and everyone is genuinely welcomed.&rdquo;
                 </p>
                 <p>

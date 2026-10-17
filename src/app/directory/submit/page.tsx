@@ -439,7 +439,7 @@ export default function SubmitBusinessPage() {
                 {isBildMember === false && (
                   <div className="mt-3 bg-gold-50 border border-gold-200 rounded-xl p-4 text-sm text-charcoal-600 space-y-2">
                     <p>
-                      Put your business in front of a community of 2,000+ members. As an external business, you&apos;ll get your own profile featuring your business details, Google reviews, website, social media, and contact information.
+                      Put your business in front of a network of 2,000+ members. As an external business, you&apos;ll get your own profile featuring your business details, Google reviews, website, social media, and contact information.
                     </p>
                     <p>
                       <span className="font-semibold text-charcoal-700">What we ask in return:</span> Offer BILD members an exclusive benefit - whether a discount, special offer, complimentary service, or other valued perk - to create a genuine, mutually beneficial partnership.
@@ -709,7 +709,7 @@ export default function SubmitBusinessPage() {
 
             <p className="text-xs text-center text-charcoal-400">
               Your submission will be reviewed within 48 hours. By submitting, you agree to our{' '}
-              <Link href="/community-rules" className="text-gold-600 hover:underline">community rules</Link>.
+              <Link href="/code-of-conduct" className="text-gold-600 hover:underline">code of conduct</Link>.
             </p>
             {/* Said plainly, because it is true and because the privacy policy
                 already commits to it. Hiding it would be the wrong call on a

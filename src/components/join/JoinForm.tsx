@@ -275,7 +275,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
               <TextField label="Email Address" value={d.email || ''} onChange={v => set('email', v)} required type="email" placeholder="you@example.com" validate={isEmail} showError={tried1} />
               <div>
                 <p className={labelCls}>{ELIGIBILITY_CONFIRMATION} {req}</p>
-                <p className="text-xs text-charcoal-400 mb-2">Please review our <Link href="/community-rules" className="text-gold-600 hover:underline">membership rules</Link> before answering.</p>
+                <p className="text-xs text-charcoal-400 mb-2">Please review our <Link href="/code-of-conduct" className="text-gold-600 hover:underline">membership rules</Link> before answering.</p>
                 <Toggle value={d.heritageConfirm || ''} onChange={v => set('heritageConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried1 && !d.heritageConfirm} />
               </div>
               <div>
@@ -300,7 +300,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
               <div className="relative z-10">
                 <h2 className="text-white font-display text-2xl font-bold mb-4 text-center">Your BILD Membership ❤️</h2>
                 <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                  Welcome to the BILD family! <span className="text-gold-400 font-semibold">A membership fee of 50 AED</span> gives you access to our growing community
+                  Welcome to the BILD family! <span className="text-gold-400 font-semibold">A membership fee of 50 AED</span> gives you access to our growing network
                   of 2,000+ members, including 50+ WhatsApp groups, British Indian events and celebrations,
                   networking opportunities, our BILD Business Directory and much more.
                 </p>
@@ -428,8 +428,8 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
             </fieldset>
 
             <fieldset className="bg-cream border border-gold-200 rounded-2xl p-6 shadow-card">
-              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Community Terms</legend>
-              <p className="text-sm text-charcoal-600 mb-3">Do you confirm to abide by the BILD <Link href="/terms" className="text-gold-600 hover:underline">community terms</Link>, including UAE laws, and understand that providing false information will result in immediate removal? {req}</p>
+              <legend className="font-display font-bold text-charcoal-800 text-lg px-1">Membership Terms</legend>
+              <p className="text-sm text-charcoal-600 mb-3">Do you confirm to abide by the BILD <Link href="/terms" className="text-gold-600 hover:underline">membership terms</Link>, including UAE laws, and understand that providing false information will result in immediate removal? {req}</p>
               <Toggle value={d.termsConfirm || ''} onChange={v => set('termsConfirm', v)} options={[['yes', 'Yes'], ['no', 'No']]} invalid={tried2 && !d.termsConfirm} />
             </fieldset>
 

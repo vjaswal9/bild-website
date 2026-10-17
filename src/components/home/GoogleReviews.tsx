@@ -15,7 +15,7 @@ export default async function GoogleReviews() {
         <div className="text-center mb-12">
           <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">What Our Members Say</span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-3">
-            Loved by the BILD Community
+            Loved by the BILD Family
           </h2>
           {google && (
             <div className="flex items-center justify-center gap-2 mt-4">

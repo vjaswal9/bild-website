@@ -29,7 +29,7 @@ export default async function EventsPage() {
 
   return (
     <>
-      <PageHero title="Events" subtitle="Celebrate, connect, and grow with the BILD community">
+      <PageHero title="Events" subtitle="Celebrate, connect, and grow with the BILD family">
         {googleReviews && (
           <GoogleRatingBadge rating={googleReviews.rating} totalReviews={googleReviews.totalReviews} mapsUrl={googleReviews.mapsUrl} />
         )}

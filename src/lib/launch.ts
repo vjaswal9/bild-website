@@ -18,7 +18,7 @@ export const LIVE_PATHS = [
   '/faces-of-bild',
   '/testimonials',     // "share your experience" submission form
   '/terms',
-  '/community-rules',
+  '/code-of-conduct',
   '/contact',           // contact page
   '/privacy',           // privacy policy
   '/refund-policy',     // refund policy

@@ -50,6 +50,9 @@ const nextConfig = {
     return [
       // Legacy/incorrectly-indexed URL — send straight to the real homepage.
       { source: '/home', destination: '/', permanent: true },
+      // The Community Rules page was renamed Code of Conduct; links already in
+      // emails, the Terms and search results keep working.
+      { source: '/community-rules', destination: '/code-of-conduct', permanent: true },
     ]
   },
   async headers() {

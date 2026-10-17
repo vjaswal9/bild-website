@@ -35,7 +35,7 @@ export default async function PrivacyPolicyPage() {
               This Privacy Policy explains what personal information BILD (British Indians Living in Dubai) collects,
               why we collect it, who we share it with, how long we keep it, and the choices you have. It applies to
               this website, to BILD membership, to BILD events, to the BILD Business Directory, and to the BILD
-              WhatsApp and social media communities.
+              WhatsApp and social media groups.
             </p>
             <p>
               <strong>Last updated:</strong> {LAST_UPDATED}
@@ -105,7 +105,7 @@ export default async function PrivacyPolicyPage() {
               <li>a contact name, email address and phone number for the business;</li>
               <li>the business website, Google Business profile and social media handles;</li>
               <li>your logo, banner image, photographs and any video you upload;</li>
-              <li>the member offers you want promoted to the BILD community.</li>
+              <li>the member offers you want promoted to the BILD network.</li>
             </ul>
             <p>
               Most of this information is published on your listing, which is what a directory listing is for. The
@@ -148,9 +148,9 @@ export default async function PrivacyPolicyPage() {
               child is given to us by their parent or guardian and is used only to run the event concerned.
             </p>
 
-            <h3>2.10 WhatsApp and community groups</h3>
+            <h3>2.10 WhatsApp and BILD groups</h3>
             <p>
-              BILD runs a community WhatsApp group and a number of specialist sub-groups. To add you to a group we use
+              BILD runs a main WhatsApp group and a number of specialist sub-groups. To add you to a group we use
               the mobile number you gave us when you applied.{' '}
               <strong>
                 Your mobile number and your WhatsApp display name and photo are visible to every other member of any
@@ -158,7 +158,7 @@ export default async function PrivacyPolicyPage() {
               </strong>{' '}
               BILD cannot control what other members do with information you post in a group. Please do not post
               anything in a group that you would not want other members to see or keep. Members must not collect,
-              export or reuse other members&rsquo; contact details, and doing so is a breach of the Community Rules.
+              export or reuse other members&rsquo; contact details, and doing so is a breach of the Code of Conduct.
               WhatsApp is operated by Meta and its own privacy policy applies to your use of the app.
             </p>
 
@@ -183,12 +183,12 @@ export default async function PrivacyPolicyPage() {
             <ul>
               <li>To assess your application and confirm that you meet the eligibility criteria.</li>
               <li>To take payment and issue receipts, and to handle refunds.</li>
-              <li>To add you to the BILD community groups and give you access to member services.</li>
+              <li>To add you to the BILD groups and give you access to member services.</li>
               <li>To organise and run events, including catering, capacity and safety.</li>
               <li>To publish and administer Business Directory listings.</li>
               <li>To communicate with you about your membership, your bookings and your listing.</li>
               <li>To promote BILD and its events, including through photographs and social media.</li>
-              <li>To keep the community safe, enforce the Community Rules and the Terms and Conditions, and prevent
+              <li>To keep our members safe, enforce the Code of Conduct and the Terms and Conditions, and prevent
                 misuse.</li>
               <li>To meet our legal, licensing, accounting and tax obligations.</li>
             </ul>
@@ -197,7 +197,7 @@ export default async function PrivacyPolicyPage() {
             <p>
               We process personal information on the basis of your consent, given when you submit an application, book
               an event or submit a listing; because it is necessary to provide the membership or service you have
-              asked for; because we have a legitimate interest in running and protecting the community; and because we
+              asked for; because we have a legitimate interest in running and protecting BILD; and because we
               are required to by law. Where we rely on your consent, you may withdraw it at any time by contacting us,
               although that may mean we can no longer provide part of the service.
             </p>
@@ -211,10 +211,10 @@ export default async function PrivacyPolicyPage() {
               <li><strong>Stripe</strong> - payment processing.</li>
               <li><strong>Supabase</strong> - the database and file storage behind this website.</li>
               <li><strong>Vercel</strong> - website hosting.</li>
-              <li><strong>Resend</strong> - sending transactional and community emails.</li>
+              <li><strong>Resend</strong> - sending transactional and member emails.</li>
               <li><strong>Google</strong> - Analytics, and Google Business reviews shown on the site.</li>
               <li><strong>Sentry</strong> - error monitoring.</li>
-              <li><strong>WhatsApp (Meta)</strong> - community groups.</li>
+              <li><strong>WhatsApp (Meta)</strong> - member groups.</li>
               <li><strong>Event venues, caterers and suppliers</strong> - only the details needed to run an event,
                 such as a guest list or dietary requirements.</li>
             </ul>
@@ -295,7 +295,7 @@ export default async function PrivacyPolicyPage() {
               For any question, request or complaint about your personal information, email{' '}
               <a href="mailto:connect@bild.ae">connect@bild.ae</a>. This policy should be read together with
               BILD&rsquo;s <a href="/terms">Terms and Conditions</a>, its{' '}
-              <a href="/refund-policy">Refund Policy</a> and its <a href="/community-rules">Community Rules</a>.
+              <a href="/refund-policy">Refund Policy</a> and its <a href="/code-of-conduct">Code of Conduct</a>.
             </p>
           </article>
         </div>

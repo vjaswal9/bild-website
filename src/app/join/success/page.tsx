@@ -9,7 +9,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export const metadata: Metadata = {
   // Just 'Welcome': the title template already appends '| BILD'.
   title: 'Welcome',
-  description: 'Your BILD membership is confirmed - next steps to join the community.',
+  description: 'Your BILD membership is confirmed - next steps to join the BILD family.',
   robots: { index: false, follow: true },
 }
 export const dynamic = 'force-dynamic'

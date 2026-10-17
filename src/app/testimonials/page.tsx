@@ -9,7 +9,7 @@ import { btnPrimary, btnOutline } from '@/lib/ui'
 
 export const metadata: Metadata = {
   title: 'Testimonials',
-  description: 'What the BILD community says - Google reviews and member-submitted testimonials.',
+  description: 'What the BILD family says - Google reviews and member-submitted testimonials.',
 }
 
 // Reviews and testimonials change when an admin approves one, not per visitor. Five minutes of ISR replaces a live Google Places call and a database read on every single request.
@@ -24,7 +24,7 @@ export default async function TestimonialsPage() {
 
   return (
     <>
-      <PageHero title="Testimonials" subtitle="What the BILD community has to say">
+      <PageHero title="Testimonials" subtitle="What the BILD family has to say">
         {google && (
           <div className="flex items-center justify-center gap-2">
             <div className="flex items-center gap-0.5">

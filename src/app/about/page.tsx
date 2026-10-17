@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   // Just 'About': the title template already appends '| BILD'.
   title: 'About',
   description:
-    `The story of BILD (British Indians Living in Dubai): founded in Dubai in 2019 by Truna Jaswal, now 2,000+ members, ${SITE_CONFIG.whatsappCommunities} community groups and over 100 events. A licensed UAE business.`,
+    `The story of BILD (British Indians Living in Dubai): founded in Dubai in 2019 by Truna Jaswal, now 2,000+ members, ${SITE_CONFIG.whatsappCommunities} WhatsApp groups and over 100 events. A licensed UAE business.`,
 }
 
 // The figures the story rests on. Kept together so they cannot drift apart
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 const facts = [
   { value: '2019', label: 'Founded in Dubai' },
   { value: '2,000+', label: 'Members across the UAE' },
-  { value: String(SITE_CONFIG.whatsappCommunities), label: 'Specialist community groups' },
+  { value: String(SITE_CONFIG.whatsappCommunities), label: 'Specialist WhatsApp groups' },
   { value: '100+', label: 'Events hosted since 2019' },
 ]
 
@@ -65,7 +65,7 @@ export default async function AboutPage() {
             </p>
             <p>
               What began as a few people meeting up and one group chat has grown into a network of{' '}
-              <strong className="text-charcoal-800">more than 2,000 members</strong>, {SITE_CONFIG.whatsappCommunities} specialist community groups
+              <strong className="text-charcoal-800">more than 2,000 members</strong>, {SITE_CONFIG.whatsappCommunities} specialist WhatsApp groups
               and over a hundred events. It is now a licensed Dubai business, and it is still run on the same
               principle it started on: bring people together, and the rest follows.
             </p>
@@ -96,7 +96,7 @@ export default async function AboutPage() {
             <article className="prose prose-lg prose-charcoal max-w-none">
               <h2>What we do</h2>
               <p>
-                BILD runs a calendar of events across Dubai and the wider UAE, alongside the community groups where
+                BILD runs a calendar of events across Dubai and the wider UAE, alongside the WhatsApp groups where
                 most of the day-to-day life of BILD actually happens.
               </p>
               <ul>
@@ -128,7 +128,7 @@ export default async function AboutPage() {
               <p>
                 While we embrace all faiths, BILD remains centred on the unique experiences of British Indians living
                 abroad. We are proud of both our British and Indian heritage, and we believe that celebrating both
-                makes our community stronger.
+                makes our network stronger.
               </p>
               <p>
                 We are welcoming, inclusive, and family-oriented. We support one another in business and in life. And
@@ -166,7 +166,7 @@ export default async function AboutPage() {
             Come and find your people
           </h2>
           <p className="text-gray-300 text-lg mb-8">
-            Join as a member, or put your business in front of the community.
+            Join as a member, or put your business in front of the network.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/join" className={`${btnPrimary} px-8 py-3.5 text-base`}>

@@ -439,7 +439,7 @@ export default function DirectoryClient({
               Good people. Great businesses.
             </h1>
             <p className="text-charcoal-600 text-lg leading-relaxed">
-              Discover the expertise within our community, and a little extra for BILD members.
+              Discover the expertise within our network, and a little extra for BILD members.
             </p>
           </div>
           <div className="hidden lg:block text-right shrink-0 pt-1">
@@ -448,7 +448,7 @@ export default function DirectoryClient({
             </p>
             <div className="w-8 h-px bg-gold-300 ml-auto my-3" />
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-charcoal-400 leading-[1.7]">
-              A stronger<br />community together
+              A stronger<br />network together
             </p>
           </div>
         </div>
@@ -571,8 +571,8 @@ export default function DirectoryClient({
                   <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-gold-600">Featured placements</span>
                   <span className="flex-1 h-px bg-gold-200" />
                 </div>
-                <h2 className="font-display text-[32px] font-bold text-charcoal-800 leading-tight">Featured in our community</h2>
-                <p className="text-charcoal-500 text-sm mt-1 mb-5">A closer introduction to our featured community businesses.</p>
+                <h2 className="font-display text-[32px] font-bold text-charcoal-800 leading-tight">Featured in our network</h2>
+                <p className="text-charcoal-500 text-sm mt-1 mb-5">A closer introduction to our featured member businesses.</p>
                 <div className="space-y-4">{featured.map(b => <FeaturedRow key={b.id} biz={b} />)}</div>
               </section>
             )}
@@ -658,7 +658,7 @@ function TrustBlurb() {
   return (
     <div className="border-t border-gold-200 mt-5 pt-5 px-3">
       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gold-600 leading-relaxed mb-2">
-        A community of<br />trusted professionals
+        A network of<br />trusted professionals
       </p>
       <p className="text-xs text-charcoal-500 leading-relaxed mb-3">
         All businesses are BILD members and have been through our membership verification process. BILD

@@ -14,8 +14,8 @@ const pillars = [
     name: 'Belong',
     promise: 'Your people, already here.',
     description:
-      `Friendships that outlast the group chat. ${SITE_CONFIG.whatsappCommunities} WhatsApp communities, social nights, cultural celebrations and family days, whether you landed last month or a decade ago.`,
-    points: [`${SITE_CONFIG.whatsappCommunities} WhatsApp communities`, 'Cultural celebrations', 'Family-friendly events'],
+      `Friendships that outlast the group chat. ${SITE_CONFIG.whatsappCommunities} WhatsApp groups, social nights, cultural celebrations and family days, whether you landed last month or a decade ago.`,
+    points: [`${SITE_CONFIG.whatsappCommunities} WhatsApp groups`, 'Cultural celebrations', 'Family-friendly events'],
   },
   {
     icon: Handshake,
@@ -28,7 +28,7 @@ const pillars = [
   {
     icon: TrendingUp,
     name: 'Grow',
-    promise: 'A community that backs its own.',
+    promise: 'A network that backs its own.',
     description:
       'Visibility for your business in the BILD Business Directory, member offers from across the network, and a straightforward way to support British Indian businesses in the UAE and UK.',
     points: ['Business Directory listing', 'Member-only offers', 'Reach 2,000+ members'],
@@ -49,7 +49,7 @@ export default function WhyJoin() {
             Belong. Connect. Grow.
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            One membership, three things every British Indian in the UAE needs: a community to belong to, a network to
+            One membership, three things every British Indian in the UAE needs: a family to belong to, a network to
             draw on, and a place for your business to be seen.
           </p>
         </Reveal>

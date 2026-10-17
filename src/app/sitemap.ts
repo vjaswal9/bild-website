@@ -16,7 +16,7 @@ const ALL_PAGES: { path: string; priority: number; lastModified: Date }[] = [
   { path: '/photo-vault', priority: 0.5, lastModified: new Date('2026-07-01') },
   { path: '/faces-of-bild', priority: 0.5, lastModified: new Date('2026-07-01') },
   { path: '/testimonials', priority: 0.5, lastModified: new Date('2026-08-31') },
-  { path: '/community-rules', priority: 0.4, lastModified: new Date('2026-07-01') },
+  { path: '/code-of-conduct', priority: 0.4, lastModified: new Date('2026-07-01') },
   { path: '/contact', priority: 0.6, lastModified: new Date('2026-09-11') },
   { path: '/terms', priority: 0.4, lastModified: new Date('2026-07-01') },
   { path: '/privacy', priority: 0.4, lastModified: new Date('2026-09-09') },

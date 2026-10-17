@@ -10,16 +10,16 @@ import { getGoogleReviews } from '@/lib/google-reviews'
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: 'Community Rules',
+  title: 'Code of Conduct',
   description: 'The rules and etiquette for BILD\'s WhatsApp groups and social media platforms for British Indians in Dubai and the UAE.',
 }
 
-export default async function CommunityRulesPage() {
+export default async function CodeOfConductPage() {
   const googleReviews = await getGoogleReviews()
 
   return (
     <>
-      <PageHero title="Community Rules" subtitle="BILD Community & Social Media Group Rules">
+      <PageHero title="Code of Conduct" subtitle="BILD Group & Social Media Rules">
         {googleReviews && (
           <GoogleRatingBadge rating={googleReviews.rating} totalReviews={googleReviews.totalReviews} mapsUrl={googleReviews.mapsUrl} />
         )}
@@ -34,7 +34,7 @@ export default async function CommunityRulesPage() {
               and advice as we navigate life together in the sandpit!
             </p>
             <p>
-              BILD is a kind, tolerant, and inclusive community, built from the heart solely to bring people
+              BILD is a kind, tolerant, and inclusive family, built from the heart solely to bring people
               together through cultural events, activities, and meaningful connections. It&rsquo;s a fun, supportive
               network and a safe space for like-minded British Indians to connect.
             </p>
@@ -42,7 +42,7 @@ export default async function CommunityRulesPage() {
             <h2>Join Us On</h2>
             <ul>
               <li>
-                <strong>WhatsApp (WA):</strong> BILD Community WA &amp; various sub-groups (please keep conversations
+                <strong>WhatsApp (WA):</strong> BILD WA &amp; various sub-groups (please keep conversations
                 relevant to the group topic. For specific topics, refer to dedicated sub-groups.)
               </li>
               <li><strong>Instagram:</strong> @BILD_ae</li>
@@ -50,7 +50,7 @@ export default async function CommunityRulesPage() {
               <li><strong>Website:</strong> BILD.ae</li>
               <li><strong>LinkedIn:</strong> BILD Community for British Indian Professionals in Dubai &amp; UAE</li>
             </ul>
-            <p>Follow and support us by sharing our community and joining us at BILD events.</p>
+            <p>Follow and support us by sharing BILD and joining us at BILD events.</p>
             <p>Let&rsquo;s grow stronger together, BILD Lads, Ladies, and Families!</p>
 
             <p className="text-sm text-charcoal-500">
@@ -59,7 +59,7 @@ export default async function CommunityRulesPage() {
               the Founder). Group Admins are not responsible for the accuracy of shared content or any consequences
               arising from it. Please avoid sharing sensitive, defamatory, or illegal content from elsewhere and
               refrain from sharing or circulating any material from our groups which are private and confidential to
-              our community. By remaining in the group, you are deemed to always agree and abide by these terms as
+              our network. By remaining in the group, you are deemed to always agree and abide by these terms as
               they change or are updated from time to time.
             </p>
 
@@ -80,7 +80,7 @@ export default async function CommunityRulesPage() {
             </p>
             <p>
               You are encouraged to welcome other British Indians into this social network by inviting friends, as
-              each new member enhances the overall value and sharing of experiences within our community.
+              each new member enhances the overall value and sharing of experiences within our network.
             </p>
             <p>
               To ensure a seamless integration and avoid any misunderstandings, please ensure you familiarise
@@ -89,7 +89,7 @@ export default async function CommunityRulesPage() {
               connections and interactions. Any anonymous joiners who do not provide their identity will be removed.
             </p>
 
-            <h2>Community Rules</h2>
+            <h2>Code of Conduct</h2>
 
             <h3>1. Be Kind, Courteous &amp; Inclusive</h3>
             <ul>
@@ -126,7 +126,7 @@ export default async function CommunityRulesPage() {
             <p>
               Please be aware that violations of these rules and principles may result in the removal of members from
               the group without prior notice. We are committed to upholding the laws of the UAE and fostering a
-              positive and respectful community.
+              positive and respectful family.
             </p>
 
             <h3>3. Privacy</h3>
@@ -161,7 +161,7 @@ export default async function CommunityRulesPage() {
 
             <h2>Business &amp; Advertising Rules</h2>
             <p>
-              These rules apply whenever you promote a business, service or offer anywhere in the BILD community,
+              These rules apply whenever you promote a business, service or offer anywhere in the BILD network,
               including in the WhatsApp groups and in the Business Directory. Full directory terms are set out in
               section 9 of our <a href="/terms">Terms &amp; Conditions</a>.
             </p>
@@ -198,13 +198,13 @@ export default async function CommunityRulesPage() {
             <h2>Enforcement</h2>
             <p>
               Breaches of these rules will be handled by the BILD administrators. Depending on the severity,
-              consequences may include a warning, temporary suspension, or permanent removal from the community.
+              consequences may include a warning, temporary suspension, or permanent removal from BILD.
               Decisions made by the BILD administrators are final.
             </p>
 
             <h2>Final Message</h2>
             <p>
-              At BILD, we are more than just a community, we are a family built on trust, kindness, and shared
+              At BILD, we are more than just a network, we are a family built on trust, kindness, and shared
               experiences. Let&rsquo;s continue to grow stronger together, celebrating our culture and supporting one
               another as we navigate life in UAE.
             </p>

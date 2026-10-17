@@ -59,7 +59,7 @@ export default function SubmitTestimonialPage() {
 
   return (
     <>
-      <PageHero title="Share your experience" subtitle="Tell the community what BILD means to you" />
+      <PageHero title="Share your experience" subtitle="Tell other members what BILD means to you" />
       <div className="py-12 max-w-lg mx-auto px-4 sm:px-6">
         <form onSubmit={submit} className="bg-cream border border-gold-200 rounded-2xl p-6 space-y-5 shadow-card">
           <div>

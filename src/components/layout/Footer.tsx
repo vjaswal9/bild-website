@@ -15,7 +15,7 @@ const allNavLinks = [
   { href: '/knowledge-base', label: 'Knowledge Base' },
   { href: '/join', label: 'Join BILD' },
   { href: '/contact', label: 'Contact' },
-  { href: '/community-rules', label: 'Community Rules' },
+  { href: '/code-of-conduct', label: 'Code of Conduct' },
   { href: '/terms', label: 'Terms & Conditions' },
   { href: '/privacy', label: 'Privacy Policy' },
   { href: '/refund-policy', label: 'Refund Policy' },

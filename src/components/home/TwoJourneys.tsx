@@ -27,11 +27,11 @@ export default function TwoJourneys() {
               <Users size={24} className="text-gold-600" />
             </div>
             <h3 className="font-display text-xl font-bold text-charcoal-800 mb-2">
-              I want to join the community
+              I want to join BILD
             </h3>
             <p className="text-charcoal-600 text-sm leading-relaxed mb-6 flex-1">
               For British Indians living in the UAE. Events, family days, cultural celebrations and {SITE_CONFIG.whatsappCommunities} specialist
-              WhatsApp communities.
+              WhatsApp groups.
             </p>
             <Link href="/join" className={`${btnPrimary} w-full py-3.5 text-base`}>
               Join BILD <ArrowRight size={18} />

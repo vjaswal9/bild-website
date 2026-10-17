@@ -6,7 +6,7 @@ export default function JoinCTA() {
     <section className="py-20 bg-charcoal-800">
       <div className="max-w-3xl mx-auto px-4 text-center">
         <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-          Ready to join the BILD community?
+          Ready to join the BILD family?
         </h2>
         <p className="text-gray-300 text-lg mb-8">
           Connect with British Indians across Dubai and the UAE.

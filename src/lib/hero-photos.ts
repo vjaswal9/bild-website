@@ -51,7 +51,7 @@ export function heroScrim(photo: { scrim?: number }): string {
   return `linear-gradient(100deg, ${stops.join(', ')})`
 }
 
-const DANCE: HeroPhoto = { src: '/images/hero/hero-dance.jpg', alt: 'A BILD member dancing at a community night in Dubai', position: 'center 45%', scrim: 0.34 }  // left 35% measures 21/255
+const DANCE: HeroPhoto = { src: '/images/hero/hero-dance.jpg', alt: 'A BILD member dancing at a BILD night in Dubai', position: 'center 45%', scrim: 0.34 }  // left 35% measures 21/255
 const BEACH: HeroPhoto = { src: '/images/hero/hero-beach.jpg', alt: 'BILD members together at a morning beach meet-up in Dubai', position: 'center 42%', scrim: 0.51 }  // left 35% measures 113/255
 const SINGER: HeroPhoto = { src: '/images/hero/hero-singer.jpg', alt: 'A singer performing to BILD members at a gala night', position: 'center 55%', scrim: 0.34 }  // left 35% measures 35/255
 
@@ -73,7 +73,7 @@ const CYCLE: HeroPhoto = { src: '/images/hero/hero-cycle.jpg', alt: 'BILD member
 const PARTY: HeroPhoto = { src: '/images/hero/hero-party.jpg', alt: 'BILD members celebrating together on a night out', position: 'center 48%', scrim: 0.34 }  // left 35% measures 45/255
 const GOLF: HeroPhoto = { src: '/images/hero/hero-golf.jpg', alt: 'BILD members at the driving range on a golf evening', position: 'center 55%', scrim: 0.6 }  // left 35% measures 136/255
 const SUNRISE: HeroPhoto = { src: '/images/hero/hero-sunrise.jpg', alt: 'BILD members stopped together on a sunrise ride in Dubai', position: 'center 48%', scrim: 0.62 }  // left 35% measures 145/255
-const GOLDEN: HeroPhoto = { src: '/images/hero/hero-golden.jpg', alt: 'BILD members dancing at a community dinner', position: 'center 45%', scrim: 0.34 }  // left 35% measures 53/255
+const GOLDEN: HeroPhoto = { src: '/images/hero/hero-golden.jpg', alt: 'BILD members dancing at a BILD dinner', position: 'center 45%', scrim: 0.34 }  // left 35% measures 53/255
 
 const KARVA: HeroPhoto = { src: '/images/hero/hero-karva.jpg', alt: 'BILD members celebrating Karva Chauth together in Dubai', position: 'center 40%', scrim: 0.61 }  // left 35% measures 141/255
 const CRICKET: HeroPhoto = { src: '/images/hero/hero-cricket.jpg', alt: 'BILD members cheering on India together at a cricket match in Dubai', position: 'center 40%', scrim: 0.55 }  // left 35% measures 122/255

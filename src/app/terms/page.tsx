@@ -41,7 +41,7 @@ export default async function TermsPage() {
               <strong>Last updated:</strong> {LAST_UPDATED}
             </p>
             <p>
-              BILD&rsquo;s <a href="/community-rules">Community Rules</a>, <a href="/privacy">Privacy Policy</a> and{' '}
+              BILD&rsquo;s <a href="/code-of-conduct">Code of Conduct</a>, <a href="/privacy">Privacy Policy</a> and{' '}
               <a href="/refund-policy">Refund Policy</a> each form part of these Terms. Where these Terms and the
               Refund Policy differ on any question of refunds, the Refund Policy prevails.
             </p>
@@ -104,7 +104,7 @@ export default async function TermsPage() {
             </p>
 <p>
               Membership is granted based on trust and honesty. Any member found to have misrepresented their identity
-              or eligibility may be removed from the community without prior notice.
+              or eligibility may be removed from BILD without prior notice.
             </p>
 
             <h2>4. Membership Fee</h2>
@@ -162,7 +162,7 @@ export default async function TermsPage() {
               liability on BILD&rsquo;s part.
             </p>
             <p>
-              Information and recommendations shared in BILD groups, including in the Community Knowledge Base, are
+              Information and recommendations shared in BILD groups, including in the BILD Knowledge Base, are
               the opinions of the members who posted them and not advice from BILD. They must not be relied on as
               professional, legal, medical, financial or immigration advice.
             </p>
@@ -170,7 +170,7 @@ export default async function TermsPage() {
             <h2>6. Member Responsibilities</h2>
 <p>
               Members are expected to uphold the values of respect, honesty, and kindness in all interactions within
-              the community. Discriminatory, offensive, or harmful behaviour will not be tolerated. Members must also
+              BILD. Discriminatory, offensive, or harmful behaviour will not be tolerated. Members must also
               comply with all applicable UAE laws and regulations while participating in all BILD activities and group
               chats.
             </p>
@@ -180,7 +180,7 @@ export default async function TermsPage() {
             </p>
             <p>
               By submitting a membership application or participating in BILD activities, you agree to these Terms and
-              Conditions and BILD community rules.
+              Conditions and the BILD Code of Conduct.
             </p>
             <p>
               Contact us at{' '}
@@ -188,17 +188,17 @@ export default async function TermsPage() {
               for any questions or further clarification.
             </p>
 
-            <h2>7. Community and Social Media Groups</h2>
+            <h2>7. BILD Groups and Social Media</h2>
             <p>
               Much of BILD&rsquo;s activity takes place in WhatsApp and other online groups. Membership of those groups
               is a benefit of membership, not a right, and is subject to our{' '}
-              <a href="/community-rules">Community Rules</a>, which form part of these Terms. Group invitations are
+              <a href="/code-of-conduct">Code of Conduct</a>, which form part of these Terms. Group invitations are
               personal to the member and must not be forwarded or shared.
             </p>
             <p>
               Members must not use group membership to send unsolicited marketing, to collect or export other
               members&rsquo; contact details, or to advertise without the prior approval of BILD administrators.
-              Administrators may remove content, or remove a member from any group, in line with the Community Rules
+              Administrators may remove content, or remove a member from any group, in line with the Code of Conduct
               and section 13 of these Terms.
             </p>
 
@@ -221,7 +221,7 @@ export default async function TermsPage() {
               A member may book tickets for guests. The member who books is responsible for their guests: for the
               accuracy of the details given for each of them, including any dietary requirement or allergy; for their
               guests&rsquo; conduct at the event; and for ensuring their guests are aware of, and follow, these Terms
-              and the <a href="/community-rules">Community Rules</a> while attending. Guests are bound by the same
+              and the <a href="/code-of-conduct">Code of Conduct</a> while attending. Guests are bound by the same
               standards of behaviour as members while at a BILD event.
             </p>
             <p>
@@ -248,7 +248,7 @@ export default async function TermsPage() {
 
             <h3>9.1 What the directory is</h3>
             <p>
-              The BILD Business Directory and the Community Knowledge Base are information services. They are a place
+              The BILD Business Directory and the BILD Knowledge Base are information services. They are a place
               for members and the public to find British Indian businesses and professionals. BILD is not a broker,
               agent, introducer, marketplace or intermediary, is not a party to any dealing between a user and a Listed
               Business, and takes no commission on any such dealing.
@@ -316,7 +316,7 @@ export default async function TermsPage() {
               remove a listing at any time, including where: documentation is missing, expired or cannot be verified;
               content is inaccurate, misleading, unlawful or offensive; a complaint has been received; the business has
               ceased trading; fees are unpaid; or BILD considers the listing inconsistent with the values of the BILD
-              community. Where a listing is removed for non-payment or an expired document, it may be restored once the
+              network. Where a listing is removed for non-payment or an expired document, it may be restored once the
               position is corrected. Fees already paid are not refunded on removal for breach.
             </p>
 
@@ -443,7 +443,7 @@ export default async function TermsPage() {
               A Listed Business is responsible for ensuring its listing, offers and any related marketing comply with
               all applicable advertising, consumer protection, e-commerce, data protection and anti-spam laws in the
               jurisdictions where it operates, including UAE consumer protection requirements. A Listed Business must
-              not use contact details obtained through the directory or the BILD community to send unsolicited
+              not use contact details obtained through the directory or the BILD network to send unsolicited
               marketing.
             </p>
 
@@ -476,7 +476,7 @@ export default async function TermsPage() {
             <h3>10.1 Photography at events</h3>
             <p>
               By attending BILD events, you acknowledge that photographs and videos may be taken and used for BILD
-              community purposes, including on this website and social media. If you do not wish to be photographed,
+              purposes, including on this website and social media. If you do not wish to be photographed,
               please inform the organiser prior to the event via email on{' '}
               <a href="mailto:events@bild.ae">events@bild.ae</a>. You may also ask us at any time to remove a
               photograph of you that has already been published, and we will do so.
@@ -515,7 +515,7 @@ export default async function TermsPage() {
             <h2>11. Privacy</h2>
 <p>
               Personal information collected during membership applications, event bookings and directory listings
-              will be used only for BILD community purposes and will be handled securely in line with applicable data
+              will be used only for BILD purposes and will be handled securely in line with applicable data
               protection laws.
             </p>
             <p>
@@ -561,16 +561,16 @@ export default async function TermsPage() {
             </p>
             <ul>
               <li>breaches these Terms;</li>
-              <li>breaches the <a href="/community-rules">Community Rules</a>;</li>
+              <li>breaches the <a href="/code-of-conduct">Code of Conduct</a>;</li>
               <li>provides false, misleading or incomplete information, including as to identity or eligibility;</li>
               <li>behaves abusively, aggressively or offensively towards any member, guest, partner or administrator;</li>
               <li>harasses, bullies, intimidates or discriminates against another person;</li>
               <li>posts prohibited content, including unlawful, obscene, defamatory or discriminatory material;</li>
               <li>advertises, promotes or solicits without the prior approval of BILD administrators;</li>
               <li>misuses member information, including collecting, exporting, sharing or using another member&rsquo;s
-                contact details for a purpose other than genuine community interaction;</li>
+                contact details for a purpose other than genuine member interaction;</li>
               <li>breaches UAE law, or uses BILD in connection with unlawful activity; or</li>
-              <li>acts in a way that compromises the safety, privacy, wellbeing or reputation of the community.</li>
+              <li>acts in a way that compromises the safety, privacy, wellbeing or reputation of BILD or its members.</li>
             </ul>
             <p>
               BILD will normally seek to resolve matters informally first, but is not obliged to give warning, notice

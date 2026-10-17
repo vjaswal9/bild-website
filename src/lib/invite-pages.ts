@@ -127,5 +127,5 @@ export const groupNotConfiguredPage = () =>
     lead:
       'Your membership is confirmed, but the WhatsApp group link is not set up at our end yet.',
     detail:
-      'This one is on us, not you. Email admin@bild.ae and we will add you to the community by hand today.',
+      'This one is on us, not you. Email admin@bild.ae and we will add you to the WhatsApp group by hand today.',
   })

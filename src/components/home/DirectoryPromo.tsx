@@ -10,7 +10,7 @@ const standardPoints = [
   'Your own profile page in the BILD Business Directory',
   'Logo, banner, contact details, website and social links',
   'Your Google rating and reviews shown on your profile',
-  'One member offer, promoted to the BILD community',
+  'One member offer, promoted to the BILD network',
   'Searchable by category across the UAE and UK',
 ]
 
@@ -24,10 +24,10 @@ export default function DirectoryPromo() {
             For Businesses
           </span>
           <h2 className="font-display text-3xl md:text-5xl font-bold text-charcoal-800 mb-4">
-            Put your business in front of the BILD community
+            Put your business in front of the BILD network
           </h2>
           <p className="text-charcoal-600 text-lg max-w-2xl mx-auto leading-relaxed">
-            2,000+ British Indians across the UAE, and a community that actively looks for its own when it needs
+            2,000+ British Indians across the UAE, and a network that actively looks for its own when it needs
             a lawyer, a mortgage, a caterer or a contractor. You do not have to be a BILD member to list.
           </p>
         </Reveal>

@@ -40,7 +40,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
     title: "You're in! 🎉",
     tone: 'good',
     lead: 'Your BILD membership is confirmed. Tap below and WhatsApp will take it from there.',
-    cta: { href: `/j/${token}/confirm`, label: 'Join the BILD WhatsApp community' },
+    cta: { href: `/j/${token}/confirm`, label: 'Join the BILD WhatsApp group' },
     detail:
       'After you tap, WhatsApp asks you to send a join request. An admin approves every person by hand, ' +
       'which can take up to 48 hours. This link then stops working, which is meant to happen.',

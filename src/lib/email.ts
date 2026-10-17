@@ -161,7 +161,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
         <p style="color:#25D366;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 6px">Now for the fun part</p>
         <p style="color:#F4F1EC;font-size:16px;font-weight:bold;line-height:1.45;margin:0 0 8px">We are adding you to the group chat 💬</p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.6;margin:0">
-          One of our admins is adding you to the BILD WhatsApp community by hand. This can take up to 48 hours, so please
+          One of our admins is adding you to the BILD WhatsApp group by hand. This can take up to 48 hours, so please
           bear with us. Nothing is needed from you, and there is no link to tap: just keep an eye on WhatsApp.
         </p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.6;margin:12px 0 0">
@@ -178,13 +178,13 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
         </p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
           ${stepRow(1, 'Tap the green button', 'It confirms your membership and hands you straight over to WhatsApp.')}
-          ${stepRow(2, 'WhatsApp asks you to join', 'Tap through and your request goes into the BILD community. You are in the queue now, not in the group just yet.')}
+          ${stepRow(2, 'WhatsApp asks you to join', 'Tap through and your request goes into the BILD WhatsApp group. You are in the queue now, not in the group just yet.')}
           ${stepRow(3, 'The link then stops working &ndash; and that is meant to happen', 'It is a one-time link, just for you. If you go back to it later it will say <em>already used</em> or <em>expired</em>. That is not a fault and nothing has gone wrong. It simply means it did its job.')}
-          ${stepRow(4, 'One of our admins lets you in', 'We approve every single person by hand, so we know exactly who is in our community. This can take up to 48 hours, so please bear with us.')}
+          ${stepRow(4, 'One of our admins lets you in', 'We approve every single person by hand, so we know exactly who is in our groups. This can take up to 48 hours, so please bear with us.')}
           ${stepRow(5, 'The BILD groups appear in your WhatsApp', 'That is you in 🎉 Come and say hello: your name, where you are from, and how long you have been in Dubai.')}
         </table>
         <div style="text-align:center;padding:6px 0 18px">
-          <a href="${opts.inviteUrl}" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;font-weight:bold;font-size:16px;padding:15px 30px;border-radius:12px">Join the BILD WhatsApp community</a>
+          <a href="${opts.inviteUrl}" style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;font-weight:bold;font-size:16px;padding:15px 30px;border-radius:12px">Join the BILD WhatsApp group</a>
           <p style="color:#6f6a60;font-size:12px;margin:12px 0 0">Works once &middot; Please use it within 48 hours</p>
         </div>
       </div>
@@ -229,7 +229,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
           BILD is all about meeting people, making new connections, supporting each other and getting involved in what's happening around Dubai. Have a look through the groups and jump in whenever you fancy.
         </p>
         <p style="color:#cfcabd;font-size:14px;line-height:1.65;margin:0 0 14px">
-          Just a quick one on the groups: we keep them community focused, so please may we ask you not to provide direct advertising, self promotion or business links on the WhatsApp groups. If you have a business or service you'd like to share, we have proper opportunities to do that.
+          Just a quick one on the groups: we keep them member focused, so please may we ask you not to provide direct advertising, self promotion or business links on the WhatsApp groups. If you have a business or service you'd like to share, we have proper opportunities to do that.
         </p>
         <p style="color:#cfcabd;font-size:14px;line-height:1.65;margin:0 0 6px">You can apply for our BILD Business Directory here:</p>
         <p style="margin:0 0 14px"><a href="${site}/directory" style="color:#C8861A;font-weight:bold;font-size:14px;text-decoration:underline">${site}/directory</a></p>
@@ -245,10 +245,10 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
     <div style="padding:26px 28px 0">
       <div style="background:#1a1a1a;border:1px solid #3a3222;border-radius:14px;padding:22px">
         <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">The BILD Business Directory</p>
-        <p style="color:#F4F1EC;font-family:Georgia,serif;font-size:20px;margin:0 0 10px">Our community's go-to list</p>
+        <p style="color:#F4F1EC;font-family:Georgia,serif;font-size:20px;margin:0 0 10px">Our network's go-to list</p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.6;margin:0 0 14px">
           Before you ask the group for a recommendation, look here first. Every business is run by someone in this
-          community, and every listing is checked by a BILD admin before it goes live.
+          network, and every listing is checked by a BILD admin before it goes live.
         </p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.6;margin:0 0 18px">
           Lawyers, accountants, caterers, jewellers, makeup artists, tutors, trades. People you can call knowing a
@@ -265,7 +265,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
           </tr>
         </table>
         <p style="color:#6f6a60;font-size:12px;line-height:1.5;margin:14px 0 0">
-          Run your own business? Get it in front of the whole community, where people are already looking for
+          Run your own business? Get it in front of the whole network, where people are already looking for
           someone they can trust.
         </p>
       </div>
@@ -274,8 +274,8 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
   // The grey line the inbox shows beside the subject. Without one, clients take
   // whatever text comes first, which here would be "WELCOME TO BILD".
   const preheader = manualAdd
-    ? 'We are adding you to the WhatsApp community, plus what is coming up next.'
-    : 'Five quick steps to join the WhatsApp community, plus what is coming up next.'
+    ? 'We are adding you to the WhatsApp group, plus what is coming up next.'
+    : 'Five quick steps to join the WhatsApp group, plus what is coming up next.'
 
   const html = `
   <div style="display:none;max-height:0;overflow:hidden;opacity:0">${preheader}</div>
@@ -295,7 +295,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
       <p style="color:#6f6a60;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 12px;text-align:center">Also worth a look</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
         <tr><td style="padding:9px 0;border-bottom:1px solid #2a2a2a;color:#a8a296;font-size:13.5px">📸&nbsp; <a href="${site}/photo-vault" style="color:#C8861A;text-decoration:none;font-weight:bold">Photo Vault</a> &ndash; every event, every year</td></tr>
-        <tr><td style="padding:9px 0;color:#a8a296;font-size:13.5px">🎬&nbsp; <a href="${site}/faces-of-bild" style="color:#C8861A;text-decoration:none;font-weight:bold">Faces of BILD</a> &ndash; the people behind the community</td></tr>
+        <tr><td style="padding:9px 0;color:#a8a296;font-size:13.5px">🎬&nbsp; <a href="${site}/faces-of-bild" style="color:#C8861A;text-decoration:none;font-weight:bold">Faces of BILD</a> &ndash; the people behind BILD</td></tr>
       </table>
     </div>
     <div style="padding:18px 28px 26px;text-align:center">
@@ -340,15 +340,15 @@ export async function sendAbandonedJoinReminder(opts: { to: string; name?: strin
     ? `
       <p style="margin:0 0 16px">Hi ${first} 💕 It's Truna from BILD.</p>
       <p style="margin:0 0 16px">I noticed you started your BILD membership application but didn't quite get to the end, so I just wanted to personally check in and see if you had any problems completing the form, or if there was anything that wasn't clear?</p>
-      <p style="margin:0 0 16px">For anyone new to BILD, we're a really friendly and supportive community of British Indians living in Dubai. We know that moving away from home and building a new circle isn't always easy, whether you've just arrived or have been here for years, and that's really at the heart of what BILD is about. ❤️</p>
-      <p style="margin:0 0 16px">As a member, there are lots of ways to get involved, from our WhatsApp community and meeting like minded people, to our events and activities throughout the year. We also have our BILD Business Directory for anyone who runs a business.</p>
+      <p style="margin:0 0 16px">For anyone new to BILD, we're a really friendly and supportive network of British Indians living in Dubai. We know that moving away from home and building a new circle isn't always easy, whether you've just arrived or have been here for years, and that's really at the heart of what BILD is about. ❤️</p>
+      <p style="margin:0 0 16px">As a member, there are lots of ways to get involved, from our WhatsApp groups and meeting like minded people, to our events and activities throughout the year. We also have our BILD Business Directory for anyone who runs a business.</p>
       <p style="margin:0 0 16px">If you did come across anything that made the application difficult or unclear, I'd really appreciate you letting me know. We're always looking at ways to improve the process and your feedback genuinely helps. And if you simply didn't get around to completing it, you're very welcome to ${continueLink} whenever you're ready. 😊</p>
       <p style="margin:0">Hope to see you in BILD soon!<br>Truna 💕</p>`
     : `
       <p style="margin:0 0 16px">Hi ${first} 😊 It's Truna from BILD.</p>
       <p style="margin:0 0 16px">I noticed you started your BILD membership application but didn't quite get to the end, so I just wanted to personally check in and see if you had any problems completing the form, or if there was anything that wasn't clear?</p>
-      <p style="margin:0 0 16px">For anyone new to BILD, we're a really friendly and supportive community of British Indians living in Dubai. We know that moving away from home and building a new circle isn't always easy, whether you've just arrived or have been here for years, and that's really at the heart of what BILD is about.</p>
-      <p style="margin:0 0 16px">As a member, there are lots of ways to get involved, from our WhatsApp community and meeting like minded people, to our events and activities throughout the year. We also have our BILD Business Directory for anyone who runs a business.</p>
+      <p style="margin:0 0 16px">For anyone new to BILD, we're a really friendly and supportive network of British Indians living in Dubai. We know that moving away from home and building a new circle isn't always easy, whether you've just arrived or have been here for years, and that's really at the heart of what BILD is about.</p>
+      <p style="margin:0 0 16px">As a member, there are lots of ways to get involved, from our WhatsApp groups and meeting like minded people, to our events and activities throughout the year. We also have our BILD Business Directory for anyone who runs a business.</p>
       <p style="margin:0 0 16px">If you did come across anything that made the application difficult or unclear, I'd really appreciate you letting me know. We're always looking at ways to improve the process and your feedback genuinely helps. And if you simply didn't get around to completing it, you're very welcome to ${continueLink} whenever you're ready. 😊</p>
       <p style="margin:0">Hope to see you in BILD soon!<br>Truna</p>`
 
@@ -381,7 +381,7 @@ export async function sendInviteReissuedEmail(opts: { to: string; name?: string;
       </p>
     `,
     ctaUrl: opts.inviteUrl,
-    ctaLabel: 'Join the BILD WhatsApp community',
+    ctaLabel: 'Join the BILD WhatsApp group',
     contact: 'admin@bild.ae',
   })
   await sendResendEmail(opts.to, 'Your fresh BILD WhatsApp invite', html, 'Invite reissued')
@@ -2654,7 +2654,7 @@ export async function sendBusinessReviewNotification(opts: {
   const html = bizEmailShell({
     heading: `You have a new BILD review ⭐`,
     bodyHtml: `
-      <p>Someone from the BILD community has left a review for <strong>${esc(opts.businessName)}</strong>, and it is now live on your directory profile.</p>
+      <p>Someone from the BILD family has left a review for <strong>${esc(opts.businessName)}</strong>, and it is now live on your directory profile.</p>
       <div style="background:#1a1a1a;border-radius:12px;padding:16px 18px;margin:16px 0">
         <p style="margin:0 0 8px;font-size:16px">${stars}</p>
         <p style="margin:0;font-style:italic;color:#cfcabd">&ldquo;${esc(opts.quote)}&rdquo;</p>
@@ -2705,7 +2705,7 @@ export async function sendEventReviewRequest(opts: {
       <p>Thank you for coming to <strong>${esc(opts.eventTitle)}</strong>. We hope you had a good evening and met
       some people worth knowing.</p>
       <p>If you enjoyed it, would you mind leaving us a line on Google? It genuinely helps other British Indians
-      in Dubai find the community, and it is the main way people decide whether we are worth turning up to.</p>
+      in Dubai find BILD, and it is the main way people decide whether we are worth turning up to.</p>
       <p style="text-align:center;margin:26px 0">
         <a href="${esc(opts.reviewUrl)}"
            style="display:inline-block;background:#C8861A;color:#ffffff;text-decoration:none;font-weight:700;

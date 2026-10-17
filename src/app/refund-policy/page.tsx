@@ -49,7 +49,7 @@ export default async function RefundPolicyPage() {
               </li>
               <li>
                 If your membership is suspended or terminated because you have breached the Terms and Conditions or
-                the Community Rules, the membership fee is not refunded.
+                the Code of Conduct, the membership fee is not refunded.
               </li>
               <li>
                 If you choose to leave BILD, or ask for your data to be deleted, the membership fee is not refunded.
@@ -97,7 +97,7 @@ export default async function RefundPolicyPage() {
             <p>
               No refund is given where you are refused entry to, or removed from, an event because of your conduct,
               because you cannot prove your identity or membership, or because you breached the Terms and Conditions
-              or the Community Rules.
+              or the Code of Conduct.
             </p>
 
             <h3>2.6 Circumstances beyond BILD&rsquo;s control</h3>

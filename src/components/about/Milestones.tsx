@@ -14,7 +14,7 @@ export default async function Milestones() {
         <Reveal className="mb-12">
           <span className="text-gold-400 font-semibold text-sm uppercase tracking-widest">How we got here</span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-white mt-3">
-            Seven years, one community
+            Seven years, one family
           </h2>
         </Reveal>
 
