@@ -209,7 +209,7 @@ export default function HeroPhoto({
             </h1>
 
             <p className="text-gray-300 text-base sm:text-lg leading-relaxed max-w-xl mb-8 sm:mb-9">
-              Friendships, family days, cultural nights and sporting activities, a professional
+              Friendships, family days, social nights and sporting activities, a professional
               network, and a directory that backs British Indian business.
             </p>
 
