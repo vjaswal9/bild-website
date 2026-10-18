@@ -1,6 +1,7 @@
 'use client'
 
 import { ELIGIBILITY_CONFIRMATION } from '@/lib/eligibility'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { ShieldCheck, XCircle, ArrowRight, ArrowLeft, Lock, Check, Pencil, Clock, Save } from 'lucide-react'
@@ -301,7 +302,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
                 <h2 className="text-white font-display text-2xl font-bold mb-4 text-center">Your BILD Membership ❤️</h2>
                 <p className="text-gray-300 text-sm leading-relaxed mb-4">
                   Welcome to the BILD family! <span className="text-gold-400 font-semibold">A membership fee of 50 AED</span> gives you access to our growing network
-                  of 2,000+ members, including 50+ WhatsApp groups, British Indian events and celebrations,
+                  of 2,000+ members, including {SHOW_SPECIALIST_WHATSAPP_GROUPS ? '50+ WhatsApp groups, ' : ''}British Indian events and celebrations,
                   networking opportunities, our BILD Business Directory and much more.
                 </p>
                 <p className="text-gray-300 text-sm leading-relaxed mb-4">

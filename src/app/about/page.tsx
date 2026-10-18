@@ -10,6 +10,7 @@ import Milestones from '@/components/about/Milestones'
 import { getGoogleReviews } from '@/lib/google-reviews'
 import { btnPrimary } from '@/lib/ui'
 import { isLivePath } from '@/lib/launch'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 
 // Regenerated on the same timer as every other page that shows the Google
 // rating badge. Left fully static, these pages froze their review count at
@@ -20,8 +21,9 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   // Just 'About': the title template already appends '| BILD'.
   title: 'About',
-  description:
-    `The story of BILD (British Indians Living in Dubai): founded in Dubai in 2019 by Truna Jaswal, now 2,000+ members, ${SITE_CONFIG.whatsappCommunities} WhatsApp groups and over 100 events. A licensed UAE business.`,
+  description: SHOW_SPECIALIST_WHATSAPP_GROUPS
+    ? `The story of BILD (British Indians Living in Dubai): founded in Dubai in 2019 by Truna Jaswal, now 2,000+ members, ${SITE_CONFIG.whatsappCommunities} WhatsApp groups and over 100 events. A licensed UAE business.`
+    : 'The story of BILD (British Indians Living in Dubai): founded in Dubai in 2019 by Truna Jaswal, now 2,000+ members and over 100 events. A licensed UAE business.',
 }
 
 // The figures the story rests on. Kept together so they cannot drift apart
@@ -29,7 +31,7 @@ export const metadata: Metadata = {
 const facts = [
   { value: '2019', label: 'Founded in Dubai' },
   { value: '2,000+', label: 'Members across the UAE' },
-  { value: String(SITE_CONFIG.whatsappCommunities), label: 'Specialist WhatsApp groups' },
+  ...(SHOW_SPECIALIST_WHATSAPP_GROUPS ? [{ value: String(SITE_CONFIG.whatsappCommunities), label: 'Specialist WhatsApp groups' }] : []),
   { value: '100+', label: 'Events hosted since 2019' },
 ]
 
@@ -66,14 +68,15 @@ export default async function AboutPage() {
             </p>
             <p>
               What began as a few people meeting up and one group chat has grown into a network of{' '}
-              <strong className="text-charcoal-800">more than 2,000 members</strong>, {SITE_CONFIG.whatsappCommunities} specialist WhatsApp groups
-              and over a hundred events. It is now a licensed Dubai business, and it is still run on the same
+              <strong className="text-charcoal-800">more than 2,000 members</strong>
+              {SHOW_SPECIALIST_WHATSAPP_GROUPS ? `, ${SITE_CONFIG.whatsappCommunities} specialist WhatsApp groups` : ''}
+              {' '}and over a hundred events. It is now a licensed Dubai business, and it is still run on the same
               principle it started on: bring people together, and the rest follows.
             </p>
           </Reveal>
 
           {/* ---- The numbers, as evidence rather than decoration ---- */}
-          <Reveal className="grid grid-cols-2 md:grid-cols-4 gap-px bg-gold-200 border border-gold-200 mt-12" stagger={0.08} y={16}>
+          <Reveal className={`grid gap-px bg-gold-200 border border-gold-200 mt-12 ${facts.length >= 4 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'}`} stagger={0.08} y={16}>
             {facts.map(f => (
               <div key={f.label} className="bg-cream px-4 py-6 text-center">
                 <p className="font-display text-3xl font-bold text-gold-600 leading-none">{f.value}</p>
@@ -97,8 +100,9 @@ export default async function AboutPage() {
             <article className="prose prose-lg prose-charcoal max-w-none">
               <h2>What we do</h2>
               <p>
-                BILD runs a calendar of events across Dubai and the wider UAE, alongside the WhatsApp groups where
-                most of the day-to-day life of BILD actually happens.
+                {SHOW_SPECIALIST_WHATSAPP_GROUPS
+                  ? 'BILD runs a calendar of events across Dubai and the wider UAE, alongside the WhatsApp groups where most of the day-to-day life of BILD actually happens.'
+                  : 'BILD runs a calendar of events across Dubai and the wider UAE.'}
               </p>
               <ul>
                 <li>
@@ -114,10 +118,12 @@ export default async function AboutPage() {
                   <strong>Family-friendly days</strong>: beach walks at Kite Beach and events built for everyone from
                   grandparents to toddlers.
                 </li>
+                {SHOW_SPECIALIST_WHATSAPP_GROUPS && (
                 <li>
                   <strong>Specialist groups</strong>: {SITE_CONFIG.whatsappCommunities} of them, covering schools and parenting, property, food,
                   business, buying and selling, book clubs, walking, padel and golf.
                 </li>
+                )}
                 {isLivePath('/directory') && (
                 <li>
                   <strong>The Business Directory</strong>: British Indian businesses and professionals across the UAE

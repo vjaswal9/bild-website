@@ -19,6 +19,7 @@ import { btnOutline } from '@/lib/ui'
 import { getPublishedEvents, getRemainingCapacities } from '@/lib/events-server'
 import { isPastEvent } from '@/lib/events'
 import { LAUNCH_MODE, isLivePath } from '@/lib/launch'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 import { ELIGIBILITY_SUMMARY } from '@/lib/eligibility'
 import { getGoogleReviews } from '@/lib/google-reviews'
 
@@ -109,7 +110,7 @@ export default async function Home() {
               faqs={[
                 {
                   q: 'What is BILD?',
-                  a: 'BILD (British Indians Living in Dubai) is a membership network for people of British Indian heritage living in the UAE, connecting members through cultural celebrations, social events, business networking, and private WhatsApp groups.',
+                  a: 'BILD (British Indians Living in Dubai) is a membership network for people of British Indian heritage living in the UAE, connecting members through cultural celebrations, social events, business networking' + (SHOW_SPECIALIST_WHATSAPP_GROUPS ? ', and private WhatsApp groups.' : '.'),
                 },
                 {
                   q: 'Who can join BILD?',
@@ -121,7 +122,7 @@ export default async function Home() {
                 },
                 {
                   q: 'How do I get involved?',
-                  a: 'Join BILD to get access to events, WhatsApp groups, and the Business Directory. You can apply on our Join page, where the membership fee is shown before you pay.',
+                  a: `Join BILD to get access to events${SHOW_SPECIALIST_WHATSAPP_GROUPS ? ', WhatsApp groups,' : ''} and the Business Directory. You can apply on our Join page, where the membership fee is shown before you pay.`,
                 },
                 {
                   q: 'Does BILD have a business directory?',

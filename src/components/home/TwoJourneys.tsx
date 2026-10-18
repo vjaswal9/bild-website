@@ -4,6 +4,7 @@ import { Users, Store, ArrowRight } from 'lucide-react'
 import Reveal from '@/components/anim/Reveal'
 import { btnPrimary } from '@/lib/ui'
 import { isLivePath } from '@/lib/launch'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 
 // Two different people arrive on this page: someone looking for a community,
 // and a business looking for customers. They want different things and pay
@@ -31,8 +32,9 @@ export default function TwoJourneys() {
               I want to join BILD
             </h3>
             <p className="text-charcoal-600 text-sm leading-relaxed mb-6 flex-1">
-              For British Indians living in the UAE. Events, family days, cultural celebrations and {SITE_CONFIG.whatsappCommunities} specialist
-              WhatsApp groups.
+              {SHOW_SPECIALIST_WHATSAPP_GROUPS
+                ? `For British Indians living in the UAE. Events, family days, cultural celebrations and ${SITE_CONFIG.whatsappCommunities} specialist WhatsApp groups.`
+                : 'For British Indians living in the UAE. Events, family days and cultural celebrations.'}
             </p>
             <Link href="/join" className={`${btnPrimary} w-full py-3.5 text-base`}>
               Join BILD <ArrowRight size={18} />

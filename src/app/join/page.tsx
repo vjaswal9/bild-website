@@ -4,11 +4,14 @@ import JoinForm from '@/components/join/JoinForm'
 import PageHero from '@/components/ui/PageHero'
 import GoogleRatingBadge from '@/components/ui/GoogleRatingBadge'
 import { getGoogleReviews } from '@/lib/google-reviews'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 
 export const metadata: Metadata = {
   // Just 'Join': the title template already appends '| BILD'.
   title: 'Join',
-  description: 'Join BILD for a one-off 50 AED membership fee and get access to British Indian events, WhatsApp groups, and the business directory in Dubai and the UAE.',
+  description: SHOW_SPECIALIST_WHATSAPP_GROUPS
+    ? 'Join BILD for a one-off 50 AED membership fee and get access to British Indian events, WhatsApp groups, and the business directory in Dubai and the UAE.'
+    : 'Join BILD for a one-off 50 AED membership fee and get access to British Indian events and the business directory in Dubai and the UAE.',
 }
 
 export const dynamic = 'force-dynamic'

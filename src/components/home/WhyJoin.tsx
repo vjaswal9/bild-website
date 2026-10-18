@@ -4,6 +4,7 @@ import { Heart, Handshake, TrendingUp } from 'lucide-react'
 import { btnPrimary } from '@/lib/ui'
 import Reveal from '@/components/anim/Reveal'
 import TiltCard from '@/components/anim/TiltCard'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 
 // Three pillars rather than a flat list of benefits. A long list gives every
 // feature equal weight and makes an established network read like a WhatsApp
@@ -13,9 +14,12 @@ const pillars = [
     icon: Heart,
     name: 'Belong',
     promise: 'Your people, already here.',
-    description:
-      `Friendships that outlast the group chat. ${SITE_CONFIG.whatsappCommunities} WhatsApp groups, social nights, cultural celebrations and family days, whether you landed last month or a decade ago.`,
-    points: [`${SITE_CONFIG.whatsappCommunities} WhatsApp groups`, 'Cultural celebrations', 'Family-friendly events'],
+    description: SHOW_SPECIALIST_WHATSAPP_GROUPS
+      ? `Friendships that outlast the group chat. ${SITE_CONFIG.whatsappCommunities} WhatsApp groups, social nights, cultural celebrations and family days, whether you landed last month or a decade ago.`
+      : 'Friendships that outlast the group chat. Social nights, cultural celebrations and family days, whether you landed last month or a decade ago.',
+    points: SHOW_SPECIALIST_WHATSAPP_GROUPS
+      ? [`${SITE_CONFIG.whatsappCommunities} WhatsApp groups`, 'Cultural celebrations', 'Family-friendly events']
+      : ['Social nights', 'Cultural celebrations', 'Family-friendly events'],
   },
   {
     icon: Handshake,

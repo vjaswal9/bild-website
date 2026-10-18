@@ -1,6 +1,7 @@
 'use client'
 
 import { ELIGIBILITY_SUMMARY } from '@/lib/eligibility'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -13,7 +14,7 @@ const faqs = [
   },
   {
     q: 'How much does membership cost?',
-    a: 'Membership is a one-off 50 AED fee: one simple payment for access to all BILD events, the member directory, WhatsApp groups, and networking opportunities.',
+    a: `Membership is a one-off 50 AED fee: one simple payment for access to all BILD events, the member directory,${SHOW_SPECIALIST_WHATSAPP_GROUPS ? ' WhatsApp groups,' : ''} and networking opportunities.`,
   },
   {
     q: 'What happens after I sign up?',

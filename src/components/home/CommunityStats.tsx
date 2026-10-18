@@ -1,6 +1,7 @@
 import Reveal from '@/components/anim/Reveal'
 import { SITE_CONFIG } from '@/data/config'
 import CountUp from '@/components/anim/CountUp'
+import { SHOW_SPECIALIST_WHATSAPP_GROUPS } from '@/lib/site-flags'
 
 // The headline number is the community itself. Everything else is evidence
 // that it works, so the supporting stats sit in a smaller row underneath
@@ -8,11 +9,14 @@ import CountUp from '@/components/anim/CountUp'
 // Groups" at the same size as "2,000+ members" reads like a group chat, not
 // like a network.
 const supporting = [
-  {
-    value: String(SITE_CONFIG.whatsappCommunities),
-    label: 'Specialist WhatsApp groups',
-    sublabel: 'Parenting, property, food, business and more',
-  },
+  ...(SHOW_SPECIALIST_WHATSAPP_GROUPS
+    ? [{
+        value: String(SITE_CONFIG.whatsappCommunities),
+        suffix: undefined as string | undefined,
+        label: 'Specialist WhatsApp groups',
+        sublabel: 'Parenting, property, food, business and more',
+      }]
+    : []),
   {
     value: '100',
     suffix: '+',
@@ -58,7 +62,7 @@ export default function CommunityStats() {
         </Reveal>
 
         {/* Supporting evidence */}
-        <Reveal className="grid grid-cols-1 sm:grid-cols-3 gap-6" stagger={0.12} y={28}>
+        <Reveal className={`grid grid-cols-1 gap-6 ${supporting.length >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2 max-w-2xl mx-auto'}`} stagger={0.12} y={28}>
           {supporting.map(stat => (
             <div
               key={stat.label}
