@@ -27,6 +27,8 @@ const allLinks: NavLink[] = [
 
 // During soft launch, only show links to pages that are actually live.
 const links = allLinks.filter((l) => isLivePath(l.href))
+// "List Your Business" leads into the directory, so it goes when the directory does.
+const directoryLive = isLivePath('/directory')
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -93,9 +95,11 @@ export default function Navbar() {
               )}
             </Link>
           ))}
-          <Link href="/directory/submit" className={`${btnPrimary} ml-2 px-4 py-2 text-sm`}>
-            List Your Business
-          </Link>
+          {directoryLive && (
+            <Link href="/directory/submit" className={`${btnPrimary} ml-2 px-4 py-2 text-sm`}>
+              List Your Business
+            </Link>
+          )}
           {!hideJoinButton && (
             <Link href="/join" className={`${btnPrimary} px-4 py-2 text-sm`}>
               Join BILD ⭐
@@ -142,13 +146,15 @@ export default function Navbar() {
               Join BILD ⭐
             </Link>
           )}
-          <Link
-            href="/directory/submit"
-            onClick={() => setOpen(false)}
-            className={`${btnPrimary} px-4 py-2.5 text-base`}
-          >
-            List Your Business
-          </Link>
+          {directoryLive && (
+            <Link
+              href="/directory/submit"
+              onClick={() => setOpen(false)}
+              className={`${btnPrimary} px-4 py-2.5 text-base`}
+            >
+              List Your Business
+            </Link>
+          )}
           {/* Fix 11 social icons in mobile menu */}
           <div className="flex gap-4 pt-3 pb-1 border-t border-gold-100 mt-1">
             <a href={SITE_CONFIG.instagramUrl} target="_blank" rel="noopener noreferrer"

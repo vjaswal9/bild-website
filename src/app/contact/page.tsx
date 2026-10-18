@@ -7,6 +7,7 @@ import GoogleRatingBadge from '@/components/ui/GoogleRatingBadge'
 import Reveal from '@/components/anim/Reveal'
 import { getGoogleReviews } from '@/lib/google-reviews'
 import { SITE_CONFIG } from '@/data/config'
+import { isLivePath } from '@/lib/launch'
 
 // Same timer as every other page showing the Google rating badge, so the
 // review count never disagrees between pages.
@@ -65,6 +66,8 @@ const enquiries = [
 
 export default async function ContactPage() {
   const googleReviews = await getGoogleReviews()
+  // "Listing your business" goes while the directory is switched off.
+  const visibleRoutes = routes.filter(r => isLivePath(r.href))
 
   return (
     <>
@@ -129,8 +132,8 @@ export default async function ContactPage() {
             </p>
           </Reveal>
 
-          <Reveal className="grid grid-cols-1 md:grid-cols-3 gap-5" stagger={0.1} y={24}>
-            {routes.map(r => {
+          <Reveal className={`grid grid-cols-1 gap-5 ${visibleRoutes.length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-3xl mx-auto'}`} stagger={0.1} y={24}>
+            {visibleRoutes.map(r => {
               const Icon = r.icon
               return (
                 <div key={r.title} className="flex flex-col bg-white rounded-2xl border border-gold-200 p-6">

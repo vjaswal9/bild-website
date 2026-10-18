@@ -21,11 +21,28 @@ async function get(path) {
 
 // 1. Every public page loads, has a title, and has exactly one <h1>.
 const pages = [
-  '/', '/events', '/directory', '/join', '/about', '/contact', '/photo-vault',
+  '/', '/events', '/join', '/about', '/contact', '/photo-vault',
   '/knowledge-base', '/faces-of-bild', '/testimonials', '/testimonials/submit',
-  '/directory/submit', '/directory/get-featured', '/terms', '/privacy',
-  '/refund-policy', '/code-of-conduct',
+  '/terms', '/privacy', '/refund-policy', '/code-of-conduct',
 ]
+
+// The Business Directory can be switched off temporarily (DIRECTORY_PUBLISHED
+// in src/lib/launch.ts). When it is, its public pages must answer 503 with the
+// "temporarily unavailable" page; when it is on, they are checked like any
+// other page. The one-time links businesses hold are checked further down
+// either way.
+const directoryPages = ['/directory', '/directory/submit', '/directory/get-featured']
+const directoryOff = (await get('/directory')).status === 503
+if (directoryOff) {
+  for (const p of directoryPages) {
+    const r = await get(p)
+    ok(r.status === 503 && /temporarily unavailable/.test(r.text) && !!r.headers.get('retry-after'), `${p}: directory is switched off (503, "temporarily unavailable", Retry-After)`)
+  }
+  const sm = await get('/sitemap.xml')
+  ok(!/\/directory/.test(sm.text), 'sitemap lists no directory pages while it is switched off')
+} else {
+  pages.push(...directoryPages)
+}
 for (const p of pages) {
   const r = await get(p)
   const h1s = (r.text.match(/<h1[\s>]/g) || []).length

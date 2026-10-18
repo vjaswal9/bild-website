@@ -18,7 +18,7 @@ import Reveal from '@/components/anim/Reveal'
 import { btnOutline } from '@/lib/ui'
 import { getPublishedEvents, getRemainingCapacities } from '@/lib/events-server'
 import { isPastEvent } from '@/lib/events'
-import { LAUNCH_MODE } from '@/lib/launch'
+import { LAUNCH_MODE, isLivePath } from '@/lib/launch'
 import { ELIGIBILITY_SUMMARY } from '@/lib/eligibility'
 import { getGoogleReviews } from '@/lib/google-reviews'
 
@@ -95,7 +95,7 @@ export default async function Home() {
         </section>
       )}
 
-      <DirectoryPromo />
+      {isLivePath('/directory') && <DirectoryPromo />}
       <FindYourPeople />
       <FounderMessage />
 

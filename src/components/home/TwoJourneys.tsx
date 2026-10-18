@@ -3,6 +3,7 @@ import { SITE_CONFIG } from '@/data/config'
 import { Users, Store, ArrowRight } from 'lucide-react'
 import Reveal from '@/components/anim/Reveal'
 import { btnPrimary } from '@/lib/ui'
+import { isLivePath } from '@/lib/launch'
 
 // Two different people arrive on this page: someone looking for a community,
 // and a business looking for customers. They want different things and pay
@@ -19,7 +20,7 @@ export default function TwoJourneys() {
           </h2>
         </Reveal>
 
-        <Reveal className="grid grid-cols-1 md:grid-cols-2 gap-6" stagger={0.12} y={28}>
+        <Reveal className={`grid grid-cols-1 gap-6 ${isLivePath('/directory') ? 'md:grid-cols-2' : 'max-w-md mx-auto'}`} stagger={0.12} y={28}>
 
           {/* Member journey */}
           <div className="flex flex-col bg-white rounded-2xl border border-gold-200 p-8 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
@@ -38,7 +39,8 @@ export default function TwoJourneys() {
             </Link>
           </div>
 
-          {/* Business journey */}
+          {/* Business journey: goes while the directory is switched off */}
+          {isLivePath('/directory') && (
           <div className="flex flex-col bg-white rounded-2xl border border-gold-200 p-8 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
             <div className="w-12 h-12 rounded-xl bg-charcoal-800 flex items-center justify-center mb-5">
               <Store size={24} className="text-gold-400" />
@@ -54,6 +56,7 @@ export default function TwoJourneys() {
               List Your Business <ArrowRight size={18} />
             </Link>
           </div>
+          )}
 
         </Reveal>
 

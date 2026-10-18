@@ -39,8 +39,39 @@ export function isComingSoonPath(pathname: string): boolean {
   return COMING_SOON_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
 }
 
+// ---- Business Directory publish switch ----
+//
+// Set to false to take the public Business Directory offline temporarily: the
+// directory page, every business profile, and the "list your business" and
+// "get featured" pages show a "temporarily unavailable" page, and every link
+// and promotion that points at them disappears from the menu, footer, home
+// page, About and Contact pages and the sitemap. Nothing is deleted. Set it
+// back to true and deploy to publish everything again.
+//
+// The one-time links already sent to businesses (pay, renew or upload
+// documents, manage, Google reviews) are NOT hidden: a business partway
+// through paying, or uploading the documents it was asked for, must still be
+// able to finish. This is why the list below exists instead of hiding every
+// path under /directory.
+export const DIRECTORY_PUBLISHED = false
+
+const DIRECTORY_PRIVATE_PREFIXES = [
+  '/directory/pay',
+  '/directory/renew',
+  '/directory/manage',
+  '/directory/feature',
+  '/directory/google-reviews',
+]
+
+export function isHiddenDirectoryPath(pathname: string): boolean {
+  if (DIRECTORY_PUBLISHED) return false
+  if (pathname !== '/directory' && !pathname.startsWith('/directory/')) return false
+  return !DIRECTORY_PRIVATE_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))
+}
+
 // Is this public path live right now? (Admin and API are handled separately.)
 export function isLivePath(pathname: string): boolean {
+  if (isHiddenDirectoryPath(pathname)) return false
   if (!LAUNCH_MODE) return true
   if (pathname === '/') return true
   return LIVE_PATHS.some(p => p !== '/' && (pathname === p || pathname.startsWith(p + '/')))

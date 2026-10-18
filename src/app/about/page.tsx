@@ -9,6 +9,7 @@ import FounderMessage from '@/components/home/FounderMessage'
 import Milestones from '@/components/about/Milestones'
 import { getGoogleReviews } from '@/lib/google-reviews'
 import { btnPrimary } from '@/lib/ui'
+import { isLivePath } from '@/lib/launch'
 
 // Regenerated on the same timer as every other page that shows the Google
 // rating badge. Left fully static, these pages froze their review count at
@@ -117,11 +118,13 @@ export default async function AboutPage() {
                   <strong>Specialist groups</strong>: {SITE_CONFIG.whatsappCommunities} of them, covering schools and parenting, property, food,
                   business, buying and selling, book clubs, walking, padel and golf.
                 </li>
+                {isLivePath('/directory') && (
                 <li>
                   <strong>The Business Directory</strong>: British Indian businesses and professionals across the UAE
                   and UK, open to members and non-members alike.{' '}
                   <Link href="/directory">Browse the directory</Link>.
                 </li>
+                )}
               </ul>
 
               <h2>Our values</h2>
@@ -166,15 +169,17 @@ export default async function AboutPage() {
             Come and find your people
           </h2>
           <p className="text-gray-300 text-lg mb-8">
-            Join as a member, or put your business in front of the network.
+            {isLivePath('/directory') ? 'Join as a member, or put your business in front of the network.' : 'Join as a member of the network.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/join" className={`${btnPrimary} px-8 py-3.5 text-base`}>
               Join BILD ⭐
             </Link>
-            <Link href="/directory/submit" className={`${btnPrimary} px-8 py-3.5 text-base`}>
-              List Your Business
-            </Link>
+            {isLivePath('/directory') && (
+              <Link href="/directory/submit" className={`${btnPrimary} px-8 py-3.5 text-base`}>
+                List Your Business
+              </Link>
+            )}
           </div>
         </div>
       </section>

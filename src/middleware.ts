@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
-import { isLivePath, isComingSoonPath } from '@/lib/launch'
+import { isLivePath, isComingSoonPath, isHiddenDirectoryPath } from '@/lib/launch'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -17,6 +17,16 @@ export async function middleware(request: NextRequest) {
       if (!ok) return NextResponse.redirect(new URL('/admin/login', request.url))
     }
     return NextResponse.next()
+  }
+
+  // The Business Directory is switched off (DIRECTORY_PUBLISHED in
+  // src/lib/launch.ts). 503 with Retry-After tells search engines this is
+  // temporary, so pages are not dropped from their index as if they were gone.
+  if (isHiddenDirectoryPath(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/directory-unavailable'
+    url.search = ''
+    return NextResponse.rewrite(url, { status: 503, headers: { 'Retry-After': '86400' } })
   }
 
   if (isLivePath(pathname)) return NextResponse.next()
@@ -58,5 +68,8 @@ export const config = {
   // than showing the placeholder. Setting LAUNCH_MODE = false needs no change
   // here. Both forms of each prefix are listed so the bare path matches as
   // well as its children.
-  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*'],
+  // /directory is here only while the directory is switched off (see
+  // DIRECTORY_PUBLISHED in src/lib/launch.ts). Remove these two when it is back,
+  // so the directory's pages cost no middleware time again.
+  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*', '/directory', '/directory/:path*'],
 }
