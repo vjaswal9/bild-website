@@ -238,6 +238,24 @@ export default async function TermsPage() {
               <a href="/refund-policy">Refund Policy</a>.
             </p>
 
+            <h3>8.2 Food, Beverages and Alcohol at Events</h3>
+            <ul>
+              <li>BILD is an events organiser. BILD does not sell, supply or serve alcohol.</li>
+              <li>Where an event includes a beverage package that contains alcohol, the alcohol is supplied and served
+                only by the licensed venue, under the venue&rsquo;s own licence and house rules. The ticket price
+                includes the cost of the beverage package supplied by the venue.</li>
+              <li>Alcohol is served only to guests aged 21 or over. Guests must show valid photo ID on request. The
+                venue and its staff may refuse service at their discretion, including to any guest who appears
+                intoxicated.</li>
+              <li>Guests who are under 21, or who do not drink, should choose a package that does not include alcohol.
+                A guest who is refused alcohol because of age, missing ID or intoxication is not entitled to a refund,
+                exchange or credit for that part of the package.</li>
+              <li>Guests must follow UAE law, the venue&rsquo;s licensing conditions and the instructions of venue and
+                BILD staff. Guests may not bring their own alcohol. BILD or the venue may remove a guest who breaches
+                these rules, without refund.</li>
+              <li>BILD may blur or remove alcohol from photographs and videos it publishes.</li>
+            </ul>
+
             <h2>9. Business Directory</h2>
 <p>
               This section applies to every business listed, or applying to be listed, in the BILD Business Directory

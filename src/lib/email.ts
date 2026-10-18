@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/nextjs'
 import type { GuestEntry } from './events'
 import { originEstimateText } from './name-origin'
 import { googleCalendarUrl } from './calendar'
+import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
 
 // Escape user-supplied text before interpolating into HTML email bodies.
 function esc(value: string): string {
@@ -607,6 +608,12 @@ export async function sendEventConfirmation(opts: {
         .join('<br>')}</p>`
     : ''
 
+  // Beverage packages come from the venue's licensed outlet, so the booking
+  // email says so and reminds guests to bring ID (see src/lib/beverage-tickets.ts).
+  const beverageBlock = attendees.some(a => isBeveragePackage({ name: a.ticket }))
+    ? `<p style="color:#cfcabd;font-size:13px;line-height:1.5;margin:0 0 16px">Your package includes beverages served by ${esc(venuePossessive(opts.venue))} licensed outlet to guests aged ${DRINKING_AGE} and over. Please bring valid photo ID.</p>`
+    : ''
+
   const html = `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;background:#0E0E0E;border-radius:16px;overflow:hidden">
     <div style="padding:32px 28px">
@@ -624,6 +631,7 @@ export async function sendEventConfirmation(opts: {
         </p>` : ''}
         ${ticketsBlock}
         ${attendeesBlock}
+        ${beverageBlock}
         <p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 4px">Payment</p>
         ${paymentBlock}
         ${receiptLine}

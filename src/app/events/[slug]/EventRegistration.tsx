@@ -6,6 +6,7 @@ import { EventTicket, Dietary } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
 import { warnFromPartySize } from '@/lib/seating-fit'
+import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
 import WaitlistForm from './WaitlistForm'
 
 // One booking can hold this many people in total, across every package.
@@ -18,7 +19,7 @@ import WaitlistForm from './WaitlistForm'
 const MAX_TICKETS_PER_BOOKING = 20
 const errBorder = 'border-ruby-500 ring-1 ring-ruby-300'
 
-type MiniEvent = { id: string; slug: string; title: string }
+type MiniEvent = { id: string; slug: string; title: string; venue?: string | null }
 type Attendee = { name: string; title: string; dietary: Dietary; dietaryNote: string; age: string }
 
 // A child ticket asks for the child's age. Kept as a string in state so the
@@ -87,6 +88,8 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [tried, setTried] = useState(false)
+  // Ticked to confirm everyone on a beverages ticket is 21 or over.
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
 
   // Debounced: a check on every keystroke would hit the endpoint constantly
@@ -192,6 +195,10 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
 
   const count = (id: string) => attendeesByTicket[id]?.length || 0
   const totalTickets = tickets.reduce((s, t) => s + count(t.id), 0)
+  // Tickets that come with the venue's alcoholic beverage package: the notice
+  // shows whenever one is on offer, the age confirmation only once one is chosen.
+  const hasBeverage = tickets.some(t => isBeveragePackage(t))
+  const selectedBeverage = tickets.some(t => isBeveragePackage(t) && count(t.id) > 0)
   const subtotal = tickets.reduce((s, t) => s + t.price_aed * count(t.id), 0)
   const cardFee = cardFeeAed(subtotal)
   const grandTotal = subtotal + cardFee
@@ -234,6 +241,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     setError('')
     setTried(true)
     if (totalTickets === 0) return setError('Please add at least one ticket.')
+    if (selectedBeverage && !ageConfirmed) return setError(`Please confirm that every guest on a beverages ticket is aged ${DRINKING_AGE} or over.`)
 
     // Flatten to an ordered attendee list: [{ name, dietary, dietaryNote, ticketId }]
     const attendees: { name: string; title: string; dietary: Dietary; dietaryNote: string; ticketId: string; age: number | null }[] = []
@@ -390,6 +398,15 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
           <a href="mailto:events@bild.ae" className="text-gold-600 font-medium hover:underline">events@bild.ae</a> and we
           will sort it out for you.
         </p>
+      )}
+      {hasBeverage && (
+        <div className="mb-4 rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-charcoal-700">
+          <p>
+            <strong className="text-charcoal-800">Beverage packages:</strong> beverages are provided and served by{' '}
+            {venuePossessive(event.venue)} licensed outlet, not by BILD. Guests must be {DRINKING_AGE} or over and show
+            valid photo ID. Please choose the Soft Drinks package for anyone under {DRINKING_AGE} or who does not drink.
+          </p>
+        </div>
       )}
       <div className="space-y-3 mb-8">
         {tickets.map(t => (
@@ -641,6 +658,22 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
             <span>{money(grandTotal)} AED</span>
           </div>
         </div>
+      )}
+
+      {selectedBeverage && (
+        <label
+          htmlFor="age-confirm"
+          className={`mb-4 flex items-start gap-3 rounded-xl border p-4 text-sm text-charcoal-700 cursor-pointer ${tried && !ageConfirmed ? errBorder : 'border-stone-200'}`}
+        >
+          <input
+            id="age-confirm"
+            type="checkbox"
+            checked={ageConfirmed}
+            onChange={e => setAgeConfirmed(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-stone-300 text-gold-600 focus:ring-gold-500"
+          />
+          <span>I confirm that every guest on a beverages ticket is aged {DRINKING_AGE} or over.</span>
+        </label>
       )}
 
       {error && <p className="text-ruby-600 text-sm mb-4">{error}</p>}

@@ -310,7 +310,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
         )}
 
         {!isPast && (
-          <EventRegistration event={{ id: event.id, slug: event.slug, title: event.title }} tickets={tickets} soldOut={remaining != null && remaining <= 0} waitlistOpen={event.waitlist_open !== false} dietaryRequired={event.dietary_required} seatingEnabled={event.seating_enabled} tableSize={event.seats_per_table} />
+          <EventRegistration event={{ id: event.id, slug: event.slug, title: event.title, venue: event.venue }} tickets={tickets} soldOut={remaining != null && remaining <= 0} waitlistOpen={event.waitlist_open !== false} dietaryRequired={event.dietary_required} seatingEnabled={event.seating_enabled} tableSize={event.seats_per_table} />
         )}
 
         {isPast && gallery.length > 0 && <EventGallery items={gallery} />}
