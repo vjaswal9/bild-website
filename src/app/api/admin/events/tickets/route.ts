@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import { httpUrl } from '@/lib/validate'
+import { planTicketRename, type RenameRegistration, type RenameWaitlistEntry } from '@/lib/ticket-rename'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,9 +39,82 @@ export async function POST(req: NextRequest) {
   }
 
   if (b.id) {
+    const { data: existing, error: existingError } = await supabaseAdmin
+      .from('event_tickets')
+      .select('id, event_id, name')
+      .eq('id', b.id)
+      .maybeSingle()
+    if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 })
+    if (!existing) return NextResponse.json({ error: 'That ticket was not found.' }, { status: 404 })
+
+    // A rename also has to reach the bookings and waiting list that carry the
+    // old name (see src/lib/ticket-rename.ts). The bookings are changed FIRST
+    // and the ticket itself LAST: if anything fails part-way, the ticket still
+    // has its old name, so pressing Save again repeats the rename and finishes
+    // it. Changing the ticket first would leave a half-renamed event with no
+    // way for a second try to know what the old name was.
+    let updated = { bookings: 0, guests: 0, waitlist: 0 }
+    let ambiguous = 0
+    if (existing.name !== fields.name) {
+      const { data: siblings, error: siblingsError } = await supabaseAdmin
+        .from('event_tickets')
+        .select('id, name')
+        .eq('event_id', existing.event_id)
+      if (siblingsError) return NextResponse.json({ error: siblingsError.message }, { status: 500 })
+      const others = (siblings || []).filter(t => String(t.id) !== String(existing.id))
+      // Two tickets with one name could not be told apart by anything that
+      // looks tickets up by name, so a rename may not create that.
+      if (others.some(t => t.name === fields.name)) {
+        return NextResponse.json({ error: 'Another ticket on this event already has that name.' }, { status: 400 })
+      }
+
+      const { data: regs, error: regsError } = await supabaseAdmin
+        .from('event_registrations')
+        .select('id, ticket_id, ticket_name, guest_names')
+        .eq('event_id', existing.event_id)
+      if (regsError) return NextResponse.json({ error: regsError.message }, { status: 500 })
+
+      // Older databases may not have the waiting-list ticket column yet; the
+      // rename simply has nothing to carry there.
+      const { data: waits, error: waitsError } = await supabaseAdmin
+        .from('event_waitlist')
+        .select('id, ticket_preferences')
+        .eq('event_id', existing.event_id)
+      const waitColumnMissing = !!waitsError && (waitsError.code === '42703' || waitsError.code === 'PGRST204' || /ticket_preferences/.test(waitsError.message || ''))
+      if (waitsError && !waitColumnMissing) return NextResponse.json({ error: waitsError.message }, { status: 500 })
+
+      const plan = planTicketRename({
+        ticketId: String(existing.id),
+        oldName: existing.name,
+        newName: fields.name,
+        oldNameShared: others.some(t => t.name === existing.name),
+        registrations: (regs || []) as RenameRegistration[],
+        waitlist: (waitColumnMissing ? [] : waits || []) as RenameWaitlistEntry[],
+      })
+
+      for (const r of plan.registrations) {
+        const { error } = await supabaseAdmin
+          .from('event_registrations')
+          .update(r.patch)
+          .eq('id', r.id)
+          .eq('event_id', existing.event_id)
+        if (error) return NextResponse.json({ error: `Could not rename on a booking (${error.message}). Nothing is lost: press Save again to finish.` }, { status: 500 })
+      }
+      for (const w of plan.waitlist) {
+        const { error } = await supabaseAdmin
+          .from('event_waitlist')
+          .update({ ticket_preferences: w.ticket_preferences })
+          .eq('id', w.id)
+          .eq('event_id', existing.event_id)
+        if (error) return NextResponse.json({ error: `Could not rename on a waiting-list entry (${error.message}). Nothing is lost: press Save again to finish.` }, { status: 500 })
+      }
+      updated = plan.counts
+      ambiguous = plan.ambiguous
+    }
+
     const { error } = await supabaseAdmin.from('event_tickets').update(fields).eq('id', b.id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json({ ok: true, id: b.id })
+    return NextResponse.json({ ok: true, id: b.id, updated, ambiguous })
   }
 
   if (!b.event_id) return NextResponse.json({ error: 'Missing event_id' }, { status: 400 })

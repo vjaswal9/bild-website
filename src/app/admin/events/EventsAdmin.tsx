@@ -1926,6 +1926,12 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
   async function save() {
     setError('')
     if (!name.trim()) return setError('Ticket name is required.')
+    // The same cleaning the server does, so a harmless trailing colon does not
+    // look like a rename.
+    const renaming = name.replace(/[\s:.\-\u2013\u2014]+$/, '').trim() !== ticket.name
+    if (renaming && !confirm(
+      'Renaming this ticket also changes its name on this event\'s existing bookings and waiting list, so the reports keep adding up. Emails already sent are not changed. Continue?',
+    )) return
     setBusy(true)
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
@@ -1933,6 +1939,16 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
       body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild }),
     })
     if (res.ok) {
+      const d = await res.json().catch(() => ({}))
+      const u = d.updated as { bookings?: number; guests?: number; waitlist?: number } | undefined
+      if (renaming && u) {
+        const parts = [
+          `${u.bookings ?? 0} booking${u.bookings === 1 ? '' : 's'}`,
+          `${u.guests ?? 0} guest ticket${u.guests === 1 ? '' : 's'}`,
+          `${u.waitlist ?? 0} waiting-list entr${u.waitlist === 1 ? 'y' : 'ies'}`,
+        ]
+        alert(`Renamed. Also updated ${parts.join(', ')}.${d.ambiguous ? ` ${d.ambiguous} older entr${d.ambiguous === 1 ? 'y' : 'ies'} could not be matched safely and still show the old name.` : ''}`)
+      }
       onSaved()
     } else {
       const d = await res.json().catch(() => ({}))
