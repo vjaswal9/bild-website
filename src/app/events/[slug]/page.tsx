@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, MapPin, ArrowLeft, HelpCircle, ShieldCheck } from 'lucide-react'
 import { getEventBySlug } from '@/lib/events-server'
-import { EventRow, EventTicket, isPastEvent } from '@/lib/events'
+import { EventRow, EventTicket, isPastEvent, isNotTakingSignUps } from '@/lib/events'
 import { formatEventDate, formatEventTime } from '@/lib/utils'
 import EventRegistration from './EventRegistration'
 import EventGallery from './EventGallery'
@@ -71,11 +71,13 @@ function factsPlusFlavour(facts: string, flavour: string): string {
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const data = await getEventBySlug(params.slug)
   if (!data) return { title: 'Event' }
-  const { event, tickets } = data
+  const { event, tickets, remaining } = data
+  // Full, with the waiting list closed: no ticket prices anywhere on the page.
+  const quiet = isNotTakingSignUps(remaining, event.waitlist_open)
   const dateStr = shortEventDate(event.event_date)
   const venueStr = event.venue || event.location || ''
   const whenWhere = `${event.title} - ${dateStr}${venueStr ? ` at ${venueStr}` : ''}.`
-  const factsWithPrice = [whenWhere, priceLine(tickets)].filter(Boolean).join(' ')
+  const factsWithPrice = [whenWhere, quiet ? '' : priceLine(tickets)].filter(Boolean).join(' ')
 
   const flavour = event.description
     ? plainDescription(event.description)
@@ -142,6 +144,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
 
   const { event, tickets, remaining } = data
   const isPast = isPastEvent(event)
+  const quiet = isNotTakingSignUps(remaining, event.waitlist_open)
   const hasFlyer = !!event.flyer_url && event.flyer_url.startsWith('http')
   const gallery = event.gallery || []
 
@@ -153,7 +156,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
     ? 'https://schema.org/SoldOut'
     : 'https://schema.org/InStock'
 
-  const offers = tickets.map(ticket => ({
+  const offers = (quiet ? [] : tickets).map(ticket => ({
     '@type': 'Offer',
     // Ticket names are typed by hand in the admin and often end in a colon
     // ("Adult Ticket:"). Search engines show this verbatim, so trim it here.
@@ -203,7 +206,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
     ...(offers.length ? { offers } : {}),
   }
 
-  const faqs = buildFaq(event, tickets)
+  const faqs = buildFaq(event, quiet ? [] : tickets)
   const faqJsonLd = faqs.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

@@ -70,6 +70,14 @@ export type EventRow = {
   permit_number?: string | null
 }
 
+// An event that is full AND has its waiting list closed is not offering tickets
+// at all. Its public page then stops showing ticket prices anywhere: in the
+// search-engine description, the FAQ, and the data given to search engines.
+// Reopening the waiting list, or a seat becoming free, brings them back.
+export function isNotTakingSignUps(remaining: number | null | undefined, waitlistOpen?: boolean | null): boolean {
+  return remaining != null && remaining <= 0 && waitlistOpen === false
+}
+
 export type EventRegistration = {
   id: string
   created_at: string
