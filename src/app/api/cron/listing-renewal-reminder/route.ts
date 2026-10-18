@@ -10,10 +10,14 @@ import {
   sendFeaturedExpiredEmail, sendFeaturedExpiredAdminAlert,
   sendListingActivationReminder, sendListingNeverPaidAdminAlert,
 } from '@/lib/email'
+import { NOT_PAUSED_FILTER } from '@/lib/listing-pause'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
 export const dynamic = 'force-dynamic'
 
+// Paused listings are skipped by every sweep below (.or(NOT_PAUSED_FILTER)): a
+// paused business has not used its paid time, and resuming gives that time back.
+//
 // Daily sweep covering both the annual listing fee and the quarterly
 // Featured upgrade: a 14-day-out reminder, a 1-day-out final reminder, and
 // an expired notice - each sent to the business and to admins. Triggered by
@@ -45,6 +49,7 @@ export async function GET(req: NextRequest) {
     .eq('status', 'approved').eq('listing_fee_exempt', false)
     .lte('listing_paid_until', in14Days).gt('listing_paid_until', in1Day)
     .is('listing_renewal_reminder_sent_at', null)
+    .or(NOT_PAUSED_FILTER)
 
   for (const biz of listing14 || []) {
     const token = randomUUID().replace(/-/g, '')
@@ -66,6 +71,7 @@ export async function GET(req: NextRequest) {
     .eq('status', 'approved').eq('listing_fee_exempt', false)
     .lte('listing_paid_until', in1Day).gt('listing_paid_until', today)
     .is('listing_final_reminder_sent_at', null)
+    .or(NOT_PAUSED_FILTER)
 
   for (const biz of listingFinalRows || []) {
     const token = randomUUID().replace(/-/g, '')
@@ -88,6 +94,7 @@ export async function GET(req: NextRequest) {
     .lt('listing_paid_until', today)
     .is('listing_expired_notice_sent_at', null)
     .not('listing_paid_until', 'is', null)
+    .or(NOT_PAUSED_FILTER)
 
   for (const biz of listingExpiredRows || []) {
     const token = randomUUID().replace(/-/g, '')
@@ -110,6 +117,7 @@ export async function GET(req: NextRequest) {
     .eq('status', 'approved').not('featured_paid_until', 'is', null)
     .lte('featured_paid_until', in14Days).gt('featured_paid_until', in1Day)
     .is('featured_renewal_reminder_sent_at', null)
+    .or(NOT_PAUSED_FILTER)
 
   for (const biz of featured14 || []) {
     const token = randomUUID().replace(/-/g, '')
@@ -130,6 +138,7 @@ export async function GET(req: NextRequest) {
     .eq('status', 'approved').not('featured_paid_until', 'is', null)
     .lte('featured_paid_until', in1Day).gt('featured_paid_until', today)
     .is('featured_final_reminder_sent_at', null)
+    .or(NOT_PAUSED_FILTER)
 
   for (const biz of featuredFinalRows || []) {
     const token = randomUUID().replace(/-/g, '')
@@ -150,6 +159,7 @@ export async function GET(req: NextRequest) {
     .eq('status', 'approved').eq('featured', true).not('featured_paid_until', 'is', null)
     .lt('featured_paid_until', today)
     .is('featured_expired_notice_sent_at', null)
+    .or(NOT_PAUSED_FILTER)
 
   for (const biz of featuredExpiredRows || []) {
     const token = randomUUID().replace(/-/g, '')
@@ -186,6 +196,7 @@ export async function GET(req: NextRequest) {
     .not('listing_fee_exempt', 'is', true)
     .is('listing_abandoned_at', null)
     .lte('listing_payment_token_expires_at', in2Days)
+    .or(NOT_PAUSED_FILTER)
 
   if (activationError) {
     // Reported rather than swallowed: silently skipping this sweep is exactly

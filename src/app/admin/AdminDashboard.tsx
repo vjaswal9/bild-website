@@ -406,9 +406,18 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
       body: JSON.stringify({ id }),
     })
     if (res.ok) {
+      // A resumed listing gets its paused paid time back; say what the new dates are.
+      const data = await res.json().catch(() => ({}))
+      const ext = data.extended as { listing?: string | null; featured?: string | null } | undefined
+      const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai', day: 'numeric', month: 'short', year: 'numeric' })
+      const parts: string[] = []
+      if (ext?.listing) parts.push(`paid listing now runs to ${fmt(ext.listing)}`)
+      if (ext?.featured) parts.push(`Featured placement now runs to ${fmt(ext.featured)}`)
+      if (parts.length) alert(`Resumed. Their ${parts.join(' and ')}.`)
       window.location.reload()
     } else {
-      alert(paused ? 'Could not resume the listing. Please try again.' : 'Could not re-list. Please try again.')
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || (paused ? 'Could not resume the listing. Please try again.' : 'Could not re-list. Please try again.'))
       setProcessing(null)
     }
   }
@@ -1518,7 +1527,7 @@ function PauseListingDialog({
               <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Their directory page, search results and sitemap entry disappear</li>
               <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Nothing is deleted: their details, photos and documents are kept</li>
               <li className="flex gap-2"><span className="text-amber-300">&bull;</span> You can resume it at any time with the Resume button</li>
-              <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Their paid period keeps running while it is paused</li>
+              <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Their paid time is paused too: when you resume, the days they paid for are added back</li>
             </ul>
           </div>
 
