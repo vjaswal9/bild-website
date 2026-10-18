@@ -1856,6 +1856,9 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
                     {t.is_child && (
                       <span className="text-[10px] font-semibold uppercase tracking-wide bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">Child - asks for age</span>
                     )}
+                    {t.active === false && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full" title="Nobody can book this ticket online. Edit it and tick On sale to turn it back on.">Off sale</span>
+                    )}
                     {t.menu_image_url && (
                       <a href={t.menu_image_url} target="_blank" rel="noreferrer" className="text-gold-400 hover:underline text-xs font-normal">Drinks menu &rarr;</a>
                     )}
@@ -1930,6 +1933,8 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
   const [menuImageUrl, setMenuImageUrl] = useState(ticket.menu_image_url || '')
   const [foodMenuImageUrl, setFoodMenuImageUrl] = useState(ticket.food_menu_image_url || '')
   const [isChild, setIsChild] = useState(!!ticket.is_child)
+  // Off sale: nobody can book it online, and the event page shows no price for it.
+  const [onSale, setOnSale] = useState(ticket.active !== false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -1946,7 +1951,7 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild }),
+      body: JSON.stringify({ id: ticket.id, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild, active: onSale }),
     })
     if (res.ok) {
       const d = await res.json().catch(() => ({}))
@@ -1993,6 +1998,10 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
           <MenuImageField value={foodMenuImageUrl} onChange={setFoodMenuImageUrl} label="Food Menu (optional)" />
         </div>
       </div>
+      <label className="block mt-3 text-sm text-gray-300 cursor-pointer">
+        <input type="checkbox" checked={onSale} onChange={e => setOnSale(e.target.checked)} className="h-4 w-4 accent-gold-500 mr-2 align-middle" />
+        On sale (people can book it online). Untick it to stop online bookings. If no ticket is on sale, the event page asks people to email connect@bild.ae to register and shows no price.
+      </label>
       <label className="inline-flex items-center gap-2 mt-3 text-sm text-gray-300 cursor-pointer">
         <input type="checkbox" checked={isChild} onChange={e => setIsChild(e.target.checked)} className="h-4 w-4 accent-gold-500" />
         Is this a child ticket? (the booking form will ask for each child&rsquo;s age)

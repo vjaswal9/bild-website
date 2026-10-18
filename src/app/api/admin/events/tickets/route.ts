@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
     // and the checkout route refuses the booking without one.
     is_child: b.is_child === true,
     sort_order: Number(b.sort_order) || 0,
-    active: b.active === false ? false : true,
     // Only http(s) is ever stored: a javascript: or data: URL here would
     // become a live link on the public booking page the moment it renders.
     menu_image_url: b.menu_image_url ? httpUrl(b.menu_image_url) ?? null : null,
@@ -112,7 +111,11 @@ export async function POST(req: NextRequest) {
       ambiguous = plan.ambiguous
     }
 
-    const { error } = await supabaseAdmin.from('event_tickets').update(fields).eq('id', b.id)
+    // Whether the ticket is on sale is only changed when the caller says so.
+    // Defaulting it to true here meant editing the description of a ticket that
+    // had been switched off quietly put it back on sale.
+    const updateFields = b.active === undefined ? fields : { ...fields, active: b.active !== false }
+    const { error } = await supabaseAdmin.from('event_tickets').update(updateFields).eq('id', b.id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, id: b.id, updated, ambiguous })
   }
@@ -120,7 +123,7 @@ export async function POST(req: NextRequest) {
   if (!b.event_id) return NextResponse.json({ error: 'Missing event_id' }, { status: 400 })
   const { data, error } = await supabaseAdmin
     .from('event_tickets')
-    .insert([{ ...fields, event_id: b.event_id }])
+    .insert([{ ...fields, active: b.active === false ? false : true, event_id: b.event_id }])
     .select('id')
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

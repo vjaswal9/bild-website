@@ -162,11 +162,20 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     setJustLeftTable(true)
   }
 
+  // No ticket on sale (none created yet, or all switched off in the admin):
+  // there is no online booking and no price to show, so people are asked to
+  // register by email instead.
   if (tickets.length === 0) {
+    const subject = encodeURIComponent(`Registration: ${event.title}`)
     return (
       <div className="p-6 bg-gold-50 rounded-xl border border-gold-100">
-        <p className="text-charcoal-700 font-medium">Registration for this event isn&rsquo;t open yet.</p>
-        <p className="text-charcoal-600 text-sm mt-1">Check back soon or email events@bild.ae.</p>
+        <p className="text-charcoal-700 font-medium">
+          To register for this event, please email{' '}
+          <a href={`mailto:connect@bild.ae?subject=${subject}`} className="text-gold-700 underline underline-offset-2 hover:text-gold-600">connect@bild.ae</a>.
+        </p>
+        <p className="text-charcoal-600 text-sm mt-1">
+          Please include your name, how many places you would like and a contact number, and we will reply to confirm.
+        </p>
       </div>
     )
   }
