@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, ArrowLeft, HelpCircle } from 'lucide-react'
+import { Calendar, MapPin, ArrowLeft, HelpCircle, ShieldCheck } from 'lucide-react'
 import { getEventBySlug } from '@/lib/events-server'
 import { EventRow, EventTicket, isPastEvent } from '@/lib/events'
 import { formatEventDate, formatEventTime } from '@/lib/utils'
@@ -281,6 +281,12 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
                   </a>
                 )}
               </div>
+            </div>
+          )}
+          {!isPast && event.permit_number && (
+            <div className="sm:col-span-2 flex items-center gap-2 text-xs text-charcoal-600 border-t border-gold-100 pt-3">
+              <ShieldCheck size={14} className="text-gold-500 shrink-0" />
+              <span>Dubai DET event permit no. <span className="font-semibold text-charcoal-800">{event.permit_number}</span></span>
             </div>
           )}
         </div>

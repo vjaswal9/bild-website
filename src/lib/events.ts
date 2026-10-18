@@ -65,6 +65,9 @@ export type EventRow = {
   table_count?: number | null
   seats_per_table?: number | null
   seating_locked_at?: string | null
+  // The DET event permit (e-Permit) number, shown on the public event page.
+  // Absent until supabase/event-permit-number.sql has been run.
+  permit_number?: string | null
 }
 
 export type EventRegistration = {

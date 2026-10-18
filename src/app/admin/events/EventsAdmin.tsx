@@ -1553,6 +1553,7 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
     tags: (event?.tags || []).join(', '),
     status: event?.status || 'draft',
     flyer_url: event?.flyer_url || '',
+    permit_number: event?.permit_number || '',
   })
   const [limitTickets, setLimitTickets] = useState(event?.capacity_limit != null)
   const [capacityLimit, setCapacityLimit] = useState(event?.capacity_limit != null ? String(event.capacity_limit) : '')
@@ -1603,6 +1604,7 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
           tags: form.tags,
           status: form.status,
           flyer_url: flyerUrl,
+          permit_number: form.permit_number,
           capacity_limit: limitTickets ? capacityLimit : null,
           dietary_required: dietaryRequired,
           seating_enabled: seatingEnabled,
@@ -1611,6 +1613,10 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
         }),
       })
       if (res.ok) {
+        const d = await res.json().catch(() => ({}))
+        if (d.permitNotSaved) {
+          alert('The event was saved, but the permit number was not: the database needs one small update first (supabase/event-permit-number.sql). Everything else you changed is saved.')
+        }
         router.refresh()
         setSaving(false)
         if (!event) {
@@ -1636,6 +1642,10 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
         <FField label="Area / city"><Inp value={form.location} onChange={v => set('location', v)} placeholder="Dubai" /></FField>
         <FField label="Google Maps link (optional)" className="md:col-span-2">
           <Inp value={form.google_maps_url} onChange={v => set('google_maps_url', v)} placeholder="https://maps.app.goo.gl/..." />
+        </FField>
+        <FField label="Event permit number (optional)" className="md:col-span-2">
+          <Inp value={form.permit_number} onChange={v => set('permit_number', v)} placeholder="DET e-Permit number" />
+          <p className="text-xs text-gray-500 mt-1">The number on this event&apos;s DET event permit. It is shown on the public event page. Leave it empty until you have it.</p>
         </FField>
         <FField label="Tags (comma separated)" className="md:col-span-2"><Inp value={form.tags} onChange={v => set('tags', v)} placeholder="diwali, family, cultural" /></FField>
         <FField label="Description" className="md:col-span-2">
