@@ -75,7 +75,10 @@ const GOLF: HeroPhoto = { src: '/images/hero/hero-golf.jpg', alt: 'BILD members 
 const SUNRISE: HeroPhoto = { src: '/images/hero/hero-sunrise.jpg', alt: 'BILD members stopped together on a sunrise ride in Dubai', position: 'center 48%', scrim: 0.62 }  // left 35% measures 145/255
 const GOLDEN: HeroPhoto = { src: '/images/hero/hero-golden.jpg', alt: 'BILD members dancing at a BILD dinner', position: 'center 45%', scrim: 0.34 }  // left 35% measures 53/255
 
-const KARVA: HeroPhoto = { src: '/images/hero/hero-karva.jpg', alt: 'BILD members celebrating Karva Chauth together in Dubai', position: 'center 40%', scrim: 0.61 }  // left 35% measures 141/255
+// Karva Chauth (public/images/hero/hero-karva.jpg) is out of the rotation at the
+// owner's request. The file is kept; to bring it back, restore this line and add
+// KARVA to HERO_PHOTOS after GOLDEN.
+// const KARVA: HeroPhoto = { src: '/images/hero/hero-karva.jpg', alt: 'BILD members celebrating Karva Chauth together in Dubai', position: 'center 40%', scrim: 0.61 }  // left 35% measures 141/255
 const CRICKET: HeroPhoto = { src: '/images/hero/hero-cricket.jpg', alt: 'BILD members cheering on India together at a cricket match in Dubai', position: 'center 40%', scrim: 0.55 }  // left 35% measures 122/255
 
 // Ordered so a dark room never follows a dark room, and daylight never follows
@@ -92,5 +95,5 @@ const CRICKET: HeroPhoto = { src: '/images/hero/hero-cricket.jpg', alt: 'BILD me
 // photograph once the eye has something to compare it with, so it now closes
 // the cycle instead of starting it.
 export const HERO_PHOTOS: HeroPhoto[] = [
-  BEACH, SINGER, PADEL, COUPLE, CYCLE, PARTY, CRICKET, GOLF, SUNRISE, GOLDEN, KARVA, DANCE,
+  BEACH, SINGER, PADEL, COUPLE, CYCLE, PARTY, CRICKET, GOLF, SUNRISE, GOLDEN, DANCE,
 ]
