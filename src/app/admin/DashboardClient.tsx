@@ -28,6 +28,7 @@ type DashboardData = {
   listingsRenewingSoon: number
   featuredRenewingSoon: number
   licensesExpired: number
+  listingsPaused: number
   abandonedCheckouts: number
   staleInvites: number
   newMembersWeek: number
@@ -65,6 +66,11 @@ export default function DashboardClient({ data: d }: { data: DashboardData }) {
     d.licensesExpired > 0 && {
       icon: Store, tone: 'red' as const, count: d.licensesExpired,
       label: d.licensesExpired === 1 ? 'listing removed for an expired document' : 'listings removed for expired documents',
+      href: '/admin/directory?tab=licenses',
+    },
+    d.listingsPaused > 0 && {
+      icon: Store, tone: 'orange' as const, count: d.listingsPaused,
+      label: d.listingsPaused === 1 ? 'directory listing is paused' : 'directory listings are paused',
       href: '/admin/directory?tab=licenses',
     },
     d.abandonedCheckouts > 0 && {

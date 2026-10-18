@@ -2,6 +2,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import AdminNav from '@/components/admin/AdminNav'
 import DashboardClient from './DashboardClient'
 import { daysUntilDubai } from '@/lib/dubai-date'
+import { isPausedReason } from '@/lib/listing-pause'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -44,7 +45,7 @@ export default async function AdminHomePage() {
 
   const [membersRes, bizRes, eventsRes, regsRes, waitlistRes] = await Promise.all([
     supabaseAdmin.from('members').select('id, created_at, status, invite_token, invite_opened_at, invite_used_at'),
-    supabaseAdmin.from('business_submissions').select('id, created_at, status, document_expiry_date, delisted_at, listing_fee_exempt, listing_paid_until, featured, featured_paid_until, website_fail_count'),
+    supabaseAdmin.from('business_submissions').select('id, created_at, status, document_expiry_date, delisted_at, delisted_reason, listing_fee_exempt, listing_paid_until, featured, featured_paid_until, website_fail_count'),
     supabaseAdmin.from('events').select('id, created_at, title, event_date, status'),
     supabaseAdmin.from('event_registrations').select('id, event_id, status, quantity, created_at'),
     supabaseAdmin.from('event_waitlist').select('event_id, tickets_wanted').eq('status', 'waiting'),
@@ -67,7 +68,9 @@ export default async function AdminHomePage() {
     b.status === 'approved' && !b.delisted_at && b.document_expiry_date &&
     daysUntil(String(b.document_expiry_date)) >= 0 && daysUntil(String(b.document_expiry_date)) <= LICENSE_ALERT_DAYS
   ).length
-  const documentsExpired = businesses.filter(b => !!b.delisted_at).length
+  // A listing paused by an admin is counted separately: it was not removed for an expired document.
+  const documentsExpired = businesses.filter(b => !!b.delisted_at && !isPausedReason(String(b.delisted_reason || ''))).length
+  const listingsPaused = businesses.filter(b => b.status === 'approved' && !!b.delisted_at && isPausedReason(String(b.delisted_reason || ''))).length
   const abandonedCheckouts = members.filter(m => m.status === 'pending').length
   // Flags an invite link that was opened (page loaded) but never actually
   // confirmed (button clicked) after a reasonable grace period - the
@@ -147,6 +150,7 @@ export default async function AdminHomePage() {
           upcomingEvents: upcoming.length,
           licensesExpiringSoon: documentsExpiringSoon,
           licensesExpired: documentsExpired,
+          listingsPaused,
           abandonedCheckouts,
           staleInvites,
           listingsAwaitingPayment,

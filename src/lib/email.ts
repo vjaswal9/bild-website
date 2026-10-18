@@ -1488,6 +1488,68 @@ export async function sendLicenseDelistedBusinessEmail(opts: {
   }
 }
 
+// Sent when an admin pauses a listing (for example while documents are checked).
+// Unlike the automatic removal emails this one reports whether it was sent, so
+// the admin screen can say so.
+export async function sendListingPausedBusinessEmail(opts: {
+  to: string
+  businessName: string
+  note?: string
+  renewalUrl: string
+  country?: string
+}): Promise<{ ok: true } | { ok: false; reason: string }> {
+  if (!apiKey) { console.warn('Email skipped: RESEND_API_KEY not set'); return { ok: false, reason: 'Email is not configured (RESEND_API_KEY missing).' } }
+  const resend = new Resend(apiKey)
+  const term = docTerm(opts.country)
+  const noteBlock = opts.note
+    ? `<p style="color:#cfcabd;font-size:15px;line-height:1.6;margin:0 0 16px;background:#1a1a1a;border-left:3px solid #C8861A;padding:12px 14px">${esc(opts.note)}</p>`
+    : ''
+
+  const html = `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;background:#0E0E0E;border-radius:16px;overflow:hidden">
+    <div style="padding:32px 28px">
+      <div style="color:#C8861A;font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:bold;text-align:center">BILD Business Directory</div>
+      <h1 style="color:#F4F1EC;font-family:Georgia,serif;font-size:24px;margin:12px 0 16px;text-align:center">Your listing is paused</h1>
+      <p style="color:#cfcabd;font-size:15px;line-height:1.6;margin:0 0 16px">
+        The listing for <strong>${esc(opts.businessName)}</strong> has been taken off the BILD Business Directory for now,
+        while we make sure the ${docCountryLabel(opts.country)} ${term} and other documents we hold for your business are in order.
+        Nothing is wrong with your account, and your details are saved.
+      </p>
+      ${noteBlock}
+      <p style="color:#cfcabd;font-size:15px;line-height:1.6;margin:0 0 20px">
+        Please upload your current ${term} using the button below. An admin will review it, and your listing goes back
+        live once it has been checked.
+      </p>
+      <a href="${opts.renewalUrl}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:10px">
+        Upload your ${term}
+      </a>
+      <p style="color:#8a857a;font-size:12px;margin-top:18px">Questions? Reply or email connect@bild.ae</p>
+    </div>
+    <div style="background:#1a1a1a;padding:16px;text-align:center;color:#6b6b6b;font-size:11px">
+      BILD · British Indians Living in Dubai · Established 2019
+    </div>
+  </div>`
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM,
+      to: opts.to,
+      subject: 'Your BILD directory listing is paused',
+      html,
+    })
+    if (result.error) {
+      const reason = result.error.message || String(result.error)
+      console.error('Listing paused email rejected by Resend:', result.error)
+      return { ok: false, reason }
+    }
+    return { ok: true }
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e)
+    console.error('Listing paused email failed:', e)
+    return { ok: false, reason }
+  }
+}
+
 // Admin alert sent when a business submits a renewed document, awaiting approve/decline.
 export async function sendRenewalSubmittedAdminAlert(opts: { businessName: string; newExpiryDate: string; country?: string }) {
   if (!apiKey) { console.warn('Email skipped: RESEND_API_KEY not set'); return }

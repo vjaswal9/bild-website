@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { BusinessSubmission } from '@/lib/supabase'
-import { CheckCircle, XCircle, Clock, ExternalLink, FileText, Star, TrendingUp, Search, X, Pencil, Trash2, ShieldAlert, AlertTriangle, Loader2, Send } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, ExternalLink, FileText, Star, TrendingUp, Search, X, Pencil, Trash2, ShieldAlert, AlertTriangle, Loader2, Send, Pause, Play } from 'lucide-react'
 import Link from 'next/link'
 import EditBusinessForm from './EditBusinessForm'
 import AdminNav from '@/components/admin/AdminNav'
 import { MemberContact, isVerifiedMemberContact } from '@/lib/member-match'
 import ModalPortal from '@/components/ui/ModalPortal'
 import { daysUntilDubai } from '@/lib/dubai-date'
+import { isPausedReason, pauseNote } from '@/lib/listing-pause'
 import { LISTING_MEMBER_FEE_AED, LISTING_NON_MEMBER_FEE_AED, FEATURED_MEMBER_FEE_AED, FEATURED_NON_MEMBER_FEE_AED } from '@/lib/featured-copy'
 
 // The anon Supabase client used to live here, purely so the licence button
@@ -79,6 +80,13 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
   // a browser confirm() that is one stray click away from destroying a
   // listing. The password is also re-checked server-side.
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  // Pausing a listing: a note (kept, and shown to the business if emailed) and
+  // whether to email them asking for their documents.
+  const [pauseTarget, setPauseTarget] = useState<{ id: string; name: string } | null>(null)
+  const [pauseText, setPauseText] = useState('')
+  const [pauseEmail, setPauseEmail] = useState(true)
+  const [pauseBusy, setPauseBusy] = useState(false)
+  const [pauseError, setPauseError] = useState('')
   const [deletePassword, setDeletePassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
   const [deleteBusy, setDeleteBusy] = useState(false)
@@ -353,8 +361,44 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
     }
   }
 
-  async function handleRelist(id: string, name: string) {
-    if (!confirm(`Re-list "${name}"? Make sure you've already set their new document expiry date via Edit.`)) return
+  function openPause(id: string, name: string) {
+    setPauseText('')
+    setPauseEmail(true)
+    setPauseError('')
+    setPauseTarget({ id, name })
+  }
+
+  async function confirmPause() {
+    if (!pauseTarget) return
+    setPauseBusy(true)
+    setPauseError('')
+    try {
+      const res = await fetch('/api/admin/business/pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: pauseTarget.id, note: pauseText, email: pauseEmail }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setPauseError(data.error || 'Could not pause the listing. Please try again.')
+        setPauseBusy(false)
+        return
+      }
+      if (pauseEmail && !data.emailed) {
+        alert(`The listing is paused, but the email to the business could not be sent${data.emailProblem ? ` (${data.emailProblem})` : ''}. You can contact them directly.`)
+      }
+      window.location.reload()
+    } catch {
+      setPauseError('Network error. Please try again.')
+      setPauseBusy(false)
+    }
+  }
+
+  async function handleRelist(id: string, name: string, paused = false) {
+    const message = paused
+      ? `Resume "${name}"? It goes back on the public directory straight away. Only do this once you are happy with their documents.`
+      : `Re-list "${name}"? Make sure you've already set their new document expiry date via Edit.`
+    if (!confirm(message)) return
     setProcessing(id)
     const res = await fetch('/api/admin/business/relist', {
       method: 'POST',
@@ -364,7 +408,7 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
     if (res.ok) {
       window.location.reload()
     } else {
-      alert('Could not re-list. Please try again.')
+      alert(paused ? 'Could not resume the listing. Please try again.' : 'Could not re-list. Please try again.')
       setProcessing(null)
     }
   }
@@ -649,8 +693,8 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
             {filtered.map(sub => (
               <div key={sub.id} className="bg-charcoal-800 rounded-2xl border border-charcoal-700 overflow-hidden">
                 {/* Card header */}
-                <div className="flex items-start justify-between p-6 border-b border-charcoal-700">
-                  <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-4 p-4 sm:p-6 border-b border-charcoal-700">
+                  <div className="flex items-start gap-4 min-w-0">
                     {sub.logo_url && sub.logo_url.startsWith('http') && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={sub.logo_url} alt={`${sub.business_name} logo`}
@@ -660,6 +704,14 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h2 className="font-display text-xl font-bold text-white">{sub.business_name}</h2>
                       <span className="bg-gold-500/20 text-gold-400 text-xs font-medium px-2.5 py-0.5 rounded-full">{sub.category}</span>
+                      {sub.status === 'approved' && sub.delisted_at && (
+                        <span
+                          className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                          title={isPausedReason(sub.delisted_reason) ? (pauseNote(sub.delisted_reason) || 'Paused by an admin') : 'Removed because a document expired'}
+                        >
+                          {isPausedReason(sub.delisted_reason) ? <><Pause size={11} /> Paused - not published</> : <>Removed - document expired</>}
+                        </span>
+                      )}
                       {sub.featured && (
                         <span className="inline-flex items-center gap-1 bg-gold-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
                           <Star size={11} className="fill-white" /> Featured
@@ -716,7 +768,7 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                     <p className="text-gray-500 text-xs mt-1">Submitted {new Date(sub.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 sm:shrink-0">
                     <button
                       onClick={() => setEditingId(editingId === sub.id ? null : sub.id)}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
@@ -765,6 +817,26 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
                       >
                         {sendingPayId === sub.id ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
                         Send payment link
+                      </button>
+                    )}
+                    {sub.status === 'approved' && !sub.delisted_at && (
+                      <button
+                        onClick={() => openPause(sub.id, sub.business_name)}
+                        disabled={processing === sub.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 bg-charcoal-700 text-gray-300 hover:bg-charcoal-600"
+                        title="Take this listing off the public directory until you are happy with their documents. Nothing is deleted."
+                      >
+                        <Pause size={13} /> Pause
+                      </button>
+                    )}
+                    {sub.status === 'approved' && sub.delisted_at && isPausedReason(sub.delisted_reason) && (
+                      <button
+                        onClick={() => handleRelist(sub.id, sub.business_name, true)}
+                        disabled={processing === sub.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 bg-amber-600 text-white hover:bg-amber-700"
+                        title="Put this listing back on the public directory"
+                      >
+                        <Play size={13} /> Resume
                       </button>
                     )}
                     {sub.status === 'approved' && <CheckCircle className="text-green-400" size={24} />}
@@ -854,6 +926,20 @@ export default function AdminDashboard({ submissions, members }: { submissions: 
         </>
         )}
       </div>
+
+      {pauseTarget && (
+        <PauseListingDialog
+          name={pauseTarget.name}
+          note={pauseText}
+          onNoteChange={setPauseText}
+          email={pauseEmail}
+          onEmailChange={setPauseEmail}
+          error={pauseError}
+          busy={pauseBusy}
+          onCancel={() => setPauseTarget(null)}
+          onConfirm={confirmPause}
+        />
+      )}
 
       {deleteTarget && (
         <DeleteBusinessDialog
@@ -1051,7 +1137,7 @@ function LicensesSection({
   processing: string | null
   onApprove: (id: string) => void
   onDecline: (id: string) => void
-  onRelist: (id: string, name: string) => void
+  onRelist: (id: string, name: string, paused?: boolean) => void
   onEdit: (s: BusinessSubmission) => void
 }) {
   return (
@@ -1099,9 +1185,9 @@ function LicensesSection({
       <div className="bg-charcoal-800 border border-charcoal-700 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-charcoal-700">
           <h2 className="font-display font-bold text-white flex items-center gap-2">
-            <XCircle size={16} className="text-red-400" /> Expired &amp; delisted
+            <XCircle size={16} className="text-red-400" /> Expired, paused &amp; delisted
           </h2>
-          <p className="text-gray-400 text-sm mt-0.5">Removed from the public directory after their document expired.</p>
+          <p className="text-gray-400 text-sm mt-0.5">Off the public directory: either their document expired, or an admin paused the listing.</p>
         </div>
         {expiredDelisted.length === 0 ? (
           <p className="text-gray-500 text-sm px-5 py-8 text-center">No delisted businesses.</p>
@@ -1110,9 +1196,16 @@ function LicensesSection({
             {expiredDelisted.map(s => (
               <div key={s.id} className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                  <p className="text-white font-medium">{s.business_country === 'UK' ? '🇬🇧' : '🇦🇪'} {s.business_name}</p>
+                  <p className="text-white font-medium">
+                    {s.business_country === 'UK' ? '🇬🇧' : '🇦🇪'} {s.business_name}
+                    {isPausedReason(s.delisted_reason) && (
+                      <span className="ml-2 align-middle inline-flex items-center gap-1 text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full"><Pause size={11} /> Paused</span>
+                    )}
+                  </p>
                   <p className="text-gray-400 text-sm">
-                    Document expired {s.document_expiry_date} · delisted {s.delisted_at ? new Date(s.delisted_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' }) : ''}
+                    {isPausedReason(s.delisted_reason)
+                      ? <>Paused {s.delisted_at ? new Date(s.delisted_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' }) : ''}{pauseNote(s.delisted_reason) ? ` · ${pauseNote(s.delisted_reason)}` : ''}</>
+                      : <>Document expired {s.document_expiry_date} · delisted {s.delisted_at ? new Date(s.delisted_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Dubai' }) : ''}</>}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -1125,11 +1218,11 @@ function LicensesSection({
                     <Pencil size={13} /> Edit
                   </button>
                   <button
-                    onClick={() => onRelist(s.id, s.business_name)}
+                    onClick={() => onRelist(s.id, s.business_name, isPausedReason(s.delisted_reason))}
                     disabled={processing === s.id}
                     className="inline-flex items-center gap-1.5 bg-charcoal-700 hover:bg-charcoal-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
                   >
-                    Re-list
+                    {isPausedReason(s.delisted_reason) ? 'Resume' : 'Re-list'}
                   </button>
                 </div>
               </div>
@@ -1388,5 +1481,94 @@ function Detail({ label, value, link, highlight }: { label: string; value: strin
         <p className={`text-sm ${highlight ? 'text-gold-400 font-medium' : 'text-gray-300'}`}>{value}</p>
       )}
     </div>
+  )
+}
+
+function PauseListingDialog({
+  name, note, onNoteChange, email, onEmailChange, error, busy, onCancel, onConfirm,
+}: {
+  name: string
+  note: string
+  onNoteChange: (v: string) => void
+  email: boolean
+  onEmailChange: (v: boolean) => void
+  error: string
+  busy: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <ModalPortal onClose={onCancel}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+        <div className="bg-charcoal-800 border border-amber-500/40 rounded-2xl w-full max-w-md p-6">
+          <div className="flex items-start gap-3 mb-4">
+            <span className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+              <Pause size={20} className="text-amber-300" />
+            </span>
+            <div>
+              <h3 className="text-white font-semibold text-lg leading-tight">Pause this listing?</h3>
+              <p className="text-gray-400 text-sm mt-1">
+                <strong className="text-white">{name}</strong> comes off the public directory straight away.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-charcoal-900 border border-charcoal-600 rounded-xl p-4 mb-4">
+            <ul className="text-sm text-gray-300 space-y-1.5">
+              <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Their directory page, search results and sitemap entry disappear</li>
+              <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Nothing is deleted: their details, photos and documents are kept</li>
+              <li className="flex gap-2"><span className="text-amber-300">&bull;</span> You can resume it at any time with the Resume button</li>
+              <li className="flex gap-2"><span className="text-amber-300">&bull;</span> Their paid period keeps running while it is paused</li>
+            </ul>
+          </div>
+
+          <label className="block mb-3">
+            <span className="text-gray-400 text-xs block mb-1.5">Reason (kept on the record, and shown to the business if you email them)</span>
+            <textarea
+              value={note}
+              autoFocus
+              onChange={e => onNoteChange(e.target.value)}
+              rows={3}
+              maxLength={300}
+              placeholder="For example: we could not match the trade licence to the business name"
+              className="w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 resize-none"
+            />
+          </label>
+
+          <label className="flex items-start gap-2.5 mb-4 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={email}
+              onChange={e => onEmailChange(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-charcoal-500 bg-charcoal-900 text-amber-500 focus:ring-amber-500"
+            />
+            <span className="text-sm text-gray-300">
+              Email the business asking them to upload their documents. The email includes a secure upload link, and
+              their listing goes back live when you approve what they send.
+            </span>
+          </label>
+
+          {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={onCancel}
+              disabled={busy}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-300 hover:text-white hover:bg-charcoal-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={busy}
+              className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+            >
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <Pause size={15} />}
+              Pause listing
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
   )
 }
