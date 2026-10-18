@@ -10,13 +10,13 @@
 /** One sentence, for FAQs and short intros. */
 export const ELIGIBILITY_SUMMARY =
   'BILD is open to individuals of Indian origin who were born, raised, or previously settled in the United Kingdom, ' +
-  'who identify with both British and Indian culture, and who are currently residing in the UAE. Spouses and ' +
+  'who identify with both British and Indian roots, and who are currently residing in the UAE. Spouses and ' +
   'partners of someone who meets these criteria are also welcome.'
 
 /** The criteria as a list, for the About page and anywhere a list reads better. */
 export const ELIGIBILITY_CRITERIA = [
   'Individuals of Indian origin who were born, raised, or previously settled in the United Kingdom',
-  'Those who identify with both British and Indian culture',
+  'Those who identify with both British and Indian roots',
   'Spouses and partners of someone who meets the above criteria',
   'All faiths and backgrounds within the British Indian community',
 ]

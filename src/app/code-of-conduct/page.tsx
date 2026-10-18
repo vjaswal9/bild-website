@@ -35,7 +35,7 @@ export default async function CodeOfConductPage() {
             </p>
             <p>
               BILD is a kind, tolerant, and inclusive family, built from the heart solely to bring people
-              together through cultural events, activities, and meaningful connections. It&rsquo;s a fun, supportive
+              together through festivals, events, activities, and meaningful connections. It&rsquo;s a fun, supportive
               network and a safe space for like-minded British Indians to connect.
             </p>
 
@@ -70,9 +70,9 @@ export default async function CodeOfConductPage() {
               before applying for membership.
             </p>
             <p>
-              We are a space for those of Indian origin who were born, raised, or previously settled in the UK, and who are of both
-              British and Indian culture. BILD aims to foster networking in a respectful and secure environment.
-              BILD is specifically centred around the shared cultural identity and lived experience of being British
+              We are a space for those of Indian origin who were born, raised, or previously settled in the UK, and who have both
+              British and Indian roots. BILD aims to foster networking in a respectful and secure environment.
+              BILD is specifically centred around the shared heritage and lived experience of being British
               Indian and does not discriminate on the basis of religion or faith. We appreciate the diversity within
               the broader South Asian community and recognise that there are many wonderful groups in UAE that
               reflect other backgrounds. BILD exists solely to provide a space for the unique British Indian voice
@@ -205,7 +205,7 @@ export default async function CodeOfConductPage() {
             <h2>Final Message</h2>
             <p>
               At BILD, we are more than just a network, we are a family built on trust, kindness, and shared
-              experiences. Let&rsquo;s continue to grow stronger together, celebrating our culture and supporting one
+              experiences. Let&rsquo;s continue to grow stronger together, celebrating our heritage and supporting one
               another as we navigate life in UAE.
             </p>
             <p>

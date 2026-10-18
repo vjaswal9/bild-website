@@ -53,9 +53,9 @@ export default async function TermsPage() {
               of belonging, and support British Indians as they settle, connect and build friendships in the UAE.
             </p>
 <p>
-              BILD is a membership network dedicated to celebrating and supporting the shared cultural identity,
+              BILD is a membership network dedicated to celebrating and supporting the shared heritage,
               social connections, and professional growth of British Indians living in Dubai. Our activities focus on
-              cultural celebrations, social events, family-friendly gatherings, and promoting British Indian
+              festivals and celebrations, social events, family-friendly gatherings, and promoting British Indian
               businesses and professionals.
             </p>
             <p>
@@ -71,7 +71,7 @@ export default async function TermsPage() {
             <h2>2. Eligibility</h2>
 <p>
               Membership of BILD is open exclusively to individuals of Indian origin who were born, raised, or
-              previously settled in the United Kingdom, who identify with both British and Indian culture, and who
+              previously settled in the United Kingdom, who identify with both British and Indian roots, and who
               are currently residing in the UAE.
             </p>
             <p>
@@ -79,7 +79,7 @@ export default async function TermsPage() {
               welcomes all faiths and backgrounds within the British Indian community.
             </p>
             <p>
-              BILD is specifically centred around this shared cultural identity and lived experience of being British
+              BILD is specifically centred around this shared heritage and lived experience of being British
               Indian and does not discriminate on the basis of religion or faith. We welcome British Indians from all
               faiths.
             </p>
@@ -125,7 +125,7 @@ export default async function TermsPage() {
             <p>
               Payment of the membership fee gives members access to the BILD network, which currently includes multiple
               groups, events, activities, and online platforms. Access may include, where applicable, social groups,
-              lifestyle and interest-based groups, business networking groups, events, cultural celebrations, coffee
+              lifestyle and interest-based groups, business networking groups, events, festivals and celebrations, coffee
               mornings, meet ups, buy and sell groups, book clubs, walking groups, padel, golf, and other member
               activities.
             </p>

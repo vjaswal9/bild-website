@@ -7,7 +7,7 @@ export default function MissionStatement() {
         <Reveal x={-40} y={0}>
           <span className="text-gold-500 font-semibold text-sm uppercase tracking-widest">Who We Are</span>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-charcoal-800 mt-4 mb-6">
-            Two cultures. One family.
+            British and Indian. One family.
           </h2>
         </Reveal>
         <Reveal x={40} y={0} delay={0.1}>
@@ -15,7 +15,7 @@ export default function MissionStatement() {
             BILD is a membership network created exclusively for individuals of British Indian heritage, or the
             spouse or partner of someone who is, living in the UAE. We welcome those of Indian origin who were born,
             raised, or previously settled in
-            the UK and identify with both British and Indian culture.
+            the UK and identify with both British and Indian roots.
           </p>
         </Reveal>
         <Reveal x={-40} y={0} delay={0.15}>
@@ -26,7 +26,7 @@ export default function MissionStatement() {
         </Reveal>
         <Reveal x={40} y={0} delay={0.2}>
           <p className="text-lg text-charcoal-600 leading-relaxed">
-            We connect members through cultural celebrations like Diwali, social meet-ups, family-friendly activities,
+            We connect members through social meet-ups, family-friendly activities,
             and opportunities to support British Indian businesses, professionals, and entrepreneurs across the Emirates.
             While we embrace all faiths, BILD remains centred on the unique experiences of British Indians living abroad.
           </p>

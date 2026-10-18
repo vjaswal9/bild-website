@@ -15,11 +15,11 @@ const pillars = [
     name: 'Belong',
     promise: 'Your people, already here.',
     description: SHOW_SPECIALIST_WHATSAPP_GROUPS
-      ? `Friendships that outlast the group chat. ${SITE_CONFIG.whatsappCommunities} WhatsApp groups, social nights, cultural celebrations and family days, whether you landed last month or a decade ago.`
-      : 'Friendships that outlast the group chat. Social nights, cultural celebrations and family days, whether you landed last month or a decade ago.',
+      ? `Friendships that outlast the group chat. ${SITE_CONFIG.whatsappCommunities} WhatsApp groups, social nights, festival celebrations and family days, whether you landed last month or a decade ago.`
+      : 'Friendships that outlast the group chat. Social nights, festival celebrations and family days, whether you landed last month or a decade ago.',
     points: SHOW_SPECIALIST_WHATSAPP_GROUPS
-      ? [`${SITE_CONFIG.whatsappCommunities} WhatsApp groups`, 'Cultural celebrations', 'Family-friendly events']
-      : ['Social nights', 'Cultural celebrations', 'Family-friendly events'],
+      ? [`${SITE_CONFIG.whatsappCommunities} WhatsApp groups`, 'Festivals and celebrations', 'Family-friendly events']
+      : ['Social nights', 'Festivals and celebrations', 'Family-friendly events'],
   },
   {
     icon: Handshake,

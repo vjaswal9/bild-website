@@ -9,7 +9,7 @@ import { getGoogleReviews } from '@/lib/google-reviews'
 
 export const metadata: Metadata = {
   title: 'Events',
-  description: 'Upcoming BILD events for British Indians in Dubai and the UAE - cultural celebrations, socials, networking and family-friendly gatherings.',
+  description: 'Upcoming BILD events for British Indians in Dubai and the UAE - festivals and celebrations, socials, networking and family-friendly gatherings.',
 }
 // Rebuilt every fifteen minutes rather than per request: the events list is the
 // same for every visitor and changes a few times a month, so there is nothing

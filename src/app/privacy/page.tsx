@@ -59,7 +59,7 @@ export default async function PrivacyPolicyPage() {
               <li>your gender and year of birth;</li>
               <li>your marital status, and your partner&rsquo;s name and mobile number where you give them;</li>
               <li>whether you have children, and their ages, so we can plan family-friendly events;</li>
-              <li>your religion, which is optional and used only to plan cultural and religious celebrations;</li>
+              <li>your religion, which is optional and used only to plan festivals and religious celebrations;</li>
               <li>the city you are from in the UK and, where relevant, in India;</li>
               <li>your company name, job title, industry and business type, for professional networking;</li>
               <li>your LinkedIn and Instagram handles, where you give them;</li>

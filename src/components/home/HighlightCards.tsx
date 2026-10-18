@@ -5,7 +5,7 @@ const cards = [
   {
     icon: Calendar,
     title: 'Events & Celebrations',
-    description: 'Diwali, social meet-ups, family days, and more. Experience British Indian culture in Dubai.',
+    description: 'Diwali, social meet-ups, family days, and more. Experience British Indian life in Dubai.',
     href: '/events',
     cta: 'View Events',
   },

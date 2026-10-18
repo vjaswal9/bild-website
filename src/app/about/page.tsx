@@ -62,7 +62,7 @@ export default async function AboutPage() {
               job, a flat and a plan, and almost nobody to call on a Sunday.
             </p>
             <p>
-              Being British Indian abroad is its own particular thing. You grew up between two cultures and you are
+              Being British Indian abroad is its own particular thing. You grew up between two worlds and you are
               now living in a third. It is a specific experience, and it is much easier alongside people who do not
               need it explained to them.
             </p>
@@ -106,7 +106,7 @@ export default async function AboutPage() {
               </p>
               <ul>
                 <li>
-                  <strong>Cultural celebrations</strong>: Diwali, Garba and the festivals that matter, celebrated in
+                  <strong>Festivals and celebrations</strong>: Diwali, Garba and the festivals that matter, celebrated in
                   true British Indian style. Recent nights have been held at Al Habtoor Polo Resort and the Radisson
                   in Barsha.
                 </li>

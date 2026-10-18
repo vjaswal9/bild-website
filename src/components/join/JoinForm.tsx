@@ -339,7 +339,7 @@ export default function JoinForm({ googleReviews }: { googleReviews?: GoogleRevi
                 <TextField label="Where in the UK are you from? (City/Town)" value={d.ukCity || ''} onChange={v => set('ukCity', v)} required showError={tried2} />
                 <TextField label="City/Town of India you or your family are from" value={d.indiaCity || ''} onChange={v => set('indiaCity', v)} required showError={tried2} />
               </div>
-              <TextField label="Religion" value={d.religion || ''} onChange={v => set('religion', v)} hint="Optional - helps us celebrate your cultural events" />
+              <TextField label="Religion" value={d.religion || ''} onChange={v => set('religion', v)} hint="Optional - helps us plan around your festivals" />
               <div className="grid sm:grid-cols-2 gap-5">
                 <PhoneField label="UAE Mobile Number" value={d.uaeMobile || ''} onChange={v => set('uaeMobile', v)} required showError={tried2} />
                 <TextField label="WhatsApp Number" value={d.whatsappNumber || ''} onChange={v => set('whatsappNumber', v)} hint="If different from above" />

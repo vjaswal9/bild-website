@@ -35,7 +35,7 @@ export default function FounderMessage() {
                   feels like family.&rdquo;
                 </p>
                 <p>
-                  &ldquo;BILD is all about belonging. We laugh together, support each other, celebrate our cultures,
+                  &ldquo;BILD is all about belonging. We laugh together, support each other, celebrate our heritage,
                   and create moments that feel special.&rdquo;
                 </p>
                 <p className="text-charcoal-700 font-medium">

@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'BILD: British Indians Living in Dubai',
     short_name: 'BILD',
     description:
-      'A membership network connecting British Indians in the UAE through culture, connection, and commerce.',
+      'A membership network connecting British Indians in the UAE through heritage, connection, and commerce.',
     start_url: '/',
     display: 'standalone',
     background_color: '#FDF8F0',

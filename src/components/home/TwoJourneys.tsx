@@ -33,8 +33,8 @@ export default function TwoJourneys() {
             </h3>
             <p className="text-charcoal-600 text-sm leading-relaxed mb-6 flex-1">
               {SHOW_SPECIALIST_WHATSAPP_GROUPS
-                ? `For British Indians living in the UAE. Events, family days, cultural celebrations and ${SITE_CONFIG.whatsappCommunities} specialist WhatsApp groups.`
-                : 'For British Indians living in the UAE. Events, family days and cultural celebrations.'}
+                ? `For British Indians living in the UAE. Events, family days, festival celebrations and ${SITE_CONFIG.whatsappCommunities} specialist WhatsApp groups.`
+                : 'For British Indians living in the UAE. Events, family days and festival celebrations.'}
             </p>
             <Link href="/join" className={`${btnPrimary} w-full py-3.5 text-base`}>
               Join BILD <ArrowRight size={18} />

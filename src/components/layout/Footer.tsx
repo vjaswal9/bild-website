@@ -32,7 +32,7 @@ export default function Footer() {
           <Image src="/bild-logo-new.svg" alt="BILD" width={120} height={75} className="h-16 w-auto object-contain mb-3 brightness-0 invert" />
           <p className="text-sm text-gray-400 mb-4">British Indians Living in Dubai</p>
           <p className="text-sm leading-relaxed text-gray-400">
-            A membership network connecting British Indians in the UAE through culture, connection, and commerce.
+            A membership network connecting British Indians in the UAE through heritage, connection, and commerce.
           </p>
         </div>
 

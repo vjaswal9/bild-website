@@ -110,7 +110,7 @@ export default async function Home() {
               faqs={[
                 {
                   q: 'What is BILD?',
-                  a: 'BILD (British Indians Living in Dubai) is a membership network for people of British Indian heritage living in the UAE, connecting members through cultural celebrations, social events, business networking' + (SHOW_SPECIALIST_WHATSAPP_GROUPS ? ', and private WhatsApp groups.' : '.'),
+                  a: 'BILD (British Indians Living in Dubai) is a membership network for people of British Indian heritage living in the UAE, connecting members through festival celebrations, social events, business networking' + (SHOW_SPECIALIST_WHATSAPP_GROUPS ? ', and private WhatsApp groups.' : '.'),
                 },
                 {
                   q: 'Who can join BILD?',

@@ -25,5 +25,5 @@ export const SITE_CONFIG = {
   siteName: 'BILD',
   siteTagline: 'British Indians Living in Dubai',
   siteDescription:
-    'A membership network connecting British Indians living in the UAE through cultural celebrations, social events, and business networking.',
+    'A membership network connecting British Indians living in the UAE through festival celebrations, social events, and business networking.',
 }
