@@ -189,8 +189,8 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   if (soldOut) {
     return (
       <div className="p-6 bg-gold-50 rounded-xl border border-gold-100">
-        <p className="text-charcoal-700 font-medium">This event is sold out.</p>
-        <p className="text-charcoal-600 text-sm mt-1">The waitlist is closed. Email events@bild.ae if you need help.</p>
+        <p className="text-charcoal-700 font-medium">This event is at capacity.</p>
+        <p className="text-charcoal-600 text-sm mt-1">We are no longer taking registrations. Email events@bild.ae if you need help.</p>
       </div>
     )
   }

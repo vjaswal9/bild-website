@@ -34,7 +34,7 @@ export default function EventLoadError({ error, reset }: { error: Error & { dige
       <div className="max-w-lg mx-auto px-4 text-center">
         <h1 className="font-display text-3xl font-bold text-charcoal-800 mb-3">We could not load this event</h1>
         <p className="text-charcoal-600 mb-8 leading-relaxed">
-          This is a temporary problem on our side, not a sold out event. Please try again in a moment. If it keeps
+          This is a temporary problem on our side, not a full event. Please try again in a moment. If it keeps
           happening, email <a href="mailto:events@bild.ae" className="text-gold-600 font-medium hover:underline">events@bild.ae</a> and
           we will book you in.
         </p>

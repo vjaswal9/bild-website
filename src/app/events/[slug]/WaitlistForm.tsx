@@ -81,7 +81,7 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
           <Users size={19} className="text-gold-400" />
         </span>
         <div>
-          <p className="text-charcoal-800 font-semibold">This event is sold out</p>
+          <p className="text-charcoal-800 font-semibold">This event is at capacity</p>
           <p className="text-charcoal-600 text-sm">
             Join the waitlist and we will email you if a place frees up.
           </p>

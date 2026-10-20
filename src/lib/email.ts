@@ -204,14 +204,14 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
     ? `
     <div style="padding:26px 28px 0">
       <div style="background:#241a08;border:1px solid #4a3714;border-radius:14px;padding:22px">
-        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">${nextEvent.soldOut ? 'Next up &middot; Sold out' : '🔥 Next up &middot; Don\'t miss it'}</p>
+        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Next up &middot; At capacity' : 'Next up &middot; Registration closed') : '🔥 Next up &middot; Don\'t miss it'}</p>
         <p style="color:#F4F1EC;font-family:Georgia,serif;font-size:21px;margin:0 0 6px">${esc(nextEvent.title)}</p>
         <p style="color:#cfcabd;font-size:14px;margin:0 0 4px">${esc(nextEvent.whenLabel)}${nextEvent.venue ? ' &middot; ' + esc(nextEvent.venue) : ''}</p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.55;margin:10px 0 16px">
           ${nextEvent.soldOut
             ? (nextEvent.waitlistOpen
-                ? 'This one has sold out. Join the waitlist and we will email you if a place frees up.'
-                : 'This one has sold out. Have a look at what else is coming up.')
+                ? 'This one is at capacity. Join the waitlist and we will email you if a place frees up.'
+                : 'This one is at capacity. Have a look at what else is coming up.')
             : 'Our events fill up fast and members hear first. Grab your ticket now rather than hearing about it in the group afterwards.'}
         </p>
         <a href="${site}/events/${nextEvent.slug}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:11px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Join the waitlist' : 'See the event') : 'Get your tickets'}</a>
@@ -888,7 +888,7 @@ export async function sendWaitlistJoinedEmail(opts: {
       <p>Hi ${first},</p>
       <p>You are on the waitlist for <strong>${esc(opts.eventTitle)}</strong>, for
       ${n} ticket${n === 1 ? '' : 's'}${opts.ticketChoices && opts.ticketChoices.length ? `: ${esc(opts.ticketChoices.map(c => `${c.quantity} x ${c.ticket_name}`).join(', '))}` : ''}.</p>
-      <p>The event is sold out. If a place frees up, which happens when someone cancels, we will email you with a
+      <p>The event is at capacity. If a place frees up, which happens when someone cancels, we will email you with a
       link to book. Places are offered in the order people joined the list.</p>
       <p style="color:#9a9384;font-size:14px">
         Nothing is reserved and nothing has been charged. If your plans change and you no longer need a place, reply
@@ -1971,7 +1971,7 @@ export async function sendOversoldRefundEmail(opts: {
     heading: 'Your payment has been refunded',
     bodyHtml: `
       <p>Hi ${first},</p>
-      <p>I am sorry. <strong>${esc(opts.eventTitle)}</strong> sold out in the moments while your payment was going
+      <p>I am sorry. <strong>${esc(opts.eventTitle)}</strong> reached capacity in the moments while your payment was going
       through, so we could not hold your place.</p>
       <p>Your full payment of <strong>${opts.refundedAed} AED</strong> has already been sent back, including the card
       processing fee. Nothing is owed and there is nothing for you to do. It usually shows on a statement within five
@@ -1982,7 +1982,7 @@ export async function sendOversoldRefundEmail(opts: {
     ctaUrl: opts.eventSlug ? `https://www.bild.ae/events/${opts.eventSlug}` : undefined,
     ctaLabel: 'Join the waitlist',
   })
-  await sendResendEmailFrom(EVENTS_FROM, opts.to, `Refunded: ${opts.eventTitle} sold out`, html, 'Oversold refund')
+  await sendResendEmailFrom(EVENTS_FROM, opts.to, `Refunded: ${opts.eventTitle} reached capacity`, html, 'Oversold refund')
 }
 
 // Tells the events inbox that the cap did its job, or that it did not and

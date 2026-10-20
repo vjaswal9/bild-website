@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
           // shown anywhere public, and an error message is not the place to
           // start.
           error: remaining <= 0
-            ? 'Sorry, this event is sold out.'
+            ? 'Sorry, this event is at capacity.'
             : 'Sorry, there are not enough tickets left for that many. Please try a smaller number.',
         }, { status: 400 })
       }

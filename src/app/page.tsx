@@ -63,7 +63,7 @@ export default async function Home() {
         images={HERO_PHOTOS}
         googleRating={googleReviews ? { rating: googleReviews.rating, totalReviews: googleReviews.totalReviews, mapsUrl: googleReviews.mapsUrl } : null}
         nextEvent={upcomingEvents[0]
-          ? { title: upcomingEvents[0].title, date: upcomingEvents[0].event_date, slug: upcomingEvents[0].slug, soldOut: remaining[upcomingEvents[0].id] === 0 }
+          ? { title: upcomingEvents[0].title, date: upcomingEvents[0].event_date, slug: upcomingEvents[0].slug, soldOut: remaining[upcomingEvents[0].id] === 0, waitlistOpen: upcomingEvents[0].waitlist_open !== false }
           : null}
       />
       <TwoJourneys />
