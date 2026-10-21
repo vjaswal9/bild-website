@@ -195,13 +195,6 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     )
   }
 
-  // Whether ANY ticket on this event could cost something - decided before a
-  // ticket is even chosen, so it can only look at what tickets exist, not what
-  // the buyer will pick. An event where every ticket is free never mentions
-  // payment at all; one with even a single priced ticket keeps the mention,
-  // since picking that one is still possible.
-  const eventCanCostMoney = tickets.some(t => t.price_aed > 0)
-
   const count = (id: string) => attendeesByTicket[id]?.length || 0
   const totalTickets = tickets.reduce((s, t) => s + count(t.id), 0)
   // Tickets that come with the venue's alcoholic beverage package: the notice
@@ -387,19 +380,16 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         </div>
       )}
 
-      <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-1 flex items-center gap-2">
+      <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-6 flex items-center gap-2">
         <Ticket size={22} className="text-gold-500" /> Register for this event
       </h2>
-      <p className="text-charcoal-600 text-sm mb-6">
-        Choose how many tickets you need, name each guest{eventCanCostMoney ? ', and pay securely via Stripe' : ''}.
-      </p>
 
       {/* Step 1 - choose tickets */}
       {/* The number of tickets left is deliberately not shown. It is still
           used to cap the booking and to show a sold-out state, but a public
           countdown tells people how an event is selling. */}
       <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gold-600">Step 1 · Choose your tickets</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gold-600">Step 1 · Choose your registration type</p>
       </div>
       {totalTickets >= MAX_TICKETS_PER_BOOKING && (
         <p className="text-sm text-charcoal-600 mb-3">
@@ -697,11 +687,11 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
             ? <><Loader2 size={20} className="animate-spin" /> Redirecting to payment...</>
             : <><Loader2 size={20} className="animate-spin" /> Registering...</>
         ) : totalTickets === 0 ? (
-          <>Add a ticket to continue</>
+          <>Add to continue</>
         ) : grandTotal > 0 ? (
-          <>Pay {money(grandTotal)} AED &amp; register{totalTickets > 1 ? ` · ${totalTickets} tickets` : ''}</>
+          <>Pay {money(grandTotal)} AED &amp; register</>
         ) : (
-          <>Register{totalTickets > 1 ? ` · ${totalTickets} tickets` : ''}</>
+          <>Register</>
         )}
       </button>
       <p className="text-center text-charcoal-600 text-xs mt-3">
