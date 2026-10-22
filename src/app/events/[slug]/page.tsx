@@ -102,7 +102,7 @@ type FaqItem = { question: string; answer: string }
 // this page can state with total confidence, because they come straight from
 // the same fields already shown elsewhere on the page - never a guess at
 // something only the admin knows, like a refund policy, which stays prose-only.
-function buildFaq(event: EventRow, tickets: EventTicket[]): FaqItem[] {
+function buildFaq(event: EventRow): FaqItem[] {
   const faqs: FaqItem[] = []
   const venueStr = [event.venue, event.location].filter(Boolean).join(', ')
 
@@ -116,17 +116,6 @@ function buildFaq(event: EventRow, tickets: EventTicket[]): FaqItem[] {
       question: `Where is ${event.title} held?`,
       answer: `${event.title} takes place at ${venueStr}.`,
     })
-  }
-
-  const prices = tickets.filter(t => t.active).map(t => t.price_aed)
-  if (prices.length > 0) {
-    const min = Math.min(...prices)
-    const max = Math.max(...prices)
-    const answer =
-      min === 0 && max === 0 ? 'Tickets to this event are free.'
-        : min === max ? `Tickets are ${min} AED.`
-        : `Tickets range from ${min} AED to ${max} AED, depending on the package.`
-    faqs.push({ question: `How much are tickets for ${event.title}?`, answer })
   }
 
   if (event.seating_enabled) {
@@ -209,7 +198,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
     ...(offers.length ? { offers } : {}),
   }
 
-  const faqs = buildFaq(event, quiet ? [] : tickets)
+  const faqs = buildFaq(event)
   const faqJsonLd = faqs.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
