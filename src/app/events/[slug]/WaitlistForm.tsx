@@ -36,8 +36,8 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
     if (!firstName.trim()) return setError('Please give your first name.')
     const mailProblem = emailProblem(email)
     if (mailProblem) return setError(mailProblem)
-    if (byType && totalByType < 1) return setError('Please choose the tickets you would like.')
-    if (byType && totalByType > MAX_TICKETS) return setError(`The waiting list takes up to ${MAX_TICKETS} tickets per person. For more, please email events@bild.ae.`)
+    if (byType && totalByType < 1) return setError('Please choose your registration type.')
+    if (byType && totalByType > MAX_TICKETS) return setError(`The waiting list takes up to ${MAX_TICKETS} places per person. For more, please email events@bild.ae.`)
 
     setBusy(true)
     const res = await fetch('/api/events/waitlist', {
@@ -112,7 +112,7 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
 
       {byType ? (
         <div className="mt-4">
-          <p className="text-charcoal-700 text-sm font-medium mb-2">Which tickets would you like?</p>
+          <p className="text-charcoal-700 text-sm font-medium mb-2">Which registration type would you like?</p>
           <div className="space-y-2">
             {tickets.map(t => {
               const n = qty[t.id] || 0
@@ -136,19 +136,19 @@ export default function WaitlistForm({ eventId, eventTitle, tickets = [] }: {
             })}
           </div>
           <p className={`text-xs mt-2 ${tried && totalByType < 1 ? 'text-ruby-500' : 'text-charcoal-600'}`}>
-            {totalByType < 1 ? 'Choose at least one ticket. You can mix types.' : `${totalByType} ticket${totalByType === 1 ? '' : 's'} in total.`}
+            {totalByType < 1 ? 'Choose at least one place. You can mix types.' : `${totalByType} place${totalByType === 1 ? '' : 's'} in total.`}
           </p>
         </div>
       ) : (
         <label className="block mt-3 max-w-[14rem]">
-          <span className="text-charcoal-600 text-xs block mb-1">How many tickets do you need?</span>
+          <span className="text-charcoal-600 text-xs block mb-1">How many places do you need?</span>
           <select
             value={ticketsWanted}
             onChange={e => setTicketsWanted(Number(e.target.value))}
             className={`${field} border-gold-200`}
           >
             {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-              <option key={n} value={n}>{n} {n === 1 ? 'ticket' : 'tickets'}</option>
+              <option key={n} value={n}>{n} {n === 1 ? 'place' : 'places'}</option>
             ))}
           </select>
         </label>

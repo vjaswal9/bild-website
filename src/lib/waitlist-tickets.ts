@@ -19,23 +19,23 @@ export function cleanTicketChoices(
   raw: unknown,
   eventTickets: TicketRow[],
 ): { ok: true; choices: WaitTicketChoice[]; total: number } | { ok: false; error: string } {
-  if (!Array.isArray(raw)) return { ok: false, error: 'Please choose your tickets.' }
+  if (!Array.isArray(raw)) return { ok: false, error: 'Please choose your registration type.' }
   const byId = new Map(eventTickets.filter(t => t.active !== false).map(t => [String(t.id), t]))
   const merged = new Map<string, number>()
   for (const item of raw) {
     const id = String((item as { ticketId?: unknown })?.ticketId ?? '')
     const q = Number((item as { quantity?: unknown })?.quantity)
-    if (!Number.isFinite(q) || q < 0 || !Number.isInteger(q)) return { ok: false, error: 'Please check the number of tickets.' }
+    if (!Number.isFinite(q) || q < 0 || !Number.isInteger(q)) return { ok: false, error: 'Please check the number of places.' }
     if (q === 0) continue
-    if (!byId.has(id)) return { ok: false, error: 'One of those ticket types is not available for this event.' }
+    if (!byId.has(id)) return { ok: false, error: 'One of those registration types is not available for this event.' }
     merged.set(id, (merged.get(id) || 0) + q)
   }
   const choices: WaitTicketChoice[] = Array.from(merged.entries()).map(([id, quantity]) => ({
     ticket_id: id, ticket_name: byId.get(id)!.name, quantity,
   }))
   const total = choices.reduce((s, c) => s + c.quantity, 0)
-  if (total < 1) return { ok: false, error: 'Please choose at least one ticket.' }
-  if (total > WAITLIST_MAX_TICKETS) return { ok: false, error: `The waiting list takes up to ${WAITLIST_MAX_TICKETS} tickets per person. For more, please email events@bild.ae.` }
+  if (total < 1) return { ok: false, error: 'Please choose at least one place.' }
+  if (total > WAITLIST_MAX_TICKETS) return { ok: false, error: `The waiting list takes up to ${WAITLIST_MAX_TICKETS} places per person. For more, please email events@bild.ae.` }
   return { ok: true, choices, total }
 }
 
