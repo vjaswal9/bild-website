@@ -6,6 +6,7 @@ import type { GuestEntry } from './events'
 import { originEstimateText } from './name-origin'
 import { googleCalendarUrl } from './calendar'
 import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
+import { PHOTO_VAULT_PUBLISHED } from '@/lib/launch'
 
 // Escape user-supplied text before interpolating into HTML email bodies.
 function esc(value: string): string {
@@ -295,7 +296,7 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
     <div style="padding:26px 28px 8px">
       <p style="color:#6f6a60;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 12px;text-align:center">Also worth a look</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="padding:9px 0;border-bottom:1px solid #2a2a2a;color:#a8a296;font-size:13.5px">📸&nbsp; <a href="${site}/photo-vault" style="color:#C8861A;text-decoration:none;font-weight:bold">Photo Vault</a> &ndash; every event, every year</td></tr>
+        ${PHOTO_VAULT_PUBLISHED ? `<tr><td style="padding:9px 0;border-bottom:1px solid #2a2a2a;color:#a8a296;font-size:13.5px">📸&nbsp; <a href="${site}/photo-vault" style="color:#C8861A;text-decoration:none;font-weight:bold">Photo Vault</a> &ndash; every event, every year</td></tr>` : ''}
         <tr><td style="padding:9px 0;color:#a8a296;font-size:13.5px">🎬&nbsp; <a href="${site}/faces-of-bild" style="color:#C8861A;text-decoration:none;font-weight:bold">Faces of BILD</a> &ndash; the people behind BILD</td></tr>
       </table>
     </div>

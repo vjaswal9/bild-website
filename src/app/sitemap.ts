@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
-import { LAUNCH_MODE, isLivePath } from '@/lib/launch'
+import { LAUNCH_MODE, isLivePath, PAST_EVENTS_PUBLISHED } from '@/lib/launch'
+import { isPastEvent } from '@/lib/events'
 import { getPublishedEvents } from '@/lib/events-server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
@@ -36,7 +37,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let entries = [...staticEntries]
 
   if (!LAUNCH_MODE || isLivePath('/events')) {
-    const events = await getPublishedEvents()
+    const allEvents = await getPublishedEvents()
+    const events = PAST_EVENTS_PUBLISHED ? allEvents : allEvents.filter(e => !isPastEvent(e))
     entries = entries.concat(events.map(event => ({
       url: `${BASE}/events/${event.slug}`,
       lastModified: new Date(event.created_at),

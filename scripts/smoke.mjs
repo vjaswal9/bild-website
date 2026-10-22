@@ -43,6 +43,15 @@ if (directoryOff) {
 } else {
   pages.push(...directoryPages)
 }
+// The Photo Vault can be switched off too (PHOTO_VAULT_PUBLISHED). Same idea.
+const vaultOff = (await get('/photo-vault')).status === 503
+if (vaultOff) {
+  const r = await get('/photo-vault')
+  ok(/temporarily unavailable/.test(r.text) && !!r.headers.get('retry-after'), '/photo-vault: switched off (503, "temporarily unavailable", Retry-After)')
+  const sm = await get('/sitemap.xml')
+  ok(!/\/photo-vault/.test(sm.text), 'sitemap lists no Photo Vault page while it is switched off')
+  pages.splice(pages.indexOf('/photo-vault'), 1)
+}
 for (const p of pages) {
   const r = await get(p)
   const h1s = (r.text.match(/<h1[\s>]/g) || []).length

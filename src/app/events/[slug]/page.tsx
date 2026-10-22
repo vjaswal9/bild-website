@@ -9,6 +9,7 @@ import EventRegistration from './EventRegistration'
 import EventGallery from './EventGallery'
 import AddToCalendar from '@/components/events/AddToCalendar'
 import { jsonLd } from '@/lib/json-ld'
+import { PAST_EVENTS_PUBLISHED } from '@/lib/launch'
 
 export const dynamic = 'force-dynamic'
 export const fetchCache = 'force-no-store'
@@ -144,6 +145,8 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
 
   const { event, tickets, remaining } = data
   const isPast = isPastEvent(event)
+  // Past events can be switched off (PAST_EVENTS_PUBLISHED in src/lib/launch.ts).
+  if (isPast && !PAST_EVENTS_PUBLISHED) notFound()
   const quiet = isNotTakingSignUps(remaining, event.waitlist_open)
   const hasFlyer = !!event.flyer_url && event.flyer_url.startsWith('http')
   const gallery = event.gallery || []

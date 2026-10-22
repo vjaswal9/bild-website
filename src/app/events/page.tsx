@@ -5,6 +5,7 @@ import EventCard from '@/components/events/EventCard'
 import Reveal from '@/components/anim/Reveal'
 import { getPublishedEvents, getRemainingCapacities } from '@/lib/events-server'
 import { isPastEvent } from '@/lib/events'
+import { PAST_EVENTS_PUBLISHED } from '@/lib/launch'
 import { getGoogleReviews } from '@/lib/google-reviews'
 
 export const metadata: Metadata = {
@@ -21,7 +22,8 @@ export default async function EventsPage() {
   const events = await getPublishedEvents()
   const upcoming = events.filter(e => !isPastEvent(e))
   // Most recent first for past events
-  const past = events.filter(e => isPastEvent(e)).reverse()
+  // Past events can be switched off (PAST_EVENTS_PUBLISHED in src/lib/launch.ts).
+  const past = PAST_EVENTS_PUBLISHED ? events.filter(e => isPastEvent(e)).reverse() : []
   const [googleReviews, remaining] = await Promise.all([
     getGoogleReviews(),
     getRemainingCapacities(upcoming),

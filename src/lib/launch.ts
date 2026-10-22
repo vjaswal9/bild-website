@@ -69,9 +69,34 @@ export function isHiddenDirectoryPath(pathname: string): boolean {
   return !DIRECTORY_PRIVATE_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'))
 }
 
+// ---- Photo Vault publish switch ----
+//
+// Set to false to take the public Photo Vault offline temporarily: /photo-vault
+// shows a "temporarily unavailable" page (503 with Retry-After, noindex), and
+// the menu, footer, sitemap and the member email link to it disappear. Nothing
+// is deleted: photos and videos stay on their events and in the admin. Set it
+// back to true and deploy to publish it again. See also PAST_EVENTS_PUBLISHED.
+export const PHOTO_VAULT_PUBLISHED = false
+
+export function isHiddenPhotoVaultPath(pathname: string): boolean {
+  if (PHOTO_VAULT_PUBLISHED) return false
+  return pathname === '/photo-vault' || pathname.startsWith('/photo-vault/')
+}
+
+// ---- Past events publish switch ----
+//
+// Set to false to take past events offline temporarily: the "Past Events"
+// section of the Events page disappears, every past event's own page returns
+// "not found", and past events leave the sitemap. Upcoming events are not
+// affected. Nothing is deleted. Set it back to true and deploy to bring them
+// back. Checked in src/app/events/page.tsx, src/app/events/[slug]/page.tsx and
+// src/app/sitemap.ts.
+export const PAST_EVENTS_PUBLISHED = false
+
 // Is this public path live right now? (Admin and API are handled separately.)
 export function isLivePath(pathname: string): boolean {
   if (isHiddenDirectoryPath(pathname)) return false
+  if (isHiddenPhotoVaultPath(pathname)) return false
   if (!LAUNCH_MODE) return true
   if (pathname === '/') return true
   return LIVE_PATHS.some(p => p !== '/' && (pathname === p || pathname.startsWith(p + '/')))

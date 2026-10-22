@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
-import { isLivePath, isComingSoonPath, isHiddenDirectoryPath } from '@/lib/launch'
+import { isLivePath, isComingSoonPath, isHiddenDirectoryPath, isHiddenPhotoVaultPath } from '@/lib/launch'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -25,6 +25,15 @@ export async function middleware(request: NextRequest) {
   if (isHiddenDirectoryPath(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/directory-unavailable'
+    url.search = ''
+    return NextResponse.rewrite(url, { status: 503, headers: { 'Retry-After': '86400' } })
+  }
+
+  // The Photo Vault is switched off (PHOTO_VAULT_PUBLISHED in src/lib/launch.ts).
+  // Same temporary 503 as the directory.
+  if (isHiddenPhotoVaultPath(pathname)) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/photo-vault-unavailable'
     url.search = ''
     return NextResponse.rewrite(url, { status: 503, headers: { 'Retry-After': '86400' } })
   }
@@ -71,5 +80,7 @@ export const config = {
   // /directory is here only while the directory is switched off (see
   // DIRECTORY_PUBLISHED in src/lib/launch.ts). Remove these two when it is back,
   // so the directory's pages cost no middleware time again.
-  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*', '/directory', '/directory/:path*'],
+  // /photo-vault is here only while the Photo Vault is switched off (see
+  // PHOTO_VAULT_PUBLISHED in src/lib/launch.ts). Remove these two when it is back.
+  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*', '/directory', '/directory/:path*', '/photo-vault', '/photo-vault/:path*'],
 }
