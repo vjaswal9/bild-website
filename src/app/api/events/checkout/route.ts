@@ -12,6 +12,7 @@ import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, s
 import { siteOrigin } from '@/lib/site-url'
 import { str } from '@/lib/validate'
 import { reportError } from '@/lib/report-error'
+import { isPlausibleMobile } from '@/lib/member-check'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,6 +89,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Please check your email address, it does not look valid.' }, { status: 400 })
     }
     const buyerEmail = normaliseEmail(email)
+
+    // Events are for BILD members. Re-checked here, not just in the browser:
+    // the booker must tick the membership confirmation and give the mobile
+    // number they joined with (src/lib/member-check.ts).
+    if (body.memberConfirmed !== true) {
+      return NextResponse.json({ error: 'Please confirm that you are a BILD member.' }, { status: 400 })
+    }
+    if (!isPlausibleMobile(phone)) {
+      return NextResponse.json({ error: 'Please enter the mobile number you used to join BILD.' }, { status: 400 })
+    }
 
     // Guests beyond the ceiling are rejected, never trimmed. This used to
     // slice the list, so a basket over the limit reached Stripe quietly missing

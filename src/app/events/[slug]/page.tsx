@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, ArrowLeft, HelpCircle, ShieldCheck } from 'lucide-react'
+import { Calendar, MapPin, ArrowLeft, HelpCircle, ShieldCheck, Users } from 'lucide-react'
 import { getEventBySlug } from '@/lib/events-server'
 import { EventRow, EventTicket, isPastEvent, isNotTakingSignUps } from '@/lib/events'
 import { formatEventDate, formatEventTime } from '@/lib/utils'
@@ -287,6 +287,12 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
                   </a>
                 )}
               </div>
+            </div>
+          )}
+          {!isPast && (
+            <div className="sm:col-span-2 flex items-center gap-2 text-sm text-charcoal-800 border-t border-gold-100 pt-3">
+              <Users size={16} className="text-gold-500 shrink-0" />
+              <span className="font-semibold">You must be a BILD member to attend this event.</span>
             </div>
           )}
           {!isPast && event.permit_number && (

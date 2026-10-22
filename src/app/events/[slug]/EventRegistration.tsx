@@ -7,6 +7,7 @@ import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
 import { warnFromPartySize } from '@/lib/seating-fit'
 import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
+import { isPlausibleMobile } from '@/lib/member-check'
 import WaitlistForm from './WaitlistForm'
 
 // One booking can hold this many people in total, across every package.
@@ -90,6 +91,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   const [tried, setTried] = useState(false)
   // Ticked to confirm everyone on a beverages ticket is 21 or over.
   const [ageConfirmed, setAgeConfirmed] = useState(false)
+  const [memberConfirmed, setMemberConfirmed] = useState(false)
   const formRef = useRef<HTMLDivElement>(null)
 
   // Debounced: a check on every keystroke would hit the endpoint constantly
@@ -263,13 +265,17 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
     const missingTitle = attendees.some(a => !a.title)
     const missingAge = tickets.some(t => t.is_child && (attendeesByTicket[t.id] || []).some(a => ageInvalid(a.age)))
     const missingEmail = !isEmail(email)
+    const missingPhone = !isPlausibleMobile(phone)
+    const missingMember = !memberConfirmed
     const badSeatingCode = seatingEnabled && seatingCheck === 'notfound'
-    if (missingName || missingTitle || missingAge || missingEmail || badSeatingCode) {
+    if (missingName || missingTitle || missingAge || missingEmail || missingPhone || missingMember || badSeatingCode) {
       setError(
         missingName ? 'Please enter the full name of every attendee.'
           : missingTitle ? 'Please choose a title (Mr./Mrs./Miss) for every attendee.'
           : missingAge ? `Please enter an age between 0 and ${MAX_CHILD_AGE} for every child ticket.`
           : missingEmail ? 'Please enter a valid email address for your confirmation.'
+          : missingPhone ? 'Please enter the mobile number you used to join BILD.'
+          : missingMember ? 'Please confirm that you are a BILD member.'
           : 'That table code was not found. Please check it or clear the field.',
       )
       // setTimeout rather than requestAnimationFrame: rAF is throttled/paused
@@ -301,6 +307,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
           title: lead.title || undefined,
           email: email.trim(),
           phone: phone.trim(),
+          memberConfirmed: true,
           dietary: lead.dietary,
           dietaryNote: lead.dietaryNote,
           age: lead.age,
@@ -551,8 +558,22 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
           <p className="text-sm text-charcoal-600 mb-3">Your ticket confirmation is emailed here.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <Field label="Email" value={email} onChange={setEmail} placeholder="you@email.com" type="email" invalid={tried && !isEmail(email)} />
-            <Field label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+971 50 000 0000" />
+            <Field label="Mobile number you used to join BILD" value={phone} onChange={setPhone} placeholder="+971 50 000 0000" type="tel" invalid={tried && !isPlausibleMobile(phone)} />
           </div>
+          <p className="text-xs text-charcoal-600 -mt-3 mb-4">Use the mobile number you gave when you joined BILD. We use it to check your membership.</p>
+          <label
+            htmlFor="member-confirm"
+            className={`mb-6 flex items-start gap-3 rounded-xl border p-4 text-sm text-charcoal-700 cursor-pointer ${tried && !memberConfirmed ? errBorder : 'border-stone-200'}`}
+          >
+            <input
+              id="member-confirm"
+              type="checkbox"
+              checked={memberConfirmed}
+              onChange={e => setMemberConfirmed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-stone-300 text-gold-600 focus:ring-gold-500"
+            />
+            <span>I confirm that I am a BILD member.</span>
+          </label>
 
           {/* The ordinary form: nobody sent this visitor a table link, or they
               were sent one and chose not to join it. Never shown at the same
