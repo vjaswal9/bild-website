@@ -1075,6 +1075,9 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   const [deleting, setDeleting] = useState<string | null>(null)
   // The line being edited (the form below is the same one used to add a line).
   const [editingId, setEditingId] = useState<string | null>(null)
+  // Set when the line being renamed is a merchandise line (real card payments):
+  // only its name can change, so the form shows just the description.
+  const [renamingMerchFrom, setRenamingMerchFrom] = useState<string | null>(null)
 
   // Same per-attendee unit logic as EventDataPanel: one unit per buyer and
   // per named guest, priced by looking up their ticket type by name - and a
@@ -1151,6 +1154,22 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   async function addLine() {
     setError('')
     if (!form.description.trim()) return setError('Please describe the line item.')
+    if (renamingMerchFrom) {
+      setBusy(true)
+      const res = await fetch('/api/admin/events/finances', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, type: 'merch', fromDescription: renamingMerchFrom, description: form.description.trim() }),
+      })
+      const d = await res.json().catch(() => ({}))
+      setBusy(false)
+      if (!res.ok) return setError(d.error || 'Could not save.')
+      setForm(blank)
+      setAdding(null)
+      setRenamingMerchFrom(null)
+      load()
+      return
+    }
     const amount = parseFloat(form.amountAed)
     if (!Number.isFinite(amount) || amount <= 0) return setError('Please enter an amount greater than zero.')
     setBusy(true)
@@ -1177,11 +1196,23 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
     setError('')
     if (type === 'revenue') {
       const r = revenue.find(x => x.id === id)
-      if (!r || r.locked) return
+      if (!r) return
+      if (r.locked) {
+        // A merchandise line: its id carries the name it was recorded under.
+        const from = id.startsWith('merch:') ? id.slice(6) : ''
+        if (!from) return
+        setForm({ ...blank, description: from })
+        setRenamingMerchFrom(from)
+        setEditingId(id)
+        setAdding('revenue')
+        return
+      }
+      setRenamingMerchFrom(null)
       setForm({ ...blank, date: r.date, kind: r.kind, description: r.description, amountAed: String(r.amountAed) })
     } else {
       const c = costs.find(x => x.id === id)
       if (!c) return
+      setRenamingMerchFrom(null)
       setForm({ ...blank, date: c.date, category: c.category, description: c.description, amountAed: String(c.amountAed) })
     }
     setEditingId(id)
@@ -1296,7 +1327,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             onDelete={id => removeLine(id, 'revenue')}
             onEdit={id => startEdit('revenue', id)}
             deleting={deleting}
-            onAdd={() => { setForm({ ...blank, kind: 'sponsorship' }); setError(''); setEditingId(null); setAdding('revenue') }}
+            onAdd={() => { setForm({ ...blank, kind: 'sponsorship' }); setError(''); setEditingId(null); setRenamingMerchFrom(null); setAdding('revenue') }}
             addLabel="Add revenue line"
             emptyLabel="No additional revenue recorded."
           />
@@ -1311,7 +1342,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
             onDelete={id => removeLine(id, 'cost')}
             onEdit={id => startEdit('cost', id)}
             deleting={deleting}
-            onAdd={() => { setForm({ ...blank, category: 'DJ & music' }); setError(''); setEditingId(null); setAdding('cost') }}
+            onAdd={() => { setForm({ ...blank, category: 'DJ & music' }); setError(''); setEditingId(null); setRenamingMerchFrom(null); setAdding('cost') }}
             addLabel="Add cost line"
             emptyLabel="No additional costs recorded."
           />
@@ -1319,11 +1350,18 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
           {adding && (
             <div className="bg-charcoal-900 border border-charcoal-600 rounded-xl p-4">
               <p className="text-white text-sm font-semibold mb-3">
-                {editingId
+                {renamingMerchFrom
+                  ? 'Rename merchandise line'
+                  : editingId
                   ? (adding === 'revenue' ? 'Edit revenue line' : 'Edit cost line')
                   : (adding === 'revenue' ? 'New revenue line' : 'New cost line')}
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              {renamingMerchFrom && (
+                <p className="text-gray-500 text-xs mb-3">
+                  Only the name changes. The amounts are real card payments recorded from Stripe, so they stay as they are.
+                </p>
+              )}
+              <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3 ${renamingMerchFrom ? 'hidden' : ''}`}>
                 <label className="block">
                   <span className="text-gray-400 text-xs block mb-1">Date</span>
                   <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={input} />
@@ -1369,7 +1407,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
                   {busy ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />} {editingId ? 'Save changes' : 'Save line'}
                 </button>
                 <button
-                  onClick={() => { setAdding(null); setEditingId(null); setError('') }}
+                  onClick={() => { setAdding(null); setEditingId(null); setRenamingMerchFrom(null); setError('') }}
                   className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white"
                 >
                   Cancel
@@ -1480,19 +1518,17 @@ function LineGroup({
                   <td className="py-2.5 pr-4 text-gray-400 whitespace-nowrap">{r.tag}</td>
                   <td className="py-2.5 pr-4 text-white">{r.description}</td>
                   <td className={`py-2.5 text-right font-medium whitespace-nowrap ${colour}`}>{aed(r.amountAed)}</td>
-                  <td className="py-2.5 pl-3 text-right whitespace-nowrap w-16">
-                    {!r.locked && (
-                      <button
-                        onClick={() => onEdit(r.id)}
-                        className="text-gray-600 hover:text-gold-400 transition-colors mr-2"
-                        title="Edit line"
-                        aria-label={`Edit ${r.description}`}
-                      >
-                        <Pencil size={14} />
-                      </button>
-                    )}
+                  <td className="py-2.5 pl-3 text-right whitespace-nowrap w-20">
+                    <button
+                      onClick={() => onEdit(r.id)}
+                      className="text-gray-600 hover:text-gold-400 transition-colors mr-2 align-middle"
+                      title={r.locked ? 'Rename line' : 'Edit line'}
+                      aria-label={`${r.locked ? 'Rename' : 'Edit'} ${r.description}`}
+                    >
+                      <Pencil size={14} />
+                    </button>
                     {r.locked ? (
-                      <span className="text-gray-600" title="A card payment recorded automatically from Stripe, so it cannot be deleted here"><Lock size={13} /></span>
+                      <span className="text-gray-600 inline-block align-middle" title="A card payment recorded automatically from Stripe, so it cannot be deleted here"><Lock size={13} /></span>
                     ) : (
                       <button
                         onClick={() => onDelete(r.id)}

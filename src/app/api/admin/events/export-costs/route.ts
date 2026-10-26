@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
       Description: r.description || '',
       'Amount (AED)': Number(r.revenue_aed) || 0,
     })),
-    ...summariseMerchPayments(merchRes.data || []).map(m => ({
+    ...summariseMerchPayments(merchRes.data || [], eventId).map(m => ({
       Date: m.date,
       Type: 'Sold at the event',
       Description: m.sold != null ? `${m.description}: ${m.sold} sold` : `${m.description}: ${m.payments} payment${m.payments === 1 ? '' : 's'}`,

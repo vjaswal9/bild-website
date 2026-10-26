@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
       })),
       // One line per kind of item ("BILD Garba 2026 merchandise: 12 sold"), not one
       // per 20 AED payment, net of refunds.
-      ...summariseMerchPayments(cardRes.data || []).map(m => ({
+      ...summariseMerchPayments(cardRes.data || [], eventId).map(m => ({
         id: m.id,
         date: m.date,
         kind: 'other',
@@ -225,6 +225,26 @@ export async function PUT(req: NextRequest) {
   const amount = Number(b.amountAed)
   const description = String(b.description || '').trim()
   const date = String(b.date || '').trim()
+
+  // Renames a merchandise line: the name only. The amounts are real card
+  // payments recorded from Stripe and are never touched here.
+  if (type === 'merch') {
+    const from = String(b.fromDescription || '').trim()
+    if (!eventId || !from) return NextResponse.json({ error: 'Missing line or event.' }, { status: 400 })
+    if (!description) return NextResponse.json({ error: 'Please enter a description.' }, { status: 400 })
+    if (description.length > 120) return NextResponse.json({ error: 'Please keep the description under 120 characters.' }, { status: 400 })
+    const { data, error } = await supabaseAdmin
+      .from('payments')
+      .update({ description })
+      .eq('event_id', eventId)
+      .eq('kind', 'other')
+      .in('source', ['webhook', 'backfill'])
+      .eq('description', from)
+      .select('id')
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!data || data.length === 0) return NextResponse.json({ error: 'That line was not found. Refresh the page and try again.' }, { status: 404 })
+    return NextResponse.json({ ok: true })
+  }
 
   if (!id || !eventId) return NextResponse.json({ error: 'Missing line or event.' }, { status: 400 })
   if (type !== 'revenue' && type !== 'cost') {

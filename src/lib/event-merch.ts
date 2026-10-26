@@ -21,8 +21,13 @@ export const EVENT_MERCH: Record<string, { eventId: string; label: string; unitP
 // Adds up an event's merchandise payments into one line per kind of item:
 // how many were sold and the total, after refunds. Refunded items are not
 // counted. A payment of 40 AED at 20 AED each is two items.
+//
+// The description can be renamed from the Manage panel, so the unit price is
+// found by the event as well as by the original label: an event with exactly one
+// merchandise item keeps its "N sold" count after a rename.
 export function summariseMerchPayments(
   rows: { id: string; paid_at: string; description: string | null; revenue_aed: number | string | null; refunded_aed: number | string | null }[],
+  eventId?: string,
 ): { id: string; date: string; description: string; amountAed: number; sold: number | null; payments: number }[] {
   const groups = new Map<string, typeof rows>()
   for (const r of rows) {
@@ -31,7 +36,8 @@ export function summariseMerchPayments(
   }
   return Array.from(groups.entries()).map(([label, list]) => {
     const amount = list.reduce((s, r) => s + (Number(r.revenue_aed) || 0) - (Number(r.refunded_aed) || 0), 0)
-    const unit = Object.values(EVENT_MERCH).find(m => m.label === label)?.unitPriceAed
+    const forEvent = eventId ? Object.values(EVENT_MERCH).filter(m => m.eventId === eventId) : []
+    const unit = (Object.values(EVENT_MERCH).find(m => m.label === label) ?? (forEvent.length === 1 ? forEvent[0] : undefined))?.unitPriceAed
     const latest = list.reduce((m, r) => (r.paid_at > m ? r.paid_at : m), list[0].paid_at)
     return {
       id: `merch:${label}`,
