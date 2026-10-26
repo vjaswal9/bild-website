@@ -619,7 +619,7 @@ export default function DirectoryClient({
 
         {/* ---------------- get listed (content unchanged) ---------------- */}
         <div className="mt-16 bg-gold-50 border border-gold-200 px-4 py-3 text-center text-sm text-charcoal-700">
-          <strong className="text-charcoal-800">Free for BILD members.</strong> Listings are free for BILD members until {LISTING_GRACE_LABEL}.
+          <strong className="text-charcoal-800">Free for every business.</strong> Listings are free until {LISTING_GRACE_LABEL}, a goodwill gesture while the directory was offline for enhancements.
         </div>
 
         <div className="mt-5 bg-charcoal-800 p-6 sm:p-8 flex flex-col lg:flex-row items-center gap-6 text-center lg:text-left">

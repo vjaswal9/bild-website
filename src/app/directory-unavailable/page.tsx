@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import PageHero from '@/components/ui/PageHero'
 import { btnPrimary, btnOutline } from '@/lib/ui'
+import { LISTING_GRACE_LABEL } from '@/lib/featured-copy'
 
 // Shown in place of the Business Directory while it is switched off
 // (DIRECTORY_PUBLISHED in src/lib/launch.ts). The middleware rewrites every
@@ -20,7 +21,10 @@ export default function DirectoryUnavailablePage() {
       <div className="py-20">
         <div className="max-w-xl mx-auto px-4 text-center">
           <p className="text-charcoal-600 text-lg mb-3">
-            The BILD Business Directory is temporarily unavailable while we update it.
+            The BILD Business Directory is temporarily offline while we make some enhancements.
+          </p>
+          <p className="text-charcoal-600 mb-3">
+            As a goodwill gesture, every listing, new or existing, is free until {LISTING_GRACE_LABEL}.
           </p>
           <p className="text-charcoal-600 mb-10">
             It will be back soon. In the meantime, you can see what is on at BILD or get in touch.

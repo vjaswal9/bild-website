@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
       .eq('id', id)
       .single()
 
-    const inGracePeriod = !!bizRow?.is_bild_member && new Date() < new Date(LISTING_GRACE_CUTOFF)
+    // The free-listing offer covers every business, member or not.
+    const inGracePeriod = new Date() < new Date(LISTING_GRACE_CUTOFF)
     // An admin may have already comped this business before approving it -
     // either permanently ("Comp this listing") or with a custom free-until
     // date via the manual override field. Either one skips the payment step

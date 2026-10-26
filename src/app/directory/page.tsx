@@ -101,7 +101,7 @@ export default async function DirectoryPage() {
               },
               {
                 q: 'How much does it cost to list my business?',
-                a: `BILD members pay ${LISTING_MEMBER_FEE_AED} AED/year (free for BILD members until ${LISTING_GRACE_LABEL}); non-BILD businesses pay ${LISTING_NON_MEMBER_FEE_AED} AED/year. Submitting your listing for review is always free - payment is only requested after approval.`,
+                a: `Listings are free for every business until ${LISTING_GRACE_LABEL}. After that, BILD members pay ${LISTING_MEMBER_FEE_AED} AED/year and non-BILD businesses pay ${LISTING_NON_MEMBER_FEE_AED} AED/year. Submitting your listing for review is always free.`,
               },
               {
                 q: 'What does the Registration Checked badge mean?',

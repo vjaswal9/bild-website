@@ -242,14 +242,14 @@ export default function SubmitBusinessPage() {
           </Link>
 
           <div className="bg-gold-50 border border-gold-200 rounded-2xl p-4 mb-4 text-sm text-charcoal-600">
-            <strong className="text-charcoal-800">Open to BILD members and non-members alike.</strong> BILD members list
-            for {LISTING_MEMBER_FEE_AED} AED/year (free until {LISTING_GRACE_LABEL}); non-BILD businesses list for {LISTING_NON_MEMBER_FEE_AED} AED/year.
-            Payment is only requested after your listing is approved.
+            <strong className="text-charcoal-800">Open to BILD members and non-members alike.</strong> Listing is free for
+            everyone until {LISTING_GRACE_LABEL}. After that, BILD members list for {LISTING_MEMBER_FEE_AED} AED/year and
+            non-BILD businesses list for {LISTING_NON_MEMBER_FEE_AED} AED/year.
           </div>
 
           <div className="bg-cream border border-gold-200 rounded-2xl p-4 mb-4 text-sm text-charcoal-600">
-            <strong className="text-charcoal-800">Submitting is free.</strong> Once approved, BILD members pay {LISTING_MEMBER_FEE_AED} AED/year
-            (free until {LISTING_GRACE_LABEL}); non-BILD businesses pay {LISTING_NON_MEMBER_FEE_AED} AED/year from approval.
+            <strong className="text-charcoal-800">Submitting is free, and so is your listing until {LISTING_GRACE_LABEL}.</strong> After
+            that, BILD members pay {LISTING_MEMBER_FEE_AED} AED/year and non-BILD businesses pay {LISTING_NON_MEMBER_FEE_AED} AED/year.
           </div>
 
           <div className="bg-cream border border-stone-200 rounded-2xl p-4 mb-8 text-sm text-charcoal-600">
@@ -434,7 +434,7 @@ export default function SubmitBusinessPage() {
                 </div>
                 {tried && isBildMember === null && <p className="text-xs text-ruby-500 mt-1">Please select one.</p>}
                 <p className="text-xs text-charcoal-600 mt-1">
-                  BILD members list for {LISTING_MEMBER_FEE_AED} AED/year; non-BILD businesses list for {LISTING_NON_MEMBER_FEE_AED} AED/year.
+                  Listing is free until {LISTING_GRACE_LABEL}. After that, BILD members list for {LISTING_MEMBER_FEE_AED} AED/year and non-BILD businesses list for {LISTING_NON_MEMBER_FEE_AED} AED/year.
                 </p>
                 {isBildMember === false && (
                   <div className="mt-3 bg-gold-50 border border-gold-200 rounded-xl p-4 text-sm text-charcoal-600 space-y-2">

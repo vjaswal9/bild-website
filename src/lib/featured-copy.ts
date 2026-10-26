@@ -13,5 +13,10 @@ export const FEATURED_MEMBER_FEE_AED = 1000
 export const FEATURED_NON_MEMBER_FEE_AED = 2000
 export const LISTING_MEMBER_FEE_AED = 300
 export const LISTING_NON_MEMBER_FEE_AED = 600
-export const LISTING_GRACE_CUTOFF = '2026-10-31'
-export const LISTING_GRACE_LABEL = '31 October 2026'
+// Every listing approved before this moment is free until it (end of 31 December
+// 2026, Dubai time), members and non-members alike. Featured stays paid. To end
+// the offer early or extend it, change these two lines and deploy; listings
+// already approved keep the date they were given (see
+// supabase/directory-free-until-dec-2026.sql).
+export const LISTING_GRACE_CUTOFF = '2026-12-31T23:59:59+04:00'
+export const LISTING_GRACE_LABEL = '31 December 2026'

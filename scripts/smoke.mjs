@@ -36,7 +36,7 @@ const directoryOff = (await get('/directory')).status === 503
 if (directoryOff) {
   for (const p of directoryPages) {
     const r = await get(p)
-    ok(r.status === 503 && /temporarily unavailable/.test(r.text) && !!r.headers.get('retry-after'), `${p}: directory is switched off (503, "temporarily unavailable", Retry-After)`)
+    ok(r.status === 503 && /temporarily (unavailable|offline)/.test(r.text) && !!r.headers.get('retry-after'), `${p}: directory is switched off (503, "temporarily unavailable or offline", Retry-After)`)
   }
   const sm = await get('/sitemap.xml')
   ok(!/\/directory/.test(sm.text), 'sitemap lists no directory pages while it is switched off')
