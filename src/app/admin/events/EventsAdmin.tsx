@@ -332,7 +332,7 @@ function EventListCard({
           <Section title="Waitlist">
             <WaitlistPanel eventId={ev.id} />
           </Section>
-          <Section title="Additional revenue &amp; costs">
+          <Section title="Additional revenue &amp; costs" highlight>
             <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
           </Section>
           <Section title="Photos &amp; videos">
@@ -1565,11 +1565,13 @@ function LineGroup({
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// `highlight` tints the whole band blue so a section the owner works in often
+// (the money lines) is easy to find among the gold-headed ones.
+function Section({ title, children, highlight }: { title: string; children: React.ReactNode; highlight?: boolean }) {
   return (
-    <div className="border-b border-charcoal-700 last:border-b-0">
+    <div className={`border-b last:border-b-0 ${highlight ? 'bg-sky-500/10 border-sky-500/30' : 'border-charcoal-700'}`}>
       <div className="px-6 pt-5 pb-1">
-        <h4 className="text-gold-400 text-xs font-semibold uppercase tracking-wide">{title}</h4>
+        <h4 className={`${highlight ? 'text-sky-400' : 'text-gold-400'} text-xs font-semibold uppercase tracking-wide`}>{title}</h4>
       </div>
       {children}
     </div>
