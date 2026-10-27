@@ -1078,6 +1078,15 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   // Set when the line being renamed is a merchandise line (real card payments):
   // only its name can change, so the form shows just the description.
   const [renamingMerchFrom, setRenamingMerchFrom] = useState<string | null>(null)
+  // The form sits below every line, so with a long list of costs it opens off
+  // screen. Bring it into view and put the cursor in the description.
+  const formRef = useRef<HTMLDivElement>(null)
+  const descriptionRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (!adding) return
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    descriptionRef.current?.focus({ preventScroll: true })
+  }, [adding, editingId])
 
   // Same per-attendee unit logic as EventDataPanel: one unit per buyer and
   // per named guest, priced by looking up their ticket type by name - and a
@@ -1348,7 +1357,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
           />
 
           {adding && (
-            <div className="bg-charcoal-900 border border-charcoal-600 rounded-xl p-4">
+            <div ref={formRef} className="bg-charcoal-900 border border-charcoal-600 rounded-xl p-4">
               <p className="text-white text-sm font-semibold mb-3">
                 {renamingMerchFrom
                   ? 'Rename merchandise line'
@@ -1392,6 +1401,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
               <label className="block mb-3">
                 <span className="text-gray-400 text-xs block mb-1">Description</span>
                 <input
+                  ref={descriptionRef}
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
                   placeholder={adding === 'revenue' ? 'e.g. Sponsorship from Acme Ltd' : 'e.g. DJ Ravi, 4 hours'}
