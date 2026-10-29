@@ -76,7 +76,7 @@ export function isHiddenDirectoryPath(pathname: string): boolean {
 // the menu, footer, sitemap and the member email link to it disappear. Nothing
 // is deleted: photos and videos stay on their events and in the admin. Set it
 // back to true and deploy to publish it again. See also PAST_EVENTS_PUBLISHED.
-export const PHOTO_VAULT_PUBLISHED = false
+export const PHOTO_VAULT_PUBLISHED = true
 
 export function isHiddenPhotoVaultPath(pathname: string): boolean {
   if (PHOTO_VAULT_PUBLISHED) return false
@@ -91,7 +91,7 @@ export function isHiddenPhotoVaultPath(pathname: string): boolean {
 // affected. Nothing is deleted. Set it back to true and deploy to bring them
 // back. Checked in src/app/events/page.tsx, src/app/events/[slug]/page.tsx and
 // src/app/sitemap.ts.
-export const PAST_EVENTS_PUBLISHED = false
+export const PAST_EVENTS_PUBLISHED = true
 
 // Is this public path live right now? (Admin and API are handled separately.)
 export function isLivePath(pathname: string): boolean {

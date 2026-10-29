@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import GoogleRatingBadge from '@/components/ui/GoogleRatingBadge'
 import EventCard from '@/components/events/EventCard'
@@ -38,6 +39,10 @@ export default async function EventsPage() {
       </PageHero>
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mb-12">
+            <p className="text-sm font-semibold text-charcoal-700">BILD official ticketing partner:</p>
+            <Image src="/images/partners/ticketsfy.webp" alt="Ticketsfy" width={1623} height={327} className="h-7 w-auto" />
+          </div>
           {upcoming.length > 0 && (
             <section className="mb-16">
               <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-8">Upcoming Events</h2>

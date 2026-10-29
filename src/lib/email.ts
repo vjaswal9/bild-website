@@ -205,14 +205,14 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
     ? `
     <div style="padding:26px 28px 0">
       <div style="background:#241a08;border:1px solid #4a3714;border-radius:14px;padding:22px">
-        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Next up &middot; At capacity' : 'Next up &middot; Registration closed') : '🔥 Next up &middot; Don\'t miss it'}</p>
+        <p style="color:#C8861A;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:bold;margin:0 0 8px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Next up &middot; At capacity' : 'Next up &middot; Sold out') : '🔥 Next up &middot; Don\'t miss it'}</p>
         <p style="color:#F4F1EC;font-family:Georgia,serif;font-size:21px;margin:0 0 6px">${esc(nextEvent.title)}</p>
         <p style="color:#cfcabd;font-size:14px;margin:0 0 4px">${esc(nextEvent.whenLabel)}${nextEvent.venue ? ' &middot; ' + esc(nextEvent.venue) : ''}</p>
         <p style="color:#a8a296;font-size:13.5px;line-height:1.55;margin:10px 0 16px">
           ${nextEvent.soldOut
             ? (nextEvent.waitlistOpen
                 ? 'This one is at capacity. Join the waitlist and we will email you if a place frees up.'
-                : 'This one is at capacity. Have a look at what else is coming up.')
+                : 'This one is sold out. Have a look at what else is coming up.')
             : 'Our events fill up fast and members hear first. Grab your ticket now rather than hearing about it in the group afterwards.'}
         </p>
         <a href="${site}/events/${nextEvent.slug}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:11px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Join the waitlist' : 'See the event') : 'Get your tickets'}</a>

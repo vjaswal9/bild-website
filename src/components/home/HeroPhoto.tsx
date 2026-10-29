@@ -277,7 +277,7 @@ export default function HeroPhoto({
                       {new Date(nextEvent.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'Asia/Dubai' })}
                     </span>
                     {nextEvent.soldOut && (
-                      <span className="inline-block mt-1.5 bg-red-600 text-white text-[11px] font-extrabold tracking-[0.18em] uppercase px-2.5 py-0.5 rounded">{nextEvent.waitlistOpen === false ? 'Registration closed' : 'At capacity'}</span>
+                      <span className="inline-block mt-1.5 bg-red-600 text-white text-[11px] font-extrabold tracking-[0.18em] uppercase px-2.5 py-0.5 rounded">{nextEvent.waitlistOpen === false ? 'Sold out' : 'At capacity'}</span>
                     )}
                   </Link>
                 </dd>

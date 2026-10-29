@@ -56,7 +56,7 @@ export default function EventCard({ event, soldOut }: { event: EventRow; soldOut
           {showSoldOutRibbon && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[220%] -rotate-[35deg] bg-red-600 border-y-2 border-red-800/50 py-1.5 shadow-lg">
-                <p className="text-center text-white text-sm font-extrabold tracking-[0.25em] uppercase">{waitlistOpen ? 'At capacity' : 'Registration closed'}</p>
+                <p className="text-center text-white text-sm font-extrabold tracking-[0.25em] uppercase">{waitlistOpen ? 'At capacity' : 'Sold out'}</p>
               </div>
             </div>
           )}

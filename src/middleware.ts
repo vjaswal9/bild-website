@@ -80,7 +80,7 @@ export const config = {
   // /directory is here only while the directory is switched off (see
   // DIRECTORY_PUBLISHED in src/lib/launch.ts). Remove these two when it is back,
   // so the directory's pages cost no middleware time again.
-  // /photo-vault is here only while the Photo Vault is switched off (see
-  // PHOTO_VAULT_PUBLISHED in src/lib/launch.ts). Remove these two when it is back.
-  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*', '/directory', '/directory/:path*', '/photo-vault', '/photo-vault/:path*'],
+  // /photo-vault goes back in here if the Photo Vault is switched off again
+  // (PHOTO_VAULT_PUBLISHED in src/lib/launch.ts): add '/photo-vault' and '/photo-vault/:path*'.
+  matcher: ['/admin', '/admin/:path*', '/knowledge-base', '/knowledge-base/:path*', '/directory', '/directory/:path*'],
 }
