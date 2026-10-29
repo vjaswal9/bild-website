@@ -22,7 +22,12 @@ export function invitePage(opts: {
   tone?: Tone
   cta?: { href: string; label: string }
   showContact?: boolean
+  // The button is WhatsApp green by default; other links (event tickets) set their own.
+  ctaColor?: string
+  // Who the "still stuck" line points at. Membership links go to admin@.
+  contactEmail?: string
 }) {
+  const contact = opts.contactEmail || 'admin@bild.ae'
   const tone = opts.tone || 'neutral'
   const accent = tone === 'problem' ? '#9B2335' : GOLD
   const badge = tone === 'good' ? '🎉' : tone === 'problem' ? '' : '👍'
@@ -30,6 +35,7 @@ export function invitePage(opts: {
   return new NextResponse(
     `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
 <title>${opts.title} | BILD</title>
 <style>
   *{box-sizing:border-box}
@@ -41,7 +47,7 @@ export function invitePage(opts: {
   h1{font-family:Georgia,serif;color:${accent};font-size:25px;margin:0 0 12px;line-height:1.25}
   p{margin:0 0 14px;font-size:15px;color:#4a4a4a}
   .detail{background:#fdf8f0;border:1px solid #f4d99b;border-radius:12px;padding:14px 16px;font-size:14px;color:#4a4a4a;text-align:left;margin:18px 0 0}
-  .btn{display:inline-block;background:#25D366;color:#fff;text-decoration:none;font-weight:700;font-size:16px;
+  .btn{display:inline-block;background:${opts.ctaColor || '#25D366'};color:#fff;text-decoration:none;font-weight:700;font-size:16px;
        padding:15px 30px;border-radius:12px;margin:8px 0 4px}
   .contact{margin:22px 0 0;font-size:13.5px;color:#6b6b6b}
   a{color:${GOLD}}
@@ -53,9 +59,9 @@ export function invitePage(opts: {
   <p>${opts.lead}</p>
   ${opts.cta ? `<p><a class="btn" href="${opts.cta.href}">${opts.cta.label}</a></p>` : ''}
   ${opts.detail ? `<div class="detail">${opts.detail}</div>` : ''}
-  ${opts.showContact === false || (opts.detail || '').includes('admin@bild.ae')
+  ${opts.showContact === false || (opts.detail || '').includes(contact)
       ? ''
-      : `<p class="contact">Still stuck? Email <a href="mailto:admin@bild.ae">admin@bild.ae</a> and we will sort it out.</p>`}
+      : `<p class="contact">Still stuck? Email <a href="mailto:${contact}">${contact}</a> and we will sort it out.</p>`}
   <p class="foot">British Indians Living in Dubai &middot; Established 2019</p>
 </div></body></html>`,
     { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } },

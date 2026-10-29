@@ -5,6 +5,7 @@ import { uploadViaSignedUrl } from '@/lib/upload-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
 import SeatingView from '@/components/admin/SeatingView'
+import PrivateLinksPanel from '@/components/admin/PrivateLinksPanel'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
 import { readTicketChoices, describeTicketChoices, waitingTotalsByType } from '@/lib/waitlist-tickets'
@@ -331,6 +332,9 @@ function EventListCard({
           </Section>
           <Section title="Waitlist">
             <WaitlistPanel eventId={ev.id} />
+          </Section>
+          <Section title="Private ticket links">
+            <PrivateLinksPanel eventId={ev.id} />
           </Section>
           <Section title="Additional revenue &amp; costs" highlight>
             <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
