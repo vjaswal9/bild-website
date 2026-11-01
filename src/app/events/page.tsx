@@ -3,11 +3,13 @@ import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import GoogleRatingBadge from '@/components/ui/GoogleRatingBadge'
 import EventCard from '@/components/events/EventCard'
+import MahjongPromo from '@/components/events/MahjongPromo'
 import Reveal from '@/components/anim/Reveal'
 import { getPublishedEvents, getRemainingCapacities } from '@/lib/events-server'
 import { isPastEvent } from '@/lib/events'
 import { PAST_EVENTS_PUBLISHED } from '@/lib/launch'
 import { getGoogleReviews } from '@/lib/google-reviews'
+import { SHOW_MAHJONG_INTEREST } from '@/lib/site-flags'
 
 export const metadata: Metadata = {
   title: 'Events',
@@ -53,6 +55,8 @@ export default async function EventsPage() {
               </Reveal>
             </section>
           )}
+
+          {SHOW_MAHJONG_INTEREST && <MahjongPromo />}
 
           {past.length > 0 && (
             <section>

@@ -14,3 +14,9 @@
 //
 // Set to true and deploy to bring it all back.
 export const SHOW_SPECIALIST_WHATSAPP_GROUPS = false
+
+// The Mahjong interest register: the /mahjong form and its banner on the events
+// page. While false, the banner is hidden, /mahjong returns a 404 and the form
+// accepts nothing. Sign-ups already collected stay in the admin. Set to true
+// and deploy to bring it back.
+export const SHOW_MAHJONG_INTEREST = true

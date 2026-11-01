@@ -14,6 +14,7 @@ export const LIVE_PATHS = [
   '/about',
   '/directory',        // business directory + /directory/submit
   '/events',           // events listing + /events/[slug]
+  '/mahjong',          // Mahjong interest form
   '/photo-vault',      // downloadable event photo/video gallery
   '/faces-of-bild',
   '/testimonials',     // "share your experience" submission form

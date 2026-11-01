@@ -7,6 +7,8 @@ import { originEstimateText } from './name-origin'
 import { googleCalendarUrl } from './calendar'
 import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
 import { PHOTO_VAULT_PUBLISHED } from '@/lib/launch'
+import { whatsappDigits } from '@/lib/private-link-format'
+import { mahjongLabel, MAHJONG_MEMBER_OPTIONS, MAHJONG_EXPERIENCE_OPTIONS } from '@/lib/mahjong-interest'
 
 // Escape user-supplied text before interpolating into HTML email bodies.
 function esc(value: string): string {
@@ -918,6 +920,31 @@ export async function sendWaitlistJoinedAdminAlert(opts: {
     `,
   })
   await sendResendEmailFrom(EVENTS_FROM, EVENTS_ALERT_EMAILS, `Waitlist: ${opts.name} for ${opts.eventTitle}`, html, 'Waitlist admin alert')
+}
+
+// Mahjong interest: somebody registered on /mahjong.
+export async function sendMahjongInterestAdminAlert(opts: {
+  name: string; whatsapp: string; memberStatus: string; area: string; experience: string
+  availability: string[]; notes?: string; total: number; repeat: boolean
+}) {
+  const member = mahjongLabel(MAHJONG_MEMBER_OPTIONS, opts.memberStatus)
+  const experience = mahjongLabel(MAHJONG_EXPERIENCE_OPTIONS, opts.experience)
+  const digits = whatsappDigits(opts.whatsapp)
+  const html = adminAlertShell({
+    heading: opts.repeat ? 'Someone updated their Mahjong interest' : 'New Mahjong interest',
+    bodyHtml: `
+      <p><strong>${esc(opts.name)}</strong> &middot;
+      <a href="https://wa.me/${esc(digits)}" style="color:#C8861A">${esc(opts.whatsapp)}</a></p>
+      <p>BILD member: ${esc(member)}<br>
+      Area: ${esc(opts.area)}<br>
+      Experience: ${esc(experience)}<br>
+      Times: ${esc(opts.availability.join(', '))}</p>
+      ${opts.notes ? `<p>Note: ${esc(opts.notes)}</p>` : ''}
+      <p><strong>${opts.total} ${opts.total === 1 ? 'person' : 'people'}</strong> registered so far. The full list is in Admin, Mahjong.</p>
+    `,
+    footer: 'Sent from the Mahjong interest form on bild.ae.',
+  })
+  await sendResendEmailFrom(EVENTS_FROM, EVENTS_ALERT_EMAILS, `Mahjong interest: ${opts.name}`, html, 'Mahjong interest admin alert')
 }
 
 // Waitlist: a place has come up.

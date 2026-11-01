@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     'How BILD collects, uses, stores and protects personal information from membership applications, events, the Business Directory, WhatsApp groups and this website.',
 }
 
-const LAST_UPDATED = '9 September 2026'
+const LAST_UPDATED = '1 November 2026'
 
 export default async function PrivacyPolicyPage() {
   const googleReviews = await getGoogleReviews()
@@ -177,6 +177,16 @@ export default async function PrivacyPolicyPage() {
               understand how the site is used, and Sentry to detect and diagnose errors. This information is used in
               aggregate to improve the site. We also count how many times a Featured business profile has been viewed,
               and we report that count to the business as a number only, never as a list of who viewed it.
+            </p>
+
+            <h3>2.13 Interest registers</h3>
+            <p>
+              When we are exploring a new activity, such as Mahjong classes, we may ask you to register your interest.
+              We collect your name, your WhatsApp number, whether you are a BILD member, the area of Dubai that would
+              suit you, your experience of the activity, when you could take part, and anything you choose to add. We
+              use this only to plan the activity and to message you on WhatsApp about it. Your details are not
+              displayed publicly, and are not shared with a teacher or venue without your permission. Email{' '}
+              <a href="mailto:events@bild.ae">events@bild.ae</a> at any time to have them removed.
             </p>
 
             <h2>3. Why we use your information</h2>

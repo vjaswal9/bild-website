@@ -3,6 +3,7 @@ import { LAUNCH_MODE, isLivePath, PAST_EVENTS_PUBLISHED } from '@/lib/launch'
 import { isPastEvent } from '@/lib/events'
 import { getPublishedEvents } from '@/lib/events-server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { SHOW_MAHJONG_INTEREST } from '@/lib/site-flags'
 
 const BASE = 'https://www.bild.ae'
 
@@ -12,6 +13,7 @@ const ALL_PAGES: { path: string; priority: number; lastModified: Date }[] = [
   { path: '/join', priority: 0.9, lastModified: new Date('2026-07-01') },
   { path: '/about', priority: 0.8, lastModified: new Date('2026-07-01') },
   { path: '/events', priority: 0.8, lastModified: new Date('2026-07-01') },
+  { path: '/mahjong', priority: 0.5, lastModified: new Date('2026-11-01') },
   { path: '/directory', priority: 0.7, lastModified: new Date('2026-07-01') },
   { path: '/knowledge-base', priority: 0.7, lastModified: new Date('2026-07-01') },
   { path: '/photo-vault', priority: 0.5, lastModified: new Date('2026-07-01') },
@@ -20,13 +22,14 @@ const ALL_PAGES: { path: string; priority: number; lastModified: Date }[] = [
   { path: '/code-of-conduct', priority: 0.4, lastModified: new Date('2026-07-01') },
   { path: '/contact', priority: 0.6, lastModified: new Date('2026-09-11') },
   { path: '/terms', priority: 0.4, lastModified: new Date('2026-07-01') },
-  { path: '/privacy', priority: 0.4, lastModified: new Date('2026-09-09') },
+  { path: '/privacy', priority: 0.4, lastModified: new Date('2026-11-01') },
   { path: '/refund-policy', priority: 0.4, lastModified: new Date('2026-09-09') },
 ]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries = ALL_PAGES
     .filter(p => !LAUNCH_MODE || isLivePath(p.path))
+    .filter(p => p.path !== '/mahjong' || SHOW_MAHJONG_INTEREST)
     .map(p => ({
       url: `${BASE}${p.path === '/' ? '' : p.path}`,
       lastModified: p.lastModified,
