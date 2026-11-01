@@ -13,7 +13,7 @@
 // Conduct, Privacy Policy and Terms, which describe how the groups are run.
 //
 // Set to true and deploy to bring it all back.
-export const SHOW_SPECIALIST_WHATSAPP_GROUPS = false
+export const SHOW_SPECIALIST_WHATSAPP_GROUPS = true
 
 // The Mahjong interest register: the /mahjong form and its banner on the events
 // page. While false, the banner is hidden, /mahjong returns a 404 and the form
