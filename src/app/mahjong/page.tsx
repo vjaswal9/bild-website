@@ -9,6 +9,20 @@ export const metadata: Metadata = {
   title: 'Mahjong at BILD',
   description:
     'Register your interest in BILD Mahjong classes and socials for British Indians in Dubai. Learn a new game, make new friends. No payment or commitment.',
+  // The picture WhatsApp, Instagram and others show when the link is shared.
+  // 1200 x 630 and well under 300 KB, which WhatsApp needs to show it.
+  openGraph: {
+    title: 'Mahjong at BILD',
+    description: 'A little Mahjong. A lot of connection. Register your interest in BILD Mahjong classes and socials.',
+    url: '/mahjong',
+    images: [{ url: '/images/mahjong/bild-mahjong-share.jpg', width: 1200, height: 630, alt: 'BILD Mahjong: a little Mahjong, a lot of connection. Register at bild.ae/mahjong.' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mahjong at BILD',
+    description: 'A little Mahjong. A lot of connection. Register your interest.',
+    images: ['/images/mahjong/bild-mahjong-share.jpg'],
+  },
 }
 
 export default function MahjongPage() {
