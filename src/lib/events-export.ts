@@ -132,6 +132,7 @@ export async function buildEventsWorkbook(): Promise<{
         'Refunded AED': r.refunded_amount_aed || 0,
         Dietary: dietaryLabel(r.dietary, r.dietary_note),
         'Admin notes': r.admin_note || '',
+        'Private note': r.admin_memo || '',
       })
 
       // The door list is paid bookings only, matching the export the admin

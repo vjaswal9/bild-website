@@ -99,6 +99,9 @@ export type EventRegistration = {
   refunded_amount_aed?: number | null
   // Running audit trail of admin changes to this booking.
   admin_note?: string | null
+  // A short private note an admin typed (45 characters at most). Admin screens
+  // only: the public and member pages never select this column.
+  admin_memo?: string | null
   dietary?: Dietary | null
   dietary_note?: string | null
   // Only set when the lead booker is themselves on a child ticket. Every other

@@ -9,6 +9,7 @@ import PrivateLinksPanel from '@/components/admin/PrivateLinksPanel'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
 import { readTicketChoices, describeTicketChoices, waitingTotalsByType } from '@/lib/waitlist-tickets'
+import AdminMemoField from '@/components/admin/AdminMemoField'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
 import {
   Plus, Calendar, MapPin, Ticket, Users, Image as ImageIcon, Trash2, Save, X,
@@ -363,6 +364,9 @@ type FlatAttendee = {
   email?: string
   amountAed: number
   age?: number | null
+  // The booking's private admin note. Carried on the lead buyer's row only:
+  // guests live inside their booking, so the note belongs to the booking.
+  memo?: string | null
 }
 
 // One row per actual person - the lead buyer plus each named guest - so the
@@ -375,7 +379,7 @@ function flattenAttendees(registrations: EventRegistration[]): FlatAttendee[] {
     rows.push({
       key: reg.id, name: buyerName, ticketName: reg.ticket_name || 'Ticket',
       status: reg.status, isGuest: false, email: reg.email, amountAed: reg.amount_aed,
-      age: reg.attendee_age ?? null,
+      age: reg.attendee_age ?? null, memo: reg.admin_memo ?? null,
     })
     ;(reg.guest_names || []).forEach((g, i) => {
       const rawName = typeof g === 'string' ? g : (g?.name || '')
@@ -433,6 +437,7 @@ function ReadOnlyAttendeesList({ eventId, registrations }: { eventId: string; re
                   <p className="text-gray-400 text-sm truncate">
                     {a.isGuest ? `Guest of ${a.buyerName}` : a.email} · {a.ticketName}{a.age != null ? ` · age ${a.age}` : ''} · {a.amountAed > 0 ? `${a.amountAed} AED` : 'Free'}
                   </p>
+                  {!a.isGuest && <AdminMemoField kind="booking" id={a.key} value={a.memo} />}
                 </div>
                 <RegStatusBadge status={a.status} />
               </div>
@@ -527,6 +532,7 @@ function ReadOnlyWaitlist({ eventId }: { eventId: string }) {
                   {e.invited_at && ` · offered ${date(e.invited_at)}`}
                 </p>
                 <WaitChoices entry={e} />
+                <AdminMemoField kind="waitlist" id={e.id} value={e.admin_memo} />
               </div>
               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${WAIT_TONE[e.status]}`}>
                 {e.status === 'invited' ? 'Offered' : e.status}
@@ -806,6 +812,8 @@ type WaitEntry = {
   // types were asked for: those keep showing just their count.
   ticket_preferences?: unknown
   note?: string | null
+  // A short private note an admin typed; never shown to the person.
+  admin_memo?: string | null
   status: 'waiting' | 'invited' | 'converted' | 'declined' | 'removed'
   invited_at: string | null
 }
@@ -1006,6 +1014,7 @@ function WaitlistPanel({ eventId }: { eventId: string }) {
                     {e.invited_at && ` · offered ${new Date(e.invited_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dubai' })}`}
                   </p>
                   <WaitChoices entry={e} indent />
+                  <div className="pl-7"><AdminMemoField kind="waitlist" id={e.id} value={e.admin_memo} /></div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {(e.status === 'waiting' || e.status === 'invited') && (
@@ -2496,6 +2505,10 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
           </p>
         </div>
       )}
+
+      <div className="px-4 pb-3">
+        <AdminMemoField kind="booking" id={reg.id} value={reg.admin_memo} />
+      </div>
 
       {/* ---- Actions ---- */}
       <div className="flex items-center gap-2 flex-wrap px-4 py-2.5 bg-charcoal-800/60 border-t border-charcoal-600">
