@@ -1,28 +1,19 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Download, MessageCircle, Trash2 } from 'lucide-react'
 import type { MahjongRow } from '@/lib/mahjong-admin'
+import MahjongInfographic from './MahjongInfographic'
 import { mahjongLabel, MAHJONG_EXPERIENCE_OPTIONS, MAHJONG_MEMBER_LABELS } from '@/lib/mahjong-interest'
 
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' })
-
-// Counts of one answer across everyone, biggest first.
-function tally(values: string[]) {
-  const m = new Map<string, number>()
-  for (const v of values) m.set(v, (m.get(v) || 0) + 1)
-  return Array.from(m.entries()).sort((a, b) => b[1] - a[1])
-}
 
 export default function MahjongAdmin({ initial, problem }: { initial: MahjongRow[]; problem: string }) {
   const [rows, setRows] = useState(initial)
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
 
-  const areas = useMemo(() => tally(rows.map(r => r.area)), [rows])
-  const times = useMemo(() => tally(rows.flatMap(r => r.availability || [])), [rows])
-  const experience = useMemo(() => tally(rows.map(r => mahjongLabel(MAHJONG_EXPERIENCE_OPTIONS, r.experience))), [rows])
   const shown = rows.filter(r => !q.trim() || `${r.full_name} ${r.whatsapp} ${r.area}`.toLowerCase().includes(q.trim().toLowerCase()))
 
   async function remove(r: MahjongRow) {
@@ -54,20 +45,7 @@ export default function MahjongAdmin({ initial, problem }: { initial: MahjongRow
       {problem && <p role="alert" className="mb-4 rounded-lg bg-ruby-500/20 border border-ruby-500/40 px-4 py-3 text-sm text-ruby-200">{problem}</p>}
       {error && <p role="alert" className="mb-4 rounded-lg bg-ruby-500/20 border border-ruby-500/40 px-4 py-3 text-sm text-ruby-200">{error}</p>}
 
-      {rows.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {[['By area', areas], ['By experience', experience], ['Times that suit', times]].map(([title, list]) => (
-            <div key={title as string} className="rounded-xl bg-charcoal-800 border border-charcoal-700 p-4">
-              <h2 className="text-sm font-semibold text-white mb-2">{title as string}</h2>
-              <ul className="space-y-1 text-sm">
-                {(list as [string, number][]).map(([label, n]) => (
-                  <li key={label} className="flex justify-between gap-3"><span className="text-gray-300">{label}</span><span className="text-gold-400 font-semibold tabular-nums">{n}</span></li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
+      <MahjongInfographic rows={rows} />
 
       <input
         type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name, number or area"
