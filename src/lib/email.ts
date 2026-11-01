@@ -8,7 +8,7 @@ import { googleCalendarUrl } from './calendar'
 import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
 import { PHOTO_VAULT_PUBLISHED } from '@/lib/launch'
 import { whatsappDigits } from '@/lib/private-link-format'
-import { mahjongLabel, MAHJONG_MEMBER_OPTIONS, MAHJONG_EXPERIENCE_OPTIONS } from '@/lib/mahjong-interest'
+import { mahjongLabel, MAHJONG_MEMBER_LABELS, MAHJONG_EXPERIENCE_OPTIONS } from '@/lib/mahjong-interest'
 
 // Escape user-supplied text before interpolating into HTML email bodies.
 function esc(value: string): string {
@@ -927,7 +927,7 @@ export async function sendMahjongInterestAdminAlert(opts: {
   name: string; whatsapp: string; memberStatus: string; area: string; experience: string
   availability: string[]; notes?: string; total: number; repeat: boolean
 }) {
-  const member = mahjongLabel(MAHJONG_MEMBER_OPTIONS, opts.memberStatus)
+  const member = mahjongLabel(MAHJONG_MEMBER_LABELS, opts.memberStatus)
   const experience = mahjongLabel(MAHJONG_EXPERIENCE_OPTIONS, opts.experience)
   const digits = whatsappDigits(opts.whatsapp)
   const html = adminAlertShell({

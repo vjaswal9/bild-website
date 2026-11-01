@@ -5,7 +5,7 @@ import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import { readMahjongInterest } from '@/lib/mahjong-admin'
 import { uuid } from '@/lib/validate'
 import {
-  mahjongLabel, MAHJONG_EXPERIENCE_OPTIONS, MAHJONG_MEMBER_OPTIONS,
+  mahjongLabel, MAHJONG_EXPERIENCE_OPTIONS, MAHJONG_MEMBER_LABELS,
 } from '@/lib/mahjong-interest'
 
 export const dynamic = 'force-dynamic'
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     'Registered': new Date(r.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Dubai' }),
     'Name': r.full_name,
     'WhatsApp': r.whatsapp,
-    'BILD member': mahjongLabel(MAHJONG_MEMBER_OPTIONS, r.member_status),
+    'BILD member': mahjongLabel(MAHJONG_MEMBER_LABELS, r.member_status),
     'Area': r.area,
     'Experience': mahjongLabel(MAHJONG_EXPERIENCE_OPTIONS, r.experience),
     'Times': (r.availability || []).join(', '),

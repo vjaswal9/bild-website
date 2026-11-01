@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Download, MessageCircle, Trash2 } from 'lucide-react'
 import type { MahjongRow } from '@/lib/mahjong-admin'
-import { mahjongLabel, MAHJONG_EXPERIENCE_OPTIONS, MAHJONG_MEMBER_OPTIONS } from '@/lib/mahjong-interest'
+import { mahjongLabel, MAHJONG_EXPERIENCE_OPTIONS, MAHJONG_MEMBER_LABELS } from '@/lib/mahjong-interest'
 
 const when = (iso: string) =>
   new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' })
@@ -84,7 +84,7 @@ export default function MahjongAdmin({ initial, problem }: { initial: MahjongRow
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-semibold text-white">{r.full_name}</p>
-                  <p className="text-sm text-gray-400">Registered {when(r.created_at)} &middot; BILD member: {mahjongLabel(MAHJONG_MEMBER_OPTIONS, r.member_status)}</p>
+                  <p className="text-sm text-gray-400">Registered {when(r.created_at)} &middot; BILD member: {mahjongLabel(MAHJONG_MEMBER_LABELS, r.member_status)}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <a href={`https://wa.me/${r.whatsapp_digits}`} target="_blank" rel="noopener noreferrer"

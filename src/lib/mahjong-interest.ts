@@ -5,8 +5,11 @@
 export const MAHJONG_MEMBER_OPTIONS = [
   { value: 'yes', label: 'Yes' },
   { value: 'joining', label: 'No, I would like information about joining' },
-  { value: 'unsure', label: 'Not sure' },
 ] as const
+
+// "Not sure" was taken off the form on 1 November 2026. A few people may have
+// chosen it before then, so it is still understood when the list is shown.
+export const MAHJONG_MEMBER_LABELS = [...MAHJONG_MEMBER_OPTIONS, { value: 'unsure', label: 'Not sure' }]
 
 export const MAHJONG_AREAS = [
   'Arabian Ranches / Motor City / Dubai Hills',
