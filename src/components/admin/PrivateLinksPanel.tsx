@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { KeyRound, Loader2, MessageCircle, Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, KeyRound, Loader2, MessageCircle, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { whatsappDigits } from '@/lib/private-link-format'
 
 // Personal single-use links to a partner's private ticket page (see
@@ -48,6 +48,8 @@ export default function PrivateLinksPanel({ eventId }: { eventId: string }) {
   const [links, setLinks] = useState<Link[]>([])
   const [waiting, setWaiting] = useState<Waiting[]>([])
   const [busy, setBusy] = useState<string | null>(null)
+  // The list of links made grows long, so it stays closed until asked for.
+  const [listOpen, setListOpen] = useState(false)
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -195,8 +197,17 @@ export default function PrivateLinksPanel({ eventId }: { eventId: string }) {
         <p className="text-gray-500 text-sm">No links made yet.</p>
       ) : (
         <>
-          <p className="text-gray-400 text-xs mb-2">{links.length} link{links.length === 1 ? '' : 's'} made, {usedCount} used</p>
-          <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setListOpen(v => !v)}
+            aria-expanded={listOpen}
+            className="inline-flex items-center gap-1.5 text-gold-400 hover:underline text-sm font-medium mb-2"
+          >
+            {listOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            {links.length} link{links.length === 1 ? '' : 's'} made, {usedCount} used
+            <span className="text-gray-500 font-normal">({listOpen ? 'click to hide' : 'click to open'})</span>
+          </button>
+          {listOpen && <div className="space-y-2">
             {links.map(l => {
               const st = statusOf(l)
               const digits = whatsappDigits(l.phone)
@@ -235,7 +246,7 @@ export default function PrivateLinksPanel({ eventId }: { eventId: string }) {
                 </div>
               )
             })}
-          </div>
+          </div>}
         </>
       )}
 
