@@ -184,6 +184,9 @@ function EventListCard({
   const [managePassword, setManagePassword] = useState('')
   const [manageBusy, setManageBusy] = useState(false)
   const [manageError, setManageError] = useState('')
+  // Event details start hidden every time Manage is opened.
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  useEffect(() => { if (!expanded) setDetailsOpen(false) }, [expanded])
 
   function handleManageClick() {
     if (expanded) { onToggleExpand(); return } // closing doesn't need re-confirmation
@@ -322,7 +325,12 @@ function EventListCard({
 
       {expanded && (
         <div className="border-t border-charcoal-700">
-          <Section title="Event details">
+          <Section
+            title="Event details"
+            open={detailsOpen}
+            onToggle={() => setDetailsOpen(v => !v)}
+            hiddenNote="Hidden so the details are not changed by accident. Press Show to edit them."
+          >
             <EventForm event={ev} onClose={onToggleExpand} />
           </Section>
           <Section title="Tickets">
@@ -331,10 +339,10 @@ function EventListCard({
           <Section title="Attendees / door list" tone="emerald">
             <AttendeesPanel eventId={ev.id} seatingEnabled={!!ev.seating_enabled} stats={stats} registrations={registrations} tickets={tickets} />
           </Section>
-          <Section title="Waitlist">
+          <Section title="Waitlist" tone="emerald">
             <WaitlistPanel eventId={ev.id} />
           </Section>
-          <Section title="Private ticket links">
+          <Section title="Private ticket links" tone="emerald">
             <PrivateLinksPanel eventId={ev.id} />
           </Section>
           <Section title="Additional revenue &amp; costs" tone="sky">
@@ -1578,23 +1586,45 @@ function LineGroup({
   )
 }
 
-// Most sections are gold. A section the owner works in often is tinted so it is
-// easy to find: blue for the money lines, green for attendees and the door
-// list. No two sections share a colour. Written out in full, because Tailwind
-// only generates class names it can find spelled out.
+// Most sections are gold. The sections the owner works in often are tinted so
+// they are easy to find: blue for the money lines, green for everything about
+// who is coming (attendees, waitlist, private ticket links). Written out in
+// full, because Tailwind only generates class names it can find spelled out.
 const SECTION_TONES = {
   sky: { box: 'bg-sky-500/10 border-sky-500/30', title: 'text-sky-400' },
   emerald: { box: 'bg-emerald-500/10 border-emerald-500/30', title: 'text-emerald-400' },
 } as const
 
-function Section({ title, children, tone }: { title: string; children: React.ReactNode; tone?: keyof typeof SECTION_TONES }) {
+// A section can be made collapsible: pass `open` and `onToggle`, and its body
+// is only shown (and only built) while open. Used for Event details, which
+// stays hidden so nobody changes it by accident.
+function Section({ title, children, tone, open, onToggle, hiddenNote }: {
+  title: string
+  children: React.ReactNode
+  tone?: keyof typeof SECTION_TONES
+  open?: boolean
+  onToggle?: () => void
+  hiddenNote?: string
+}) {
   const t = tone ? SECTION_TONES[tone] : null
+  const collapsible = !!onToggle
+  const shown = !collapsible || !!open
   return (
     <div className={`border-b last:border-b-0 ${t ? t.box : 'border-charcoal-700'}`}>
-      <div className="px-6 pt-5 pb-1">
+      <div className="px-6 pt-5 pb-1 flex items-center justify-between gap-3">
         <h4 className={`${t ? t.title : 'text-gold-400'} text-xs font-semibold uppercase tracking-wide`}>{title}</h4>
+        {collapsible && (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={shown}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-300 hover:text-white bg-charcoal-700 hover:bg-charcoal-600 px-2.5 py-1 rounded-lg transition-colors"
+          >
+            {shown ? <><ChevronUp size={13} /> Hide</> : <><ChevronDown size={13} /> Show</>}
+          </button>
+        )}
       </div>
-      {children}
+      {shown ? children : (hiddenNote && <p className="px-6 pb-5 pt-1 text-gray-500 text-xs">{hiddenNote}</p>)}
     </div>
   )
 }
