@@ -34,7 +34,12 @@ export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const hideJoinButton = pathname === '/directory'
+  // Only while the directory is live. While it is switched off, /directory is
+  // rewritten to the "temporarily offline" page, which is built ahead of time
+  // under its own address; the browser then sees /directory, hides the button,
+  // and no longer matches the page it was sent, so React reports a hydration
+  // error for every visitor to an old directory link.
+  const hideJoinButton = directoryLive && pathname === '/directory'
 
   // Close the mobile menu whenever the page changes (back button, links elsewhere).
   useEffect(() => { setOpen(false) }, [pathname])
