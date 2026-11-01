@@ -1612,7 +1612,7 @@ function Section({ title, children, tone, open, onToggle, hiddenNote }: {
   return (
     <div className={`border-b last:border-b-0 ${t ? t.box : 'border-charcoal-700'}`}>
       <div className="px-6 pt-5 pb-1 flex items-center justify-between gap-3">
-        <h4 className={`${t ? t.title : 'text-gold-400'} text-xs font-semibold uppercase tracking-wide`}>{title}</h4>
+        <h4 className={`${t ? t.title : 'text-gold-400'} text-base sm:text-lg font-bold uppercase tracking-wide`}>{title}</h4>
         {collapsible && (
           <button
             type="button"
