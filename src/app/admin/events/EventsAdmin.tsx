@@ -328,7 +328,7 @@ function EventListCard({
           <Section title="Tickets">
             <TicketManager eventId={ev.id} tickets={tickets} />
           </Section>
-          <Section title="Attendees / door list">
+          <Section title="Attendees / door list" tone="emerald">
             <AttendeesPanel eventId={ev.id} seatingEnabled={!!ev.seating_enabled} stats={stats} registrations={registrations} tickets={tickets} />
           </Section>
           <Section title="Waitlist">
@@ -337,7 +337,7 @@ function EventListCard({
           <Section title="Private ticket links">
             <PrivateLinksPanel eventId={ev.id} />
           </Section>
-          <Section title="Additional revenue &amp; costs" highlight>
+          <Section title="Additional revenue &amp; costs" tone="sky">
             <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
           </Section>
           <Section title="Photos &amp; videos">
@@ -1578,13 +1578,21 @@ function LineGroup({
   )
 }
 
-// `highlight` tints the whole band blue so a section the owner works in often
-// (the money lines) is easy to find among the gold-headed ones.
-function Section({ title, children, highlight }: { title: string; children: React.ReactNode; highlight?: boolean }) {
+// Most sections are gold. A section the owner works in often is tinted so it is
+// easy to find: blue for the money lines, green for attendees and the door
+// list. No two sections share a colour. Written out in full, because Tailwind
+// only generates class names it can find spelled out.
+const SECTION_TONES = {
+  sky: { box: 'bg-sky-500/10 border-sky-500/30', title: 'text-sky-400' },
+  emerald: { box: 'bg-emerald-500/10 border-emerald-500/30', title: 'text-emerald-400' },
+} as const
+
+function Section({ title, children, tone }: { title: string; children: React.ReactNode; tone?: keyof typeof SECTION_TONES }) {
+  const t = tone ? SECTION_TONES[tone] : null
   return (
-    <div className={`border-b last:border-b-0 ${highlight ? 'bg-sky-500/10 border-sky-500/30' : 'border-charcoal-700'}`}>
+    <div className={`border-b last:border-b-0 ${t ? t.box : 'border-charcoal-700'}`}>
       <div className="px-6 pt-5 pb-1">
-        <h4 className={`${highlight ? 'text-sky-400' : 'text-gold-400'} text-xs font-semibold uppercase tracking-wide`}>{title}</h4>
+        <h4 className={`${t ? t.title : 'text-gold-400'} text-xs font-semibold uppercase tracking-wide`}>{title}</h4>
       </div>
       {children}
     </div>
