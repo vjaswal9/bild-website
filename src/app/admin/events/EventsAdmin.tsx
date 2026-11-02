@@ -184,9 +184,10 @@ function EventListCard({
   const [managePassword, setManagePassword] = useState('')
   const [manageBusy, setManageBusy] = useState(false)
   const [manageError, setManageError] = useState('')
-  // Event details start hidden every time Manage is opened.
+  // Event details and Tickets start hidden every time Manage is opened.
   const [detailsOpen, setDetailsOpen] = useState(false)
-  useEffect(() => { if (!expanded) setDetailsOpen(false) }, [expanded])
+  const [ticketsOpen, setTicketsOpen] = useState(false)
+  useEffect(() => { if (!expanded) { setDetailsOpen(false); setTicketsOpen(false) } }, [expanded])
 
   function handleManageClick() {
     if (expanded) { onToggleExpand(); return } // closing doesn't need re-confirmation
@@ -333,7 +334,12 @@ function EventListCard({
           >
             <EventForm event={ev} onClose={onToggleExpand} />
           </Section>
-          <Section title="Tickets">
+          <Section
+            title="Tickets"
+            open={ticketsOpen}
+            onToggle={() => setTicketsOpen(v => !v)}
+            hiddenNote="Hidden so the details are not changed by accident. Press Show to edit them."
+          >
             <TicketManager eventId={ev.id} tickets={tickets} />
           </Section>
           <Section title="Attendees / door list" tone="emerald">
