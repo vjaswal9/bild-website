@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { Loader2, Upload } from 'lucide-react'
 
-type Ticket = { id: string; name: string; active: boolean; price_aed: number }
-
 type PreviewRow = {
   n: number
   name: string
@@ -28,20 +26,16 @@ type Preview = {
   seatingEnabled: boolean
 }
 
-const field = 'w-full bg-charcoal-900 border border-charcoal-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-500'
 
 // Records guests who bought through the ticketing partner, from the guest list
 // the partner exports. Step one reads the file and shows what would happen;
 // nothing is saved until the admin presses Import. No emails are sent and no
 // money is recorded: the sale and the barcodes are the partner's.
-export default function ImportGuestsPanel({ eventId, tickets, onCancel, onDone }: {
+export default function ImportGuestsPanel({ eventId, onCancel, onDone }: {
   eventId: string
-  tickets: Ticket[]
   onCancel: () => void
   onDone: () => void
 }) {
-  const activeTickets = tickets.filter(t => t.active)
-  const [ticketId, setTicketId] = useState(activeTickets[0]?.id || '')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<Preview | null>(null)
   // Rows ticked for import, by line number. New people start ticked; people
@@ -69,7 +63,6 @@ export default function ImportGuestsPanel({ eventId, tickets, onCancel, onDone }
   async function runImport() {
     if (!preview) return
     setError('')
-    if (!ticketId) return setError('Please choose the ticket package to record them under.')
     const chosen = preview.rows.filter(r => ticked.has(r.n) && r.status !== 'problem')
     if (chosen.length === 0) return setError('Nobody is ticked.')
     if (!confirm(`Add ${chosen.length} guest${chosen.length === 1 ? '' : 's'} to this event? No emails are sent and nothing is charged.`)) return
@@ -79,7 +72,6 @@ export default function ImportGuestsPanel({ eventId, tickets, onCancel, onDone }
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         eventId,
-        defaultTicketId: ticketId,
         rows: chosen.map(r => ({
           n: r.n, firstName: r.firstName, lastName: r.lastName, email: r.email, phone: r.phone,
           ticket: r.ticket, party: r.party, ref: r.ref, force: r.status === 'exists',
@@ -122,15 +114,7 @@ export default function ImportGuestsPanel({ eventId, tickets, onCancel, onDone }
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-            <label className="block">
-              <span className="text-gray-400 text-xs block mb-1">Record them under this ticket package</span>
-              <select id="import-ticket" value={ticketId} onChange={e => setTicketId(e.target.value)} className={field}>
-                {activeTickets.length === 0 && <option value="">No active ticket packages</option>}
-                {activeTickets.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-              <span className="text-gray-500 text-[11px] block mt-1">Used when the file&rsquo;s ticket type does not match one of this event&rsquo;s packages.</span>
-            </label>
+          <div className="mb-3">
             <label className="block">
               <span className="text-gray-400 text-xs block mb-1">Guest list file (CSV or Excel)</span>
               <input
@@ -181,7 +165,7 @@ export default function ImportGuestsPanel({ eventId, tickets, onCancel, onDone }
                         <td className="px-2 py-1.5 text-white">{r.name || <span className="text-gray-600">(no name)</span>}</td>
                         <td className="px-2 py-1.5 text-gray-400 break-all">{r.email}</td>
                         <td className="px-2 py-1.5 text-gray-400">
-                          {r.ticket || '-'}{r.ticket && !r.ticketMatched && <span className="text-gray-600"> (uses package above)</span>}
+                          {r.ticket || '-'}
                         </td>
                         <td className={`px-2 py-1.5 text-xs ${r.status === 'new' ? 'text-green-400' : r.status === 'exists' ? 'text-amber-400' : 'text-red-400'}`}>
                           {r.status === 'new' ? 'New' : r.reason}

@@ -2245,7 +2245,6 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
       {importingGuests && (
         <ImportGuestsPanel
           eventId={eventId}
-          tickets={tickets}
           onCancel={() => setImportingGuests(false)}
           onDone={() => { setImportingGuests(false); router.refresh() }}
         />

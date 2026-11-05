@@ -25,6 +25,9 @@ const SOURCE_LABEL = 'TICKETSFY IMPORT'
 // `is_complimentary`, so BILD's reports do not count it as BILD revenue or
 // cost), with a note saying where it came from.
 //
+// Each person's ticket type must be one of the event's own packages; a row
+// whose type is not is held back with a reason rather than guessed at.
+//
 // Two steps, both on this route: a preview (the file is read and checked, and
 // nothing is saved) and the import (the checked rows are saved).
 
@@ -103,6 +106,7 @@ async function preview(req: NextRequest) {
     let reason = ''
     if (!key) { status = 'problem'; reason = 'No name' }
     else if (!partyEmail.has(r.party)) { status = 'problem'; reason = r.email ? 'Email address does not look valid' : 'No email address for this booking' }
+    else if (!ticketKeys.get(nameKey(r.ticket))) { status = 'problem'; reason = r.ticket ? `"${r.ticket}" is not one of this event's ticket packages` : 'No ticket type in the file' }
     else if (already.has(key)) { status = 'exists'; reason = 'Already booked in BILD' }
     else if (seenInFile.has(`${r.party}|${key}`)) { status = 'exists'; reason = 'Listed twice in the file' }
     seenInFile.add(`${r.party}|${key}`)
@@ -133,17 +137,14 @@ type IncomingRow = GuestRow & { force?: boolean }
 async function commit(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const eventId = String(body.eventId || '')
-  const defaultTicketId = String(body.defaultTicketId || '')
   const incoming: IncomingRow[] = Array.isArray(body.rows) ? body.rows : []
-  if (!eventId || !defaultTicketId || incoming.length === 0) {
+  if (!eventId || incoming.length === 0) {
     return NextResponse.json({ error: 'Nothing to import.' }, { status: 400 })
   }
   if (incoming.length > 600) return NextResponse.json({ error: 'Too many guests in one import.' }, { status: 400 })
 
   const { event, tickets, regs } = await loadEvent(eventId)
   if (!event) return NextResponse.json({ error: 'Event not found.' }, { status: 404 })
-  const defaultTicket = tickets.find(t => t.id === defaultTicketId)
-  if (!defaultTicket) return NextResponse.json({ error: 'Please choose the ticket package to record them under.' }, { status: 400 })
   const ticketByKey = new Map(tickets.map(t => [nameKey(t.name), t]))
 
   const already = existingNameKeys(regs)
@@ -169,6 +170,7 @@ async function commit(req: NextRequest) {
     if (!key) { skipped.push({ name: name || '(no name)', reason: 'No name' }); continue }
     const email = emailOfParty.get(party)
     if (!email) { skipped.push({ name, reason: 'No valid email address' }); continue }
+    if (!ticketByKey.get(nameKey(clean(r.ticket)))) { skipped.push({ name, reason: 'Ticket type is not one of this event\'s packages' }); continue }
     if (!r.force && already.has(key)) { skipped.push({ name, reason: 'Already booked in BILD' }); continue }
     if (seen.has(`${party}|${key}`)) { skipped.push({ name, reason: 'Listed twice' }); continue }
     seen.add(`${party}|${key}`)
@@ -197,7 +199,8 @@ async function commit(req: NextRequest) {
   const toInsert = Array.from(parties.values()).map(members => {
     const buyer = members[0]
     const guestRows = members.slice(1)
-    const ticketFor = (t: string) => ticketByKey.get(nameKey(t)) || defaultTicket
+    // Every row was checked against the event's packages above, so this always finds one.
+    const ticketFor = (t: string) => ticketByKey.get(nameKey(t))!
     const buyerTicket = ticketFor(buyer.ticket)
     const guests: GuestEntry[] = guestRows.map(g => ({
       name: `${g.firstName} ${g.lastName}`.trim(),
