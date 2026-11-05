@@ -130,6 +130,10 @@ export type EventRegistration = {
   // can exclude it from both revenue and cost, rather than showing BILD as
   // having paid to host them.
   is_complimentary?: boolean
+  // Where a booking came from when it was not made on the site, e.g.
+  // 'TICKETSFY IMPORT'. Null for ordinary bookings. Admin only: shown on the
+  // admin screens and as a Source column on the door list, never to the public.
+  source?: string | null
   // People taken off this booking after it was paid (see
   // src/lib/remove-person.ts). Absent until the database update has been run.
   removed_people?: RemovedPerson[] | null

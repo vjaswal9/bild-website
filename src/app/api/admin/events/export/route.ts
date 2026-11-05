@@ -47,6 +47,10 @@ export async function GET(req: NextRequest) {
   // name, phone, ticket type, and dietary requirement. Each booking expands
   // into the primary buyer plus a row for every named guest on the extra tickets.
   const rows: Record<string, unknown>[] = []
+  // A Source column appears only when somebody on this list came from
+  // elsewhere (the Ticketsfy import), so ordinary events keep the layout the
+  // door staff already know.
+  const anySource = regs.some((r: Record<string, unknown>) => !!r.source)
   regs.forEach((r: Record<string, unknown>) => {
     const buyer = `${r.title ? `${r.title} ` : ''}${r.first_name} ${r.last_name}`.trim()
     // Everyone on one booking sits together - the table(s) live on the
@@ -68,6 +72,7 @@ export async function GET(req: NextRequest) {
       Age: r.attendee_age ?? '',
       Dietary: dietaryLabel(r.dietary, r.dietary_note),
       ...tableCol,
+      ...(anySource ? { Source: r.source || '' } : {}),
     })
     const guests = Array.isArray(r.guest_names) ? r.guest_names : []
     guests.forEach((g: unknown) => {
@@ -86,6 +91,7 @@ export async function GET(req: NextRequest) {
         Age: age,
         Dietary: dietary,
         ...tableCol,
+        ...(anySource ? { Source: r.source || '' } : {}),
       })
     })
   })

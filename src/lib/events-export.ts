@@ -133,6 +133,7 @@ export async function buildEventsWorkbook(): Promise<{
         Dietary: dietaryLabel(r.dietary, r.dietary_note),
         'Admin notes': r.admin_note || '',
         'Private note': r.admin_memo || '',
+        Source: r.source || '',
       })
 
       // The door list is paid bookings only, matching the export the admin

@@ -5,6 +5,7 @@ import { uploadViaSignedUrl } from '@/lib/upload-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
 import SeatingView from '@/components/admin/SeatingView'
+import ImportGuestsPanel from '@/components/admin/ImportGuestsPanel'
 import PrivateLinksPanel from '@/components/admin/PrivateLinksPanel'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
@@ -366,6 +367,16 @@ function EventListCard({
   )
 }
 
+// A small label on bookings that were added by an admin from another source
+// (the Ticketsfy import), so they stand out from the site's own bookings.
+function SourceTag({ source }: { source: string }) {
+  return (
+    <span className="ml-2 align-middle bg-sky-500/20 text-sky-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+      {source}
+    </span>
+  )
+}
+
 // Read-only attendee list for the "Attendees & Waiting-List" button - same information as
 // the Manage panel's attendee rows, but with no Refund/Delete actions.
 type FlatAttendee = {
@@ -381,6 +392,8 @@ type FlatAttendee = {
   // The booking's private admin note. Carried on the lead buyer's row only:
   // guests live inside their booking, so the note belongs to the booking.
   memo?: string | null
+  // Where the booking came from, when not the site (e.g. TICKETSFY IMPORT).
+  source?: string | null
 }
 
 // One row per actual person - the lead buyer plus each named guest - so the
@@ -393,7 +406,7 @@ function flattenAttendees(registrations: EventRegistration[]): FlatAttendee[] {
     rows.push({
       key: reg.id, name: buyerName, ticketName: reg.ticket_name || 'Ticket',
       status: reg.status, isGuest: false, email: reg.email, amountAed: reg.amount_aed,
-      age: reg.attendee_age ?? null, memo: reg.admin_memo ?? null,
+      age: reg.attendee_age ?? null, memo: reg.admin_memo ?? null, source: reg.source ?? null,
     })
     ;(reg.guest_names || []).forEach((g, i) => {
       const rawName = typeof g === 'string' ? g : (g?.name || '')
@@ -403,7 +416,7 @@ function flattenAttendees(registrations: EventRegistration[]): FlatAttendee[] {
       rows.push({
         key: `${reg.id}-g${i}`, name, ticketName: ticketName || 'Ticket',
         status: reg.status, isGuest: true, buyerName, amountAed: typeof g === 'string' ? 0 : (g.price_aed || 0),
-        age: typeof g === 'string' ? null : (g.age ?? null),
+        age: typeof g === 'string' ? null : (g.age ?? null), source: reg.source ?? null,
       })
     })
   })
@@ -447,7 +460,10 @@ function ReadOnlyAttendeesList({ eventId, registrations }: { eventId: string; re
               <div key={a.key} className="flex items-center gap-4 bg-charcoal-700/50 rounded-xl px-6 py-4">
                 <span className="shrink-0 w-7 h-7 rounded-full bg-charcoal-600 text-gray-300 text-xs font-semibold flex items-center justify-center">{n}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-white font-semibold truncate">{a.name}</p>
+                  <p className="text-white font-semibold truncate">
+                    {a.name}
+                    {a.source && <SourceTag source={a.source} />}
+                  </p>
                   <p className="text-gray-400 text-sm truncate">
                     {a.isGuest ? `Guest of ${a.buyerName}` : a.email} · {a.ticketName}{a.age != null ? ` · age ${a.age}` : ''} · {a.amountAed > 0 ? `${a.amountAed} AED` : 'Free'}
                   </p>
@@ -722,7 +738,7 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
           )}
           {compCount > 0 && (
             <p>
-              {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({compValue} AED of value, courtesy of the venue) excluded from both revenue and cost above.
+              {compCount} complimentary or Ticketsfy ticket{compCount === 1 ? '' : 's'} ({compValue} AED of value) excluded from both revenue and cost above. Money from Ticketsfy sales is not recorded here: add Ticketsfy&rsquo;s payout as an Additional revenue line.
             </p>
           )}
           {refundedTotal > 0 && <p>{refundedTotal} AED already refunded, deducted from revenue above.</p>}
@@ -1308,7 +1324,7 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
         )}
         {compCount > 0 && (
           <p className="text-gray-500 text-xs mt-2">
-            Excludes {compCount} complimentary ticket{compCount === 1 ? '' : 's'} ({aed(compValue)} AED of value, courtesy of the venue).
+            Excludes {compCount} complimentary or Ticketsfy ticket{compCount === 1 ? '' : 's'} ({aed(compValue)} AED of value). Money from Ticketsfy sales is not recorded here: add Ticketsfy&rsquo;s payout below as an Additional revenue line.
           </p>
         )}
         {refundedTotal > 0 && (
@@ -2143,6 +2159,7 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
   const [showAll, setShowAll] = useState(false)
   const [listOpen, setListOpen] = useState(false)
   const [issuingComp, setIssuingComp] = useState(false)
+  const [importingGuests, setImportingGuests] = useState(false)
 
   const compCount = registrations.filter(r => r.status === 'paid' && r.is_complimentary).length
 
@@ -2204,6 +2221,15 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
           >
             <Gift size={16} /> Issue complimentary ticket
           </button>
+          <button
+            onClick={() => setImportingGuests(v => !v)}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              importingGuests ? 'bg-gold-500 text-white' : 'bg-charcoal-700 hover:bg-charcoal-600 text-white'
+            }`}
+            title="Add guests who bought through Ticketsfy so they can be seated"
+          >
+            <Upload size={16} /> Import Ticketsfy guests
+          </button>
           <a href={`/api/admin/events/export?eventId=${eventId}`}
             className="inline-flex items-center gap-2 bg-charcoal-700 hover:bg-charcoal-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
             <Download size={16} /> Download door list (Excel)
@@ -2215,6 +2241,15 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
           </a>
         </div>
       </div>
+
+      {importingGuests && (
+        <ImportGuestsPanel
+          eventId={eventId}
+          tickets={tickets}
+          onCancel={() => setImportingGuests(false)}
+          onDone={() => { setImportingGuests(false); router.refresh() }}
+        />
+      )}
 
       {issuingComp && (
         <IssueCompPanel
@@ -2488,6 +2523,7 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
                 Comp
               </span>
             )}
+            {reg.source && <SourceTag source={reg.source} />}
             {guests.length > 0 && (
               <span className="text-gray-500 text-xs">paid for {guests.length + 1} people</span>
             )}
