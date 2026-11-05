@@ -465,7 +465,7 @@ function ReadOnlyAttendeesList({ eventId, registrations }: { eventId: string; re
                     {a.source && <SourceTag source={a.source} />}
                   </p>
                   <p className="text-gray-400 text-sm truncate">
-                    {a.isGuest ? `Guest of ${a.buyerName}` : a.email} · {a.ticketName}{a.age != null ? ` · age ${a.age}` : ''} · {a.amountAed > 0 ? `${a.amountAed} AED` : 'Free'}
+                    {a.isGuest ? `Guest of ${a.buyerName}` : a.email} · {a.ticketName}{a.age != null ? ` · age ${a.age}` : ''} · {a.amountAed > 0 ? `${a.amountAed} AED` : a.source ? 'Paid via Ticketsfy' : 'Free'}
                   </p>
                   {!a.isGuest && <AdminMemoField kind="booking" id={a.key} value={a.memo} />}
                 </div>
@@ -2161,7 +2161,12 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
   const [issuingComp, setIssuingComp] = useState(false)
   const [importingGuests, setImportingGuests] = useState(false)
 
-  const compCount = registrations.filter(r => r.status === 'paid' && r.is_complimentary).length
+  // Imported Ticketsfy bookings are stored as complimentary so BILD's revenue and
+  // cost figures ignore them, but they are not gifts, so they are counted and
+  // labelled apart from the real complimentary tickets.
+  const paidRegs = registrations.filter(r => r.status === 'paid')
+  const compCount = paidRegs.filter(r => r.is_complimentary && !r.source).length
+  const importedTickets = paidRegs.filter(r => r.source).reduce((n, r) => n + (Number(r.quantity) || 1), 0)
 
   const sorted = [...registrations].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   const visible = showAll ? sorted : sorted.slice(0, 8)
@@ -2195,6 +2200,9 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
           )}
           {compCount > 0 && (
             <div><p className="text-2xl font-display font-bold text-purple-300">{compCount}</p><p className="text-gray-400 text-xs">Complimentary</p></div>
+          )}
+          {importedTickets > 0 && (
+            <div><p className="text-2xl font-display font-bold text-sky-300">{importedTickets}</p><p className="text-gray-400 text-xs">Ticketsfy tickets</p></div>
           )}
           {refundedTotal > 0 && (
             <div><p className="text-2xl font-display font-bold text-red-400">{aed(refundedTotal)}</p><p className="text-gray-400 text-xs">AED refunded</p></div>
@@ -2517,7 +2525,7 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
             <span className="bg-gold-500/20 text-gold-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
               Purchaser
             </span>
-            {reg.is_complimentary && (
+            {reg.is_complimentary && !reg.source && (
               <span className="bg-purple-500/20 text-purple-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                 Comp
               </span>
@@ -2534,7 +2542,7 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-right">
             <p className="text-white text-sm font-semibold">
-              {reg.amount_aed > 0 ? `${aed(reg.amount_aed)} AED` : reg.is_complimentary ? 'Complimentary' : 'Free'}
+              {reg.amount_aed > 0 ? `${aed(reg.amount_aed)} AED` : reg.source ? 'Paid via Ticketsfy' : reg.is_complimentary ? 'Complimentary' : 'Free'}
             </p>
             {refunded > 0 && (
               <p className="text-red-400 text-xs">{aed(refunded)} refunded</p>
