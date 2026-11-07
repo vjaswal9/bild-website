@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import AdminNav from '@/components/admin/AdminNav'
 import SeatingView from '@/components/admin/SeatingView'
 import ImportGuestsPanel from '@/components/admin/ImportGuestsPanel'
+import CashFlowPanel from '@/components/admin/CashFlowPanel'
 import PrivateLinksPanel from '@/components/admin/PrivateLinksPanel'
 import { compressImage } from '@/lib/compress-image'
 import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
@@ -354,6 +355,9 @@ function EventListCard({
           </Section>
           <Section title="Additional revenue &amp; costs" tone="sky">
             <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
+          </Section>
+          <Section title="Cash flow" tone="sky">
+            <CashFlowPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
           </Section>
           <Section title="Photos &amp; videos">
             <GalleryManager event={ev} />
