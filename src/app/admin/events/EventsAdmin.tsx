@@ -186,10 +186,17 @@ function EventListCard({
   const [managePassword, setManagePassword] = useState('')
   const [manageBusy, setManageBusy] = useState(false)
   const [manageError, setManageError] = useState('')
-  // Event details and Tickets start hidden every time Manage is opened.
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const [ticketsOpen, setTicketsOpen] = useState(false)
-  useEffect(() => { if (!expanded) { setDetailsOpen(false); setTicketsOpen(false) } }, [expanded])
+    // Every section of Manage starts hidden, and hides again whenever Manage is
+  // closed. A hidden section is not even loaded, so the screen opens quickly
+  // and nothing in it can be changed by accident.
+  const [openSections, setOpenSections] = useState<Partial<Record<SectionKey, boolean>>>({})
+  useEffect(() => { if (!expanded) setOpenSections({}) }, [expanded])
+  const allOpen = SECTION_KEYS.every(k => openSections[k])
+  const sectionProps = (key: SectionKey, hiddenNote = 'Hidden. Press Show to open it.') => ({
+    open: !!openSections[key],
+    onToggle: () => setOpenSections(o => ({ ...o, [key]: !o[key] })),
+    hiddenNote,
+  })
 
   function handleManageClick() {
     if (expanded) { onToggleExpand(); return } // closing doesn't need re-confirmation
@@ -328,38 +335,37 @@ function EventListCard({
 
       {expanded && (
         <div className="border-t border-charcoal-700">
-          <Section
-            title="Event details"
-            open={detailsOpen}
-            onToggle={() => setDetailsOpen(v => !v)}
-            hiddenNote="Hidden so the details are not changed by accident. Press Show to edit them."
-          >
+          <div className="px-6 pt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setOpenSections(allOpen ? {} : Object.fromEntries(SECTION_KEYS.map(k => [k, true])))}
+              className="text-xs font-semibold text-gray-300 hover:text-white bg-charcoal-700 hover:bg-charcoal-600 px-2.5 py-1 rounded-lg transition-colors"
+            >
+              {allOpen ? 'Hide all sections' : 'Show all sections'}
+            </button>
+          </div>
+          <Section title="Event details" {...sectionProps('details', 'Hidden so the details are not changed by accident. Press Show to edit them.')}>
             <EventForm event={ev} onClose={onToggleExpand} />
           </Section>
-          <Section
-            title="Tickets"
-            open={ticketsOpen}
-            onToggle={() => setTicketsOpen(v => !v)}
-            hiddenNote="Hidden so the details are not changed by accident. Press Show to edit them."
-          >
+          <Section title="Tickets" {...sectionProps('tickets', 'Hidden so the details are not changed by accident. Press Show to edit them.')}>
             <TicketManager eventId={ev.id} tickets={tickets} />
           </Section>
-          <Section title="Attendees / door list" tone="emerald">
+          <Section title="Attendees / door list" tone="emerald" {...sectionProps('attendees')}>
             <AttendeesPanel eventId={ev.id} seatingEnabled={!!ev.seating_enabled} stats={stats} registrations={registrations} tickets={tickets} />
           </Section>
-          <Section title="Waitlist" tone="emerald">
+          <Section title="Waitlist" tone="emerald" {...sectionProps('waitlist')}>
             <WaitlistPanel eventId={ev.id} />
           </Section>
-          <Section title="Private ticket links" tone="emerald">
+          <Section title="Private ticket links" tone="emerald" {...sectionProps('links')}>
             <PrivateLinksPanel eventId={ev.id} />
           </Section>
-          <Section title="Additional revenue &amp; costs" tone="sky">
+          <Section title="Additional revenue &amp; costs" tone="sky" {...sectionProps('extra')}>
             <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
           </Section>
-          <Section title="Cash flow" tone="sky">
+          <Section title="Cash flow" tone="sky" {...sectionProps('cash')}>
             <CashFlowPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
           </Section>
-          <Section title="Photos &amp; videos">
+          <Section title="Photos &amp; videos" {...sectionProps('photos')}>
             <GalleryManager event={ev} />
           </Section>
           <div className="px-6 py-4">
@@ -1624,6 +1630,10 @@ const SECTION_TONES = {
 // A section can be made collapsible: pass `open` and `onToggle`, and its body
 // is only shown (and only built) while open. Used for Event details, which
 // stays hidden so nobody changes it by accident.
+// The sections of an event's Manage panel, each of which can be hidden.
+const SECTION_KEYS = ['details', 'tickets', 'attendees', 'waitlist', 'links', 'extra', 'cash', 'photos'] as const
+type SectionKey = (typeof SECTION_KEYS)[number]
+
 function Section({ title, children, tone, open, onToggle, hiddenNote }: {
   title: string
   children: React.ReactNode
