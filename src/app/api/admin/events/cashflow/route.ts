@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   const eventId = uuid(req.nextUrl.searchParams.get('eventId'))
   if (!eventId) return NextResponse.json({ error: 'Missing event.' }, { status: 400 })
 
-  const [cardRes, revRes, costRes, venueRes] = await Promise.all([
+  const [cardRes, revRes, costRes, venueRes, costPayRes] = await Promise.all([
     // Every real card payment on the event: tickets and anything sold at the
     // event by Payment Link. What reaches BILD is the charge less Stripe's fee
     // and any refund.
@@ -48,10 +48,15 @@ export async function GET(req: NextRequest) {
       .select('id, due_on, description, amount_aed, settled')
       .eq('event_id', eventId)
       .order('due_on', { ascending: true }),
+    supabaseAdmin
+      .from('event_cost_payments')
+      .select('id, cost_id, paid_on, amount_aed')
+      .eq('event_id', eventId)
+      .order('paid_on', { ascending: true }),
   ])
 
-  for (const r of [cardRes, revRes, costRes, venueRes]) {
-    if (r.error) return NextResponse.json({ error: 'Could not load the cash flow. Has the cash flow SQL been run?' }, { status: 500 })
+  for (const r of [cardRes, revRes, costRes, venueRes, costPayRes]) {
+    if (r.error) return NextResponse.json({ error: 'Could not load the cash flow. Has the latest cash flow SQL been run?' }, { status: 500 })
   }
 
   const card = (cardRes.data || []).reduce(
@@ -79,6 +84,9 @@ export async function GET(req: NextRequest) {
     costs: (costRes.data || []).map(c => ({
       id: c.id, date: String(c.incurred_on).slice(0, 10), category: c.category || 'Other', description: c.description || '',
       amountAed: num(c.amount_aed), settled: c.settled !== false,
+    })),
+    costPayments: (costPayRes.data || []).map(p => ({
+      id: p.id, costId: p.cost_id, date: String(p.paid_on).slice(0, 10), amountAed: num(p.amount_aed),
     })),
     venue: (venueRes.data || []).map(v => ({
       id: v.id, date: String(v.due_on).slice(0, 10), description: v.description || '',
@@ -121,12 +129,47 @@ function readVenue(b: Record<string, unknown>) {
   return { date, description, amount, settled: b.settled === true }
 }
 
+// Records one actual payment towards a cost (the date the money really went
+// out and how much). The cost must belong to this event, and the payments
+// together can never add up to more than the cost.
+async function addCostPayment(b: Record<string, unknown>, eventId: string) {
+  const costId = uuid(b.costId)
+  const date = str(b.date, 10)
+  const amount = Math.round(num(b.amountAed) * 100) / 100
+  if (!costId) return NextResponse.json({ error: 'Missing cost.' }, { status: 400 })
+  if (!DATE.test(date)) return NextResponse.json({ error: 'Please give the date the payment was made.' }, { status: 400 })
+  if (!(amount > 0) || amount > 100000000) return NextResponse.json({ error: 'Please enter an amount greater than zero.' }, { status: 400 })
+
+  const { data: cost, error: cErr } = await supabaseAdmin
+    .from('operating_costs').select('id, amount_aed').eq('id', costId).eq('event_id', eventId).maybeSingle()
+  if (cErr) return NextResponse.json({ error: 'Could not save.' }, { status: 500 })
+  if (!cost) return NextResponse.json({ error: 'That cost no longer exists. Refresh and try again.' }, { status: 404 })
+
+  const { data: existing, error: eErr } = await supabaseAdmin
+    .from('event_cost_payments').select('amount_aed').eq('cost_id', costId)
+  if (eErr) return NextResponse.json({ error: 'Could not save.' }, { status: 500 })
+  const paid = (existing || []).reduce((n, p) => n + num(p.amount_aed), 0)
+  const left = Math.round((num(cost.amount_aed) - paid) * 100) / 100
+  if (amount > left + 0.004) {
+    return NextResponse.json({ error: `That is more than is left to pay on this cost (${left.toFixed(2)} AED).` }, { status: 400 })
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('event_cost_payments')
+    .insert([{ event_id: eventId, cost_id: costId, paid_on: date, amount_aed: amount }])
+    .select('id')
+    .single()
+  if (error) return NextResponse.json({ error: 'Could not save.' }, { status: 500 })
+  return NextResponse.json({ ok: true, id: data.id })
+}
+
 // Adds a payment (made or planned) towards the hotel / venue bill.
 export async function POST(req: NextRequest) {
   if (!(await guard(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   const b = await req.json().catch(() => ({} as Record<string, unknown>))
   const eventId = uuid(b.eventId)
   if (!eventId) return NextResponse.json({ error: 'Missing event.' }, { status: 400 })
+  if (b.type === 'costpay') return addCostPayment(b, eventId)
   const v = readVenue(b)
   if ('error' in v) return NextResponse.json({ error: v.error }, { status: 400 })
 
@@ -163,6 +206,11 @@ export async function DELETE(req: NextRequest) {
   const id = uuid(req.nextUrl.searchParams.get('id'))
   const eventId = uuid(req.nextUrl.searchParams.get('eventId'))
   if (!id || !eventId) return NextResponse.json({ error: 'Missing line or event.' }, { status: 400 })
+  if (req.nextUrl.searchParams.get('type') === 'costpay') {
+    const { error } = await supabaseAdmin.from('event_cost_payments').delete().eq('id', id).eq('event_id', eventId)
+    if (error) return NextResponse.json({ error: 'Could not delete.' }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
   const { error } = await supabaseAdmin.from('event_venue_payments').delete().eq('id', id).eq('event_id', eventId)
   if (error) return NextResponse.json({ error: 'Could not delete.' }, { status: 500 })
   return NextResponse.json({ ok: true })

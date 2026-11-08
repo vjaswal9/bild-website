@@ -24,6 +24,10 @@ export type CashLine = {
 export type CashRevenueLine = CashLine & { kind: string }
 export type CashCostLine = CashLine & { category: string }
 
+// One actual payment made towards a cost, on the date it really went out. A
+// cost paid in two instalments has two of these.
+export type CostPayment = { id: string; costId: string; date: string; amountAed: number }
+
 export type TimelineRow = {
   key: string
   kind: 'card' | 'revenue' | 'cost' | 'venue' | 'unscheduled'
@@ -34,7 +38,11 @@ export type TimelineRow = {
   settled: boolean
   overdue: boolean
   running: number
-  line?: { type: 'revenue' | 'cost' | 'venue'; id: string }
+  // What a row stands for, so the page knows what pressing its button changes.
+  // For a cost row, costId says which cost's payments to open.
+  line?: { type: 'revenue' | 'cost' | 'venue' | 'costpay'; id: string; costId?: string }
+  // True when the cost this row belongs to has actual payments recorded.
+  split?: boolean
 }
 
 export type CashFlowSummary = {
@@ -70,15 +78,40 @@ export function hotelBillAed(registrations: EventRegistration[], tickets: EventT
   return round2(total)
 }
 
+// A cost as cash sees it. With no payments recorded it is one line, paid or not
+// according to its flag, dated by the cost. Once any actual payment is recorded
+// the flag stops mattering: each payment is a line on the day it went out, and
+// whatever is left of the cost is a line still to pay, dated by the cost.
+export function costCashLines(costs: CashCostLine[], payments: CostPayment[]): (CashLine & { costId: string; split: boolean; payment: boolean })[] {
+  const out: (CashLine & { costId: string; split: boolean; payment: boolean })[] = []
+  for (const c of costs) {
+    const mine = payments.filter(p => p.costId === c.id)
+    if (mine.length === 0) {
+      out.push({ ...c, costId: c.id, split: false, payment: false })
+      continue
+    }
+    for (const p of [...mine].sort((a, b) => a.date.localeCompare(b.date))) {
+      out.push({ id: p.id, date: p.date, description: `${c.description} (payment)`, amountAed: p.amountAed, settled: true, costId: c.id, split: true, payment: true })
+    }
+    const left = round2(c.amountAed - mine.reduce((n, p) => n + p.amountAed, 0))
+    if (left > 0.004) {
+      out.push({ id: c.id, date: c.date, description: `${c.description} (balance still to pay)`, amountAed: left, settled: false, costId: c.id, split: true, payment: false })
+    }
+  }
+  return out
+}
+
 export function buildCashFlow(input: {
   card: CardSales
   revenue: CashRevenueLine[]
   costs: CashCostLine[]
+  costPayments?: CostPayment[]
   venue: CashLine[]
   hotelBill: number
   today: string
 }): CashFlowSummary {
-  const { card, revenue, costs, venue, hotelBill, today } = input
+  const { card, revenue, venue, hotelBill, today } = input
+  const costs = costCashLines(input.costs, input.costPayments || [])
 
   const settledRevenue = revenue.filter(r => r.settled).reduce((s, r) => s + r.amountAed, 0)
   const unsettledRevenue = revenue.filter(r => !r.settled).reduce((s, r) => s + r.amountAed, 0)
@@ -110,9 +143,10 @@ export function buildCashFlow(input: {
       line: { type: 'revenue', id: r.id },
     })),
     ...costs.map((c): Draft => ({
-      key: `cost:${c.id}`, kind: 'cost', date: c.date, description: c.description,
+      key: `${c.payment ? 'costpay' : 'cost'}:${c.id}`, kind: 'cost', date: c.date, description: c.description,
       inAed: 0, outAed: c.amountAed, settled: c.settled, overdue: !c.settled && c.date < today,
-      line: { type: 'cost', id: c.id },
+      line: { type: c.payment ? 'costpay' : 'cost', id: c.id, costId: c.costId },
+      split: c.split,
     })),
     ...venue.map((v): Draft => ({
       key: `venue:${v.id}`, kind: 'venue', date: v.date, description: v.description,
