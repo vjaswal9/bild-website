@@ -113,6 +113,21 @@ export async function DELETE(req: NextRequest) {
   if (!(await authed(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   const { id, password } = await req.json().catch(() => ({}))
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+  // An event with paid bookings is never deleted: the bookings, the door list
+  // and the money trail would go with it, and nobody who paid would be told.
+  // Enforced here, not just on the page, so no other request can get round it.
+  // If the count cannot be read, the answer is no.
+  const { count: paidCount, error: countError } = await supabaseAdmin
+    .from('event_registrations')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', id)
+    .eq('status', 'paid')
+  if (countError) return NextResponse.json({ error: 'Could not check the event\'s bookings, so it was not deleted.' }, { status: 500 })
+  if ((paidCount || 0) > 0) {
+    return NextResponse.json({
+      error: `This event has ${paidCount} paid booking${paidCount === 1 ? '' : 's'}, so it cannot be deleted. Set it to Draft to hide it from the public site, or refund every booking first.`,
+    }, { status: 409 })
+  }
   // Deleting an event is destructive - re-confirm the admin password.
   if (!(await verifyAdminPassword(password))) {
     return NextResponse.json({ error: 'Incorrect password. Event was not deleted.' }, { status: 401 })

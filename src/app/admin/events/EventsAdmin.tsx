@@ -369,7 +369,7 @@ function EventListCard({
             <GalleryManager event={ev} />
           </Section>
           <div className="px-6 py-4">
-            <DeleteEvent id={ev.id} title={ev.title} />
+            <DeleteEvent id={ev.id} title={ev.title} paidBookings={registrations.filter(r => r.status === 'paid').length} />
           </div>
         </div>
       )}
@@ -3657,7 +3657,7 @@ function GalleryManager({ event }: { event: EventRow }) {
   )
 }
 
-function DeleteEvent({ id, title }: { id: string; title: string }) {
+function DeleteEvent({ id, title, paidBookings }: { id: string; title: string; paidBookings: number }) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
   const [password, setPassword] = useState('')
@@ -3680,6 +3680,16 @@ function DeleteEvent({ id, title }: { id: string; title: string }) {
       setError(d.error || 'Could not delete event.')
       setBusy(false)
     }
+  }
+
+  // An event with paid bookings cannot be deleted (the server refuses too).
+  if (paidBookings > 0) {
+    return (
+      <p className="text-gray-500 text-xs">
+        This event cannot be deleted because it has {paidBookings} paid booking{paidBookings === 1 ? '' : 's'}.
+        To take it off the public site, set its status to Draft in Event details.
+      </p>
+    )
   }
 
   if (!confirming) {
