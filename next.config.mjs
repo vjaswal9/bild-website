@@ -37,6 +37,11 @@ const nextConfig = {
   // Do not announce the framework in an X-Powered-By header on every response.
   poweredByHeader: false,
   images: {
+    // Keep each resized picture for 30 days (the default is 60 seconds).
+    // Vercel's free plan allows 5,000 resizes a month and every re-resize of
+    // the same picture counts, so a short lifetime used the allowance up.
+    // A replaced flyer or logo gets a new address, so it is unaffected.
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     // Event flyers, business logos and gallery images are all served from
     // Supabase storage. Without this, next/image refuses that host, which is
     // why they were being rendered as plain <img> tags: full-size originals,
