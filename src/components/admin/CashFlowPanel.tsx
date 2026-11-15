@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Loader2, Pencil, Trash2, Plus } from 'lucide-react'
 import type { EventRegistration, EventTicket } from '@/lib/events'
 import {
@@ -44,9 +44,13 @@ export default function CashFlowPanel({ eventId, tickets, registrations }: {
   // The cost whose actual payment dates are open for editing, and the payment being typed.
   const [payFor, setPayFor] = useState<string | null>(null)
   const [payForm, setPayForm] = useState({ date: dubaiToday(), amountAed: '' })
+  // A save that failed, shown on the line that was pressed so it cannot be missed.
+  const [rowError, setRowError] = useState<{ key: string; msg: string } | null>(null)
+  const payBox = useRef<HTMLDivElement | null>(null)
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/admin/events/cashflow?eventId=${eventId}`)
+    // Never from a cache: this is read straight after a change is saved.
+    const res = await fetch(`/api/admin/events/cashflow?eventId=${eventId}`, { cache: 'no-store' })
     const d = await res.json().catch(() => ({}))
     if (!res.ok) return setError(d.error || 'Could not load the cash flow.')
     setError(''); setData(d)
@@ -58,7 +62,13 @@ export default function CashFlowPanel({ eventId, tickets, registrations }: {
     card: data.card, revenue: data.revenue, costs: data.costs, costPayments: data.costPayments, venue: data.venue, hotelBill: bill, today: dubaiToday(),
   }), [data, bill])
 
-  const openPayments = (costId: string) => { setPayFor(costId); setError('') }
+  const openPayments = (costId: string) => { setPayFor(costId); setError(''); setRowError(null) }
+
+  // The payments box sits above the table, so bring it into view when it opens:
+  // from far down a long table it would otherwise open out of sight.
+  useEffect(() => {
+    if (payFor) payBox.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [payFor])
 
   // Whenever a different cost is opened, or its payments change, offer what is
   // left to pay as the amount, dated today. Typing over either is fine.
@@ -101,14 +111,31 @@ export default function CashFlowPanel({ eventId, tickets, registrations }: {
     // Once a cost has actual payments, its paid flag no longer matters: the
     // payments say what has gone out. Pressing its status opens them instead.
     if (row.line.costId && row.split) return openPayments(row.line.costId)
-    setBusyKey(row.key); setError('')
-    const res = await fetch('/api/admin/events/cashflow', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventId, type: row.line.type, id: row.line.id, settled: !row.settled }),
+    const { type, id } = row.line
+    const next = !row.settled
+    setBusyKey(row.key); setError(''); setRowError(null)
+    // Show the change at once, then save it. If the save fails the line is put
+    // back and says why, right where it was pressed.
+    const flip = (settled: boolean) => setData(d => {
+      if (!d) return d
+      const set = <T extends { id: string; settled: boolean }>(list: T[]) => list.map(l => l.id === id ? { ...l, settled } : l)
+      return type === 'revenue' ? { ...d, revenue: set(d.revenue) }
+        : type === 'venue' ? { ...d, venue: set(d.venue) }
+          : { ...d, costs: set(d.costs) }
     })
-    const d = await res.json().catch(() => ({}))
+    flip(next)
+    let ok = false, msg = 'Could not save. Check your connection and try again.'
+    try {
+      const res = await fetch('/api/admin/events/cashflow', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, type, id, settled: next }),
+      })
+      const d = await res.json().catch(() => ({}))
+      ok = res.ok
+      if (!ok && d.error) msg = d.error
+    } catch { /* network failure: msg already says so */ }
     setBusyKey(null)
-    if (!res.ok) return setError(d.error || 'Could not save.')
+    if (!ok) { flip(!next); setRowError({ key: row.key, msg }); return }
     load()
   }
 
@@ -241,7 +268,7 @@ export default function CashFlowPanel({ eventId, tickets, registrations }: {
         const paid = Math.round(mine.reduce((n, p) => n + p.amountAed, 0) * 100) / 100
         const left = Math.round((cost.amountAed - paid) * 100) / 100
         return (
-          <div className="rounded-xl border border-gold-500/40 bg-charcoal-700/30 px-4 py-4">
+          <div ref={payBox} className="rounded-xl border border-gold-500/40 bg-charcoal-700/30 px-4 py-4">
             <p className="text-white text-sm font-semibold mb-1">Payments for: {cost.description}</p>
             <p className="text-gray-400 text-xs mb-3">
               Cost {aed(cost.amountAed)} AED. Paid so far {aed(paid)}. Left to pay <span className={left > 0 ? 'text-amber-300 font-semibold' : 'text-green-400 font-semibold'}>{aed(Math.max(0, left))}</span>.
@@ -312,13 +339,14 @@ export default function CashFlowPanel({ eventId, tickets, registrations }: {
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       {r.line ? (
                         <button onClick={() => toggle(r)} disabled={busyKey === r.key}
-                          title={r.settled ? 'Click if this has not actually happened yet' : 'Click once this has happened'}
+                          title={r.split ? 'This cost has payments entered. Click to see or change them' : r.settled ? 'Click if this has not actually happened yet' : 'Click once this has happened'}
                           className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${r.settled ? 'border-green-500/40 text-green-400 hover:bg-green-500/10' : r.overdue ? 'border-red-500/50 text-red-300 hover:bg-red-500/10' : 'border-amber-500/40 text-amber-300 hover:bg-amber-500/10'}`}>
                           {r.overdue ? `${paidLabel(r)} (overdue)` : paidLabel(r)}
                         </button>
                       ) : (
                         <span className="text-xs text-gray-500">{r.kind === 'card' ? 'Received' : 'To pay'}</span>
                       )}
+                      {rowError?.key === r.key && <p className="text-red-400 text-xs mt-1 whitespace-normal" role="alert">{rowError.msg}</p>}
                     </td>
                   </tr>
                 ))}

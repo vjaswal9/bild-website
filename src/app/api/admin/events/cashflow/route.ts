@@ -92,6 +92,10 @@ export async function GET(req: NextRequest) {
       id: v.id, date: String(v.due_on).slice(0, 10), description: v.description || '',
       amountAed: num(v.amount_aed), settled: v.settled === true,
     })),
+  }, {
+    // Read again straight after every change, so no browser or network cache
+    // may ever hand back an older copy.
+    headers: { 'Cache-Control': 'no-store, max-age=0' },
   })
 }
 
