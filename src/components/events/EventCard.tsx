@@ -27,6 +27,9 @@ export default function EventCard({ event, soldOut }: { event: EventRow; soldOut
   const gradient = getGradient(tags)
   const hasFlyer = !!event.flyer_url && event.flyer_url.startsWith('http')
   const showSoldOutRibbon = !isPast && !!soldOut
+  // "At capacity" whether or not the waitlist is open. "Sold out" was used
+  // when it closed, which reads wrongly on a free gathering where nothing was
+  // ever sold; "at capacity" is true of paid and free events alike.
   const waitlistOpen = event.waitlist_open !== false
 
   return (
@@ -56,7 +59,7 @@ export default function EventCard({ event, soldOut }: { event: EventRow; soldOut
           {showSoldOutRibbon && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[220%] -rotate-[35deg] bg-red-600 border-y-2 border-red-800/50 py-1.5 shadow-lg">
-                <p className="text-center text-white text-sm font-extrabold tracking-[0.25em] uppercase">{waitlistOpen ? 'At capacity' : 'Sold out'}</p>
+                <p className="text-center text-white text-sm font-extrabold tracking-[0.25em] uppercase">At capacity</p>
               </div>
             </div>
           )}
