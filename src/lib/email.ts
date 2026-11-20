@@ -4,7 +4,7 @@ import { supabaseRead } from './supabase-admin'
 import * as Sentry from '@sentry/nextjs'
 import type { GuestEntry } from './events'
 import { originEstimateText } from './name-origin'
-import { googleCalendarUrl } from './calendar'
+import { calendarAllowed, googleCalendarUrl } from './calendar'
 import { isBeveragePackage, venuePossessive, DRINKING_AGE } from '@/lib/beverage-tickets'
 import { PHOTO_VAULT_PUBLISHED } from '@/lib/launch'
 import { whatsappDigits } from '@/lib/private-link-format'
@@ -565,7 +565,7 @@ export async function sendEventConfirmation(opts: {
 
   // "Add to calendar" links, anchored to Dubai time like the event page.
   const calendarBase = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bild.ae'
-  const calendarBlock = opts.eventSlug
+  const calendarBlock = opts.eventSlug && calendarAllowed(opts.eventSlug)
     ? `
         <p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:18px 0 6px">Add to your calendar</p>
         <p style="margin:0">

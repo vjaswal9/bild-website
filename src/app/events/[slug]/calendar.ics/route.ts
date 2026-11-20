@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getEventBySlug } from '@/lib/events-server'
-import { buildIcs } from '@/lib/calendar'
+import { buildIcs, calendarAllowed } from '@/lib/calendar'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 // needs in order to hand the file to the Calendar app.
 export async function GET(_req: Request, { params }: { params: { slug: string } }) {
   const data = await getEventBySlug(params.slug)
-  if (!data || data.event.status !== 'published') {
+  if (!data || data.event.status !== 'published' || !calendarAllowed(data.event.slug)) {
     return new NextResponse('Event not found', { status: 404 })
   }
 

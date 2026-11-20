@@ -8,6 +8,7 @@ import { formatEventDate, formatEventTime } from '@/lib/utils'
 import EventRegistration from './EventRegistration'
 import EventGallery from './EventGallery'
 import AddToCalendar from '@/components/events/AddToCalendar'
+import { calendarAllowed } from '@/lib/calendar'
 import { jsonLd } from '@/lib/json-ld'
 import { PAST_EVENTS_PUBLISHED } from '@/lib/launch'
 
@@ -292,7 +293,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
           )}
         </div>
 
-        {!isPast && <AddToCalendar event={event} />}
+        {!isPast && calendarAllowed(event.slug) && <AddToCalendar event={event} />}
 
         {!isPast && event.description && (
           <div className="prose prose-lg text-charcoal-700 mb-10 whitespace-pre-line">

@@ -7,6 +7,18 @@
 // whose phone is set to another timezone, or who is travelling when they open it.
 export const EVENT_TIMEZONE = 'Asia/Dubai'
 
+// Events that must offer no "add to calendar" links anywhere: not on the event
+// page, not in the confirmation email, and the .ics file answers 404. Used for
+// gatherings whose time and place are deliberately kept off the public site so
+// people do not simply turn up. Add or remove a slug here to switch it.
+const NO_CALENDAR_SLUGS = new Set<string>([
+  'bild-beach-walk-nov-2026',
+])
+
+export function calendarAllowed(slug: string | null | undefined): boolean {
+  return !!slug && !NO_CALENDAR_SLUGS.has(slug)
+}
+
 // Events without an explicit end time are assumed to run this long, so the
 // calendar entry doesn't show as an all-day or zero-length block.
 const DEFAULT_DURATION_HOURS = 3
