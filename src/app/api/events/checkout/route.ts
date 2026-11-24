@@ -3,10 +3,10 @@ import * as Sentry from '@sentry/nextjs'
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { isPastEvent, GuestEntry, Dietary } from '@/lib/events'
+import { isPastEvent, isReservationEvent, GuestEntry, Dietary } from '@/lib/events'
 import { cardFeeFils } from '@/lib/fees'
 import { getClientIp, isRateLimitedShared } from '@/lib/rate-limit'
-import { isValidEmail, normaliseEmail } from '@/lib/email-validate'
+import { isValidEmail, normaliseEmail, parseEmailList } from '@/lib/email-validate'
 import { readWithRetry } from '@/lib/db-retry'
 import { generateSeatingCode, normalizeSeatingCode, findSeatingGroupOrganiser, seatingPositionFor } from '@/lib/seating-code'
 import { siteOrigin } from '@/lib/site-url'
@@ -75,13 +75,7 @@ export async function POST(req: NextRequest) {
     if (!eventId || !ticketId || !firstName || !email) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
     }
-    // Re-checked here, not just in the browser: a title is required for every
-    // attendee (see TITLE_OPTIONS above), so an empty or invalid value must be
-    // rejected rather than silently stored as no title at all.
     const buyerTitle = normalizeTitle(buyerTitleRaw)
-    if (!buyerTitle) {
-      return NextResponse.json({ error: 'Please choose a title (Mr./Mrs./Miss).' }, { status: 400 })
-    }
     // Re-checked here, not just in the browser. A ticket confirmation that
     // cannot be delivered is worse than a rejected booking: the buyer has
     // paid and has nothing to show for it.
@@ -111,20 +105,19 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
     if (incomingGuests.some(g => !g?.name || !String(g.name).trim())) {
-      return NextResponse.json({ error: 'Please provide a name for each extra ticket.' }, { status: 400 })
-    }
-    if (incomingGuests.some(g => !normalizeTitle(g.title))) {
-      return NextResponse.json({ error: 'Please choose a title (Mr./Mrs./Miss) for each extra ticket.' }, { status: 400 })
+      return NextResponse.json({ error: 'Please provide a name for each guest.' }, { status: 400 })
     }
     if (incomingGuests.some(g => !g?.ticketId)) {
-      return NextResponse.json({ error: 'Please choose a ticket package for each guest.' }, { status: 400 })
+      return NextResponse.json({ error: 'Please choose a package for each guest.' }, { status: 400 })
     }
 
     // Validate the event is real, published and still upcoming.
     const { data: event, error: eventError } = await readWithRetry('checkout: load event', () =>
       supabaseAdmin
         .from('events')
-        .select('id, slug, title, status, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled, seats_per_table')
+        // '*' rather than a column list so booking_mode comes back when the
+        // column exists, and nothing breaks before it does.
+        .select('*')
         .eq('id', eventId)
         .maybeSingle(),
     )
@@ -135,6 +128,21 @@ export async function POST(req: NextRequest) {
     }
     if (isPastEvent(event)) {
       return NextResponse.json({ error: 'Registration for this event has closed.' }, { status: 400 })
+    }
+    // A restaurant reservation: the restaurant takes payment, so nothing is
+    // charged here, and the booking form does not ask for a title.
+    const reservation = isReservationEvent(event)
+
+    // Re-checked here, not just in the browser: on a ticketed event a title is
+    // required for every attendee (see TITLE_OPTIONS above), so an empty or
+    // invalid value must be rejected rather than silently stored as no title.
+    if (!reservation) {
+      if (!buyerTitle) {
+        return NextResponse.json({ error: 'Please choose a title (Mr./Mrs./Miss).' }, { status: 400 })
+      }
+      if (incomingGuests.some(g => !normalizeTitle(g.title))) {
+        return NextResponse.json({ error: 'Please choose a title (Mr./Mrs./Miss) for each guest.' }, { status: 400 })
+      }
     }
 
     // Load every active ticket for this event, keyed by id.
@@ -150,14 +158,14 @@ export async function POST(req: NextRequest) {
 
     const buyerTicket = ticketMap.get(ticketId)
     if (!buyerTicket) {
-      return NextResponse.json({ error: 'Ticket not available.' }, { status: 400 })
+      return NextResponse.json({ error: 'That package is no longer available. Please refresh the page and choose again.' }, { status: 400 })
     }
 
     // Resolve each guest's chosen package.
     const guestEntries: GuestEntry[] = []
     for (const g of incomingGuests) {
       const t = ticketMap.get(g.ticketId!)
-      if (!t) return NextResponse.json({ error: 'A selected guest ticket is not available.' }, { status: 400 })
+      if (!t) return NextResponse.json({ error: 'A package chosen for a guest is no longer available. Please refresh the page and choose again.' }, { status: 400 })
       const guestAge = t.is_child ? normalizeAge(g.age) : null
       if (t.is_child && guestAge == null) return ageRequired()
       const guestTitle = normalizeTitle(g.title)
@@ -178,7 +186,8 @@ export async function POST(req: NextRequest) {
     if (buyerTicket.is_child && buyerAge == null) return ageRequired()
 
     const qty = 1 + guestEntries.length
-    const totalAed = buyerTicket.price_aed + guestEntries.reduce((s, g) => s + (g.price_aed || 0), 0)
+    // Nothing is paid through BILD for a reservation: the restaurant takes it.
+    const totalAed = reservation ? 0 : buyerTicket.price_aed + guestEntries.reduce((s, g) => s + (g.price_aed || 0), 0)
 
     // Enforce the event's overall ticket cap, if one is set.
     if (event.capacity_limit != null) {
@@ -201,7 +210,7 @@ export async function POST(req: NextRequest) {
           // start.
           error: remaining <= 0
             ? 'Sorry, this event is at capacity.'
-            : 'Sorry, there are not enough tickets left for that many. Please try a smaller number.',
+            : 'Sorry, there are not enough places left for that many. Please try a smaller number.',
         }, { status: 400 })
       }
     }
@@ -252,7 +261,7 @@ export async function POST(req: NextRequest) {
         ticket_name: buyerTicket.name,
         first_name: firstName,
         last_name: lastName || '',
-        title: buyerTitle,
+        title: buyerTitle || null,
         email: buyerEmail,
         phone: phone || null,
         quantity: qty,
@@ -275,13 +284,13 @@ export async function POST(req: NextRequest) {
 
     const origin = siteOrigin(req)
 
-    // Everything free - skip Stripe entirely.
+    // Everything free, or a restaurant reservation - skip Stripe entirely.
     if (totalAed === 0) {
       await supabaseAdmin
         .from('event_registrations')
         .update({ status: 'paid', paid_at: new Date().toISOString() })
         .eq('id', reg.id)
-      const { sendEventConfirmation, sendTicketSaleAlert } = await import('@/lib/email')
+      const { sendEventConfirmation, sendTicketSaleAlert, sendRestaurantBookingEmail } = await import('@/lib/email')
       const seatingPosition = event.seating_enabled && seatingCode
         ? await seatingPositionFor(eventId, seatingCode, reg.created_at, qty, event.seats_per_table)
         : null
@@ -304,7 +313,38 @@ export async function POST(req: NextRequest) {
         seatingEnabled: event.seating_enabled,
         seatingCode,
         seatingPosition,
+        reservation,
       })
+      // A reservation goes to the restaurant straight away, so it can send the
+      // guest a payment link. Whatever happens is said plainly in the alert to
+      // the events inbox, so a booking that did not reach the restaurant can
+      // be forwarded by hand.
+      let restaurantNote: string | undefined
+      if (reservation) {
+        const { emails } = parseEmailList((event as { restaurant_email?: string | null }).restaurant_email)
+        if (emails.length === 0) {
+          restaurantNote = 'NOT sent to the restaurant: no restaurant email is set on this event. Please forward these details by hand.'
+        } else {
+          const sent = await sendRestaurantBookingEmail({
+            to: emails,
+            restaurantName: event.venue,
+            eventTitle: event.title,
+            eventDate: event.event_date,
+            buyerFirstName: firstName,
+            buyerLastName: lastName,
+            buyerEmail,
+            buyerPhone: phone,
+            buyerPackage: buyerTicket.name,
+            buyerDietary: normalizeDietary(dietary) === 'other' ? (normalizeDietaryNote(dietaryNote) || 'other') : normalizeDietary(dietary),
+            guests: guestEntries,
+            reference: String(reg.id).slice(0, 8).toUpperCase(),
+          })
+          restaurantNote = sent.ok
+            ? `Sent to the restaurant (${emails.join(', ')}).`
+            : `NOT sent to the restaurant (${emails.join(', ')}): ${sent.reason || 'the email failed'}. Please forward these details by hand.`
+        }
+      }
+
       // Same guard as the paid path: a failed count must not be reported as
       // zero on an event that has sold plenty.
       const { data: soldRows, error: soldError } = await supabaseAdmin
@@ -331,6 +371,8 @@ export async function POST(req: NextRequest) {
         amountAed: 0,
         guests: guestEntries,
         totalTicketsSold,
+        reservation,
+        restaurantNote,
       })
       return NextResponse.json({ url: `${origin}/events/success?free=${reg.id}` })
     }

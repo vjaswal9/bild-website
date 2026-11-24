@@ -68,6 +68,19 @@ export type EventRow = {
   // The DET event permit (e-Permit) number, shown on the public event page.
   // Absent until supabase/event-permit-number.sql has been run.
   permit_number?: string | null
+  // How people book. 'reservation' is a booking at a restaurant that takes the
+  // payment itself: nothing is paid through the website and guests never see
+  // the word "ticket". Absent (before supabase/event-booking-mode.sql has been
+  // run) means 'tickets'.
+  booking_mode?: 'tickets' | 'reservation' | null
+  // Reservation events: where each booking is forwarded as it is made, so the
+  // restaurant can send the guest a payment link. One address or several,
+  // comma separated.
+  restaurant_email?: string | null
+}
+
+export function isReservationEvent(e: { booking_mode?: string | null } | null | undefined): boolean {
+  return e?.booking_mode === 'reservation'
 }
 
 // An event that is full AND has its waiting list closed is not offering tickets

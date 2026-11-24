@@ -9,7 +9,8 @@ import ImportGuestsPanel from '@/components/admin/ImportGuestsPanel'
 import CashFlowPanel from '@/components/admin/CashFlowPanel'
 import PrivateLinksPanel from '@/components/admin/PrivateLinksPanel'
 import { compressImage } from '@/lib/compress-image'
-import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, valueGivenUpOf } from '@/lib/events'
+import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, isReservationEvent, valueGivenUpOf } from '@/lib/events'
+import { parseEmailList } from '@/lib/email-validate'
 import { readTicketChoices, describeTicketChoices, waitingTotalsByType } from '@/lib/waitlist-tickets'
 import AdminMemoField from '@/components/admin/AdminMemoField'
 import { EVENT_COST_CATEGORIES, EVENT_REVENUE_KINDS } from '@/lib/money'
@@ -316,13 +317,13 @@ function EventListCard({
 
       {dataOpen && (
         <div className="border-t border-charcoal-700">
-          <EventDataPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
+          <EventDataPanel eventId={ev.id} tickets={tickets} registrations={registrations} reservation={isReservationEvent(ev)} />
         </div>
       )}
 
       {attendeesOpen && (
         <div className="border-t border-charcoal-700">
-          <ReadOnlyAttendeesList eventId={ev.id} registrations={registrations} />
+          <ReadOnlyAttendeesList eventId={ev.id} registrations={registrations} reservation={isReservationEvent(ev)} />
           <ReadOnlyWaitlist eventId={ev.id} />
         </div>
       )}
@@ -347,11 +348,11 @@ function EventListCard({
           <Section title="Event details" {...sectionProps('details', 'Hidden so the details are not changed by accident. Press Show to edit them.')}>
             <EventForm event={ev} onClose={onToggleExpand} />
           </Section>
-          <Section title="Tickets" {...sectionProps('tickets', 'Hidden so the details are not changed by accident. Press Show to edit them.')}>
+          <Section title={isReservationEvent(ev) ? 'Packages (paid to the restaurant)' : 'Tickets'} {...sectionProps('tickets', 'Hidden so the details are not changed by accident. Press Show to edit them.')}>
             <TicketManager eventId={ev.id} tickets={tickets} />
           </Section>
           <Section title="Attendees / door list" tone="emerald" {...sectionProps('attendees')}>
-            <AttendeesPanel eventId={ev.id} seatingEnabled={!!ev.seating_enabled} stats={stats} registrations={registrations} tickets={tickets} />
+            <AttendeesPanel eventId={ev.id} seatingEnabled={!!ev.seating_enabled} stats={stats} registrations={registrations} tickets={tickets} reservation={isReservationEvent(ev)} />
           </Section>
           <Section title="Waitlist" tone="emerald" {...sectionProps('waitlist')}>
             <WaitlistPanel eventId={ev.id} />
@@ -360,7 +361,7 @@ function EventListCard({
             <PrivateLinksPanel eventId={ev.id} />
           </Section>
           <Section title="Additional revenue &amp; costs" tone="sky" {...sectionProps('extra')}>
-            <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
+            <ExtraFinancesPanel eventId={ev.id} tickets={tickets} registrations={registrations} reservation={isReservationEvent(ev)} />
           </Section>
           <Section title="Cash flow" tone="sky" {...sectionProps('cash')}>
             <CashFlowPanel eventId={ev.id} tickets={tickets} registrations={registrations} />
@@ -433,7 +434,7 @@ function flattenAttendees(registrations: EventRegistration[]): FlatAttendee[] {
   return rows
 }
 
-function ReadOnlyAttendeesList({ eventId, registrations }: { eventId: string; registrations: EventRegistration[] }) {
+function ReadOnlyAttendeesList({ eventId, registrations, reservation = false }: { eventId: string; registrations: EventRegistration[]; reservation?: boolean }) {
   const [showAll, setShowAll] = useState(false)
   // Only people who actually paid are coming. Someone who starts checkout and
   // abandons it leaves a 'pending' row behind, and starting again creates
@@ -475,7 +476,7 @@ function ReadOnlyAttendeesList({ eventId, registrations }: { eventId: string; re
                     {a.source && <SourceTag source={a.source} />}
                   </p>
                   <p className="text-gray-400 text-sm truncate">
-                    {a.isGuest ? `Guest of ${a.buyerName}` : a.email} · {a.ticketName}{a.age != null ? ` · age ${a.age}` : ''} · {a.amountAed > 0 ? `${a.amountAed} AED` : a.source ? 'Paid via Ticketsfy' : 'Free'}
+                    {a.isGuest ? `Guest of ${a.buyerName}` : a.email} · {a.ticketName}{a.age != null ? ` · age ${a.age}` : ''} · {a.amountAed > 0 ? `${a.amountAed} AED` : a.source ? 'Paid via Ticketsfy' : reservation ? 'Paid to restaurant' : 'Free'}
                   </p>
                   {!a.isGuest && <AdminMemoField kind="booking" id={a.key} value={a.memo} />}
                 </div>
@@ -595,7 +596,7 @@ function ReadOnlyWaitlist({ eventId }: { eventId: string }) {
 // sold (overall and per type), dietary requirement counts, and the
 // cost/revenue/profit picture. Internal only - cost figures never leave
 // this admin page.
-function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; tickets: EventTicket[]; registrations: EventRegistration[] }) {
+function EventDataPanel({ eventId, tickets, registrations, reservation = false }: { eventId: string; tickets: EventTicket[]; registrations: EventRegistration[]; reservation?: boolean }) {
   const ticketsByName = new Map(tickets.map(t => [t.name, t]))
   const paid = registrations.filter(r => r.status === 'paid')
 
@@ -653,19 +654,22 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
   paid.forEach(r => {
     const buyerTicket = ticketsByName.get(r.ticket_name || '')
     const isComp = !!r.is_complimentary
+    // A restaurant reservation: the restaurant takes the money, so none of it
+    // is BILD's revenue or cost.
+    const zero = isComp || reservation
     if (isComp) { compCount += 1; compValue += buyerTicket?.price_aed ?? 0 }
     units.push({
       ticketName: r.ticket_name || 'Ticket',
-      cost: isComp ? 0 : (buyerTicket?.cost_price_aed ?? 0),
-      price: isComp ? 0 : (buyerTicket?.price_aed ?? 0),
+      cost: zero ? 0 : (buyerTicket?.cost_price_aed ?? 0),
+      price: zero ? 0 : (buyerTicket?.price_aed ?? 0),
     })
     ;(r.guest_names || []).forEach(g => {
       const t = ticketsByName.get(g.ticket_name || '')
       if (isComp) { compCount += 1; compValue += t?.price_aed ?? 0 }
       units.push({
         ticketName: g.ticket_name || r.ticket_name || 'Ticket',
-        cost: isComp ? 0 : (t?.cost_price_aed ?? 0),
-        price: isComp ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
+        cost: zero ? 0 : (t?.cost_price_aed ?? 0),
+        price: zero ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
       })
     })
   })
@@ -713,7 +717,10 @@ function EventDataPanel({ eventId, tickets, registrations }: { eventId: string; 
       </div>
       <div className="text-center mb-6">
         <p className="text-5xl font-display font-bold text-white">{totalTickets}</p>
-        <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">Tickets sold</p>
+        <p className="text-gray-400 text-xs uppercase tracking-widest mt-1">{reservation ? 'People booked' : 'Tickets sold'}</p>
+        {reservation && (
+          <p className="text-gray-400 text-xs mt-2">A restaurant reservation: guests pay the restaurant through its own payment link, so package prices are not counted as BILD revenue or cost.</p>
+        )}
         {waitlist && waitlist.people > 0 && (
           <p className="mt-3 inline-block bg-gold-500/15 text-gold-200 text-xs font-semibold px-3 py-1 rounded-full">
             {waitlist.tickets} ticket{waitlist.tickets === 1 ? '' : 's'} on the waitlist
@@ -1116,7 +1123,7 @@ const aed = (n: number) => n.toLocaleString('en-AE', { minimumFractionDigits: 2,
 // Sponsorship money in, DJ and lighting out. Loaded on demand rather than
 // with the events list, because most events have none and the Manage panel
 // is already a heavy screen.
-function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: string; tickets: EventTicket[]; registrations: EventRegistration[] }) {
+function ExtraFinancesPanel({ eventId, tickets, registrations, reservation = false }: { eventId: string; tickets: EventTicket[]; registrations: EventRegistration[]; reservation?: boolean }) {
   const [loading, setLoading] = useState(true)
   const [enabled, setEnabled] = useState<boolean | null>(null)
   const [revenue, setRevenue] = useState<ExtraRevenueLine[]>([])
@@ -1154,19 +1161,22 @@ function ExtraFinancesPanel({ eventId, tickets, registrations }: { eventId: stri
   paid.forEach(r => {
     const buyerTicket = ticketsByName.get(r.ticket_name || '')
     const isComp = !!r.is_complimentary
+    // A restaurant reservation: the restaurant takes the money, so none of it
+    // is BILD's revenue or cost.
+    const zero = isComp || reservation
     if (isComp) { compCount += 1; compValue += buyerTicket?.price_aed ?? 0 }
     ticketUnits.push({
       ticketName: r.ticket_name || 'Ticket',
-      cost: isComp ? 0 : (buyerTicket?.cost_price_aed ?? 0),
-      price: isComp ? 0 : (buyerTicket?.price_aed ?? 0),
+      cost: zero ? 0 : (buyerTicket?.cost_price_aed ?? 0),
+      price: zero ? 0 : (buyerTicket?.price_aed ?? 0),
     })
     ;(r.guest_names || []).forEach(g => {
       const t = ticketsByName.get(g.ticket_name || '')
       if (isComp) { compCount += 1; compValue += t?.price_aed ?? 0 }
       ticketUnits.push({
         ticketName: g.ticket_name || r.ticket_name || 'Ticket',
-        cost: isComp ? 0 : (t?.cost_price_aed ?? 0),
-        price: isComp ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
+        cost: zero ? 0 : (t?.cost_price_aed ?? 0),
+        price: zero ? 0 : (t?.price_aed ?? (g.price_aed || 0)),
       })
     })
   })
@@ -1693,6 +1703,8 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
   const [limitTickets, setLimitTickets] = useState(event?.capacity_limit != null)
   const [capacityLimit, setCapacityLimit] = useState(event?.capacity_limit != null ? String(event.capacity_limit) : '')
   const [dietaryRequired, setDietaryRequired] = useState(event?.dietary_required ?? false)
+  const [bookingMode, setBookingMode] = useState<'tickets' | 'reservation'>(isReservationEvent(event) ? 'reservation' : 'tickets')
+  const [restaurantEmail, setRestaurantEmail] = useState(event?.restaurant_email || '')
   const [seatingEnabled, setSeatingEnabled] = useState(event?.seating_enabled ?? false)
   const [tableCount, setTableCount] = useState(event?.table_count != null ? String(event.table_count) : '')
   const [seatsPerTable, setSeatsPerTable] = useState(event?.seats_per_table != null ? String(event.seats_per_table) : '')
@@ -1706,7 +1718,14 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
     setError('')
     if (!form.title.trim()) return setError('Please enter a title.')
     if (!form.event_date) return setError('Please choose a date and time.')
-    if (limitTickets && !capacityLimit.trim()) return setError('Please enter a ticket limit, or untick the box.')
+    if (bookingMode === 'reservation') {
+      const { emails, invalid } = parseEmailList(restaurantEmail)
+      if (invalid.length) return setError(`This restaurant email does not look right: ${invalid[0]}`)
+      if (emails.length === 0 && form.status === 'published') {
+        return setError('Please add the restaurant\'s email before publishing, so each booking reaches them. You can save it as a draft without one.')
+      }
+    }
+    if (limitTickets && !capacityLimit.trim()) return setError(bookingMode === 'reservation' ? 'Please enter a limit on places, or untick the box.' : 'Please enter a ticket limit, or untick the box.')
     if (seatingEnabled && (!tableCount.trim() || !seatsPerTable.trim())) {
       return setError('Please enter the number of tables and seats per table, or untick table seating.')
     }
@@ -1742,6 +1761,8 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
           permit_number: form.permit_number,
           capacity_limit: limitTickets ? capacityLimit : null,
           dietary_required: dietaryRequired,
+          booking_mode: bookingMode,
+          restaurant_email: bookingMode === 'reservation' ? restaurantEmail : undefined,
           seating_enabled: seatingEnabled,
           table_count: seatingEnabled ? tableCount : null,
           seats_per_table: seatingEnabled ? seatsPerTable : null,
@@ -1749,6 +1770,9 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
       })
       if (res.ok) {
         const d = await res.json().catch(() => ({}))
+        if (d.bookingModeNotSaved) {
+          alert('The event was saved, but not as a restaurant reservation: the database needs one small update first (supabase/event-booking-mode.sql). Everything else you changed is saved.')
+        }
         if (d.permitNotSaved) {
           alert('The event was saved, but the permit number was not: the database needs one small update first (supabase/event-permit-number.sql). Everything else you changed is saved.')
         }
@@ -1787,7 +1811,26 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
           <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={4}
             className="w-full px-3 py-2 bg-charcoal-700 border border-charcoal-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-gold-500 resize-none" />
         </FField>
-        <FField label="Limit tickets available?" className="md:col-span-2">
+        <FField label="How do people book?" className="md:col-span-2">
+          <div className="space-y-2">
+            <label className="flex items-start gap-2 text-sm text-gray-200">
+              <input type="radio" name={`booking-mode-${event?.id || 'new'}`} checked={bookingMode === 'tickets'} onChange={() => setBookingMode('tickets')} className="mt-1 h-4 w-4 accent-gold-500" />
+              <span><span className="font-semibold">Tickets, paid online</span><span className="block text-xs text-gray-400">People pay by card on the website. The usual setup.</span></span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-gray-200">
+              <input type="radio" name={`booking-mode-${event?.id || 'new'}`} checked={bookingMode === 'reservation'} onChange={() => setBookingMode('reservation')} className="mt-1 h-4 w-4 accent-gold-500" />
+              <span><span className="font-semibold">Restaurant reservation, paid to the restaurant</span><span className="block text-xs text-gray-400">Nothing is paid on the website. People choose a package and give their name, email, mobile and guests&apos; names. Each booking is emailed to the restaurant as it is made, and the restaurant sends the guest a payment link. Guests never see the word &ldquo;ticket&rdquo;. Package prices are shown but not counted as BILD revenue.</span></span>
+            </label>
+          </div>
+          {bookingMode === 'reservation' && (
+            <div className="mt-3">
+              <label className="block text-xs text-gray-400 mb-1">Restaurant&apos;s email for bookings</label>
+              <Inp value={restaurantEmail} onChange={setRestaurantEmail} placeholder="reservations@restaurant.com" />
+              <p className="text-xs text-gray-500 mt-1">Every booking is emailed here as soon as it is made: names, email, mobile and packages, so the restaurant can send each guest a payment link. Replies go straight to the guest. For more than one address, separate them with commas. The events inbox is told if a booking could not be sent.</p>
+            </div>
+          )}
+        </FField>
+        <FField label={bookingMode === 'reservation' ? 'Limit places available?' : 'Limit tickets available?'} className="md:col-span-2">
           <label className="inline-flex items-center gap-2 text-sm text-gray-200 mb-2">
             <input
               type="checkbox"
@@ -1795,7 +1838,7 @@ function EventForm({ event, onClose }: { event?: EventRow; onClose: () => void }
               onChange={e => setLimitTickets(e.target.checked)}
               className="h-4 w-4 accent-gold-500"
             />
-            Cap the total number of tickets sold for this event
+            {bookingMode === 'reservation' ? 'Cap the total number of people who can book' : 'Cap the total number of tickets sold for this event'}
           </label>
           {limitTickets && (
             <div className="max-w-[180px]">
@@ -2159,8 +2202,9 @@ function EditTicketRow({ ticket, onCancel, onSaved }: {
 // ---------------------------------------------------------------------------
 // Attendees / door list
 // ---------------------------------------------------------------------------
-function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets }: {
+function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets, reservation = false }: {
   eventId: string
+  reservation?: boolean
   seatingEnabled: boolean
   stats: { total: number; paid: number; tickets: number; refunded: number }
   registrations: EventRegistration[]
@@ -2306,6 +2350,7 @@ function AttendeesPanel({ eventId, seatingEnabled, stats, registrations, tickets
                 <BookingCard
                   key={reg.id}
                   reg={reg}
+                  reservation={reservation}
                   tickets={tickets}
                   open={openId === reg.id ? mode : null}
                   onToggle={next => toggle(reg.id, next)}
@@ -2510,8 +2555,9 @@ const dietaryLabelFor = (d?: string | null, note?: string | null) =>
 // underneath. Previously a booking of five showed as a single line saying
 // "5 tickets", so there was no way to see who was actually coming, or which
 // package each of them held.
-function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }: {
+function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete, reservation = false }: {
   reg: EventRegistration
+  reservation?: boolean
   tickets: EventTicket[]
   open: 'refund' | 'tickets' | 'email' | 'stripe' | 'remove' | null
   onToggle: (next: 'refund' | 'tickets' | 'email' | 'stripe' | 'remove') => void
@@ -2556,7 +2602,7 @@ function BookingCard({ reg, tickets, open, onToggle, onClose, onDone, onDelete }
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-right">
             <p className="text-white text-sm font-semibold">
-              {reg.amount_aed > 0 ? `${aed(reg.amount_aed)} AED` : reg.source ? 'Paid via Ticketsfy' : reg.is_complimentary ? 'Complimentary' : 'Free'}
+              {reg.amount_aed > 0 ? `${aed(reg.amount_aed)} AED` : reg.source ? 'Paid via Ticketsfy' : reg.is_complimentary ? 'Complimentary' : reservation ? 'Paid to restaurant' : 'Free'}
             </p>
             {refunded > 0 && (
               <p className="text-red-400 text-xs">{aed(refunded)} refunded</p>

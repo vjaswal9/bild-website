@@ -63,3 +63,17 @@ export function emailProblem(value: string): string | null {
   if (!isValidEmail(v)) return 'That does not look like a valid email address.'
   return null
 }
+
+// A list of addresses typed into one box ("a@x.com, b@y.com"). Returns the
+// cleaned addresses and any that do not look valid, so the admin form can say
+// exactly which one is wrong. At most five, which is plenty for a restaurant.
+export function parseEmailList(value: string | null | undefined): { emails: string[]; invalid: string[] } {
+  const parts = String(value || '').split(/[,;\s]+/).map(s => s.trim()).filter(Boolean)
+  const emails: string[] = []
+  const invalid: string[] = []
+  for (const p of parts) {
+    if (isValidEmail(p)) { const e = normaliseEmail(p); if (!emails.includes(e)) emails.push(e) }
+    else invalid.push(p)
+  }
+  return { emails: emails.slice(0, 5), invalid }
+}

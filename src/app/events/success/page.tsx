@@ -27,6 +27,8 @@ export default async function EventSuccessPage({
   let reg: Reg | null = null
   let eventTitle = ''
   let eventSlug = ''
+  // A restaurant reservation is worded as a booking, never as a ticket.
+  let reservation = false
 
   if (sessionId || freeId) {
     const { data } = await supabaseAdmin
@@ -38,11 +40,12 @@ export default async function EventSuccessPage({
     if (reg) {
       const { data: ev } = await supabaseAdmin
         .from('events')
-        .select('title, slug')
+        .select('*')
         .eq('id', reg.event_id)
         .maybeSingle()
       eventTitle = (ev as { title?: string } | null)?.title || ''
       eventSlug = (ev as { slug?: string } | null)?.slug || ''
+      reservation = (ev as { booking_mode?: string } | null)?.booking_mode === 'reservation'
     }
   }
 
@@ -50,17 +53,21 @@ export default async function EventSuccessPage({
     <div className="py-20">
       <div className="max-w-lg mx-auto px-4 text-center">
         <CheckCircle size={64} className="text-green-500 mx-auto mb-6" />
-        <h1 className="font-display text-3xl font-bold text-charcoal-800 mb-3">You&rsquo;re registered!</h1>
+        <h1 className="font-display text-3xl font-bold text-charcoal-800 mb-3">{reservation ? 'Reservation received' : <>You&rsquo;re registered!</>}</h1>
         {reg ? (
           <>
             <p className="text-charcoal-600 mb-2">
-              Thanks {reg.first_name} - your spot for{' '}
-              <span className="font-semibold">{eventTitle}</span> is confirmed.
+              {reservation
+                ? <>Thanks {reg.first_name} - we have your booking for <span className="font-semibold">{eventTitle}</span>.</>
+                : <>Thanks {reg.first_name} - your spot for{' '}<span className="font-semibold">{eventTitle}</span> is confirmed.</>}
             </p>
             {reg.ticket_name && (
               <p className="text-charcoal-600 mb-2">
-                Ticket: <span className="font-semibold">{reg.ticket_name}</span>
+                {reservation ? 'Package' : 'Ticket'}: <span className="font-semibold">{reg.ticket_name}</span>
               </p>
+            )}
+            {reservation && (
+              <p className="text-charcoal-600 text-sm mb-2">Your details have been sent to the restaurant, who will send you a payment link directly to secure your reservation. Nothing has been charged by BILD.</p>
             )}
             <p className="text-charcoal-600 text-sm mb-2">
               A confirmation has been sent to {reg.email}. See you there!

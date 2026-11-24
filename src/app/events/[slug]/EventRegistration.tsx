@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Ticket, Loader2, Minus, Plus, Users, Image as ImageIcon } from 'lucide-react'
+import { Ticket, Loader2, Minus, Plus, Users, UtensilsCrossed, Image as ImageIcon } from 'lucide-react'
 import { EventTicket, Dietary } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
@@ -32,7 +32,8 @@ function ageInvalid(v: string) {
   return v.trim() === '' || !Number.isInteger(n) || n < 0 || n > MAX_CHILD_AGE
 }
 
-function priceLabel(t: EventTicket) {
+function priceLabel(t: EventTicket, reservation = false) {
+  if (reservation) return t.price_aed === 0 ? 'Free' : `${t.price_aed} AED pp`
   return t.price_aed === 0 ? 'Free' : `${t.price_aed} AED`
 }
 
@@ -42,8 +43,11 @@ function priceLabel(t: EventTicket) {
 // so sending the number would have left it readable by anyone viewing source
 // even though nothing displayed it. Capacity is enforced on the server at
 // checkout, which is the only place it can be enforced anyway.
-export default function EventRegistration({ event, tickets: rawTickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled, tableSize }: {
-  event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean; tableSize?: number | null
+// `reservation`: a booking at a restaurant that takes the payment itself. The
+// same form, but nothing is paid here, no title is asked for, and the word
+// "ticket" never appears.
+export default function EventRegistration({ event, tickets: rawTickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled, tableSize, reservation = false }: {
+  event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean; tableSize?: number | null; reservation?: boolean
 }) {
   // Cheapest first, always - regardless of whatever order the admin happens
   // to have them in (sort_order is for the admin's own ticket-editing screen,
@@ -205,8 +209,10 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   const hasBeverage = tickets.some(t => isBeveragePackage(t))
   const selectedBeverage = tickets.some(t => isBeveragePackage(t) && count(t.id) > 0)
   const subtotal = tickets.reduce((s, t) => s + t.price_aed * count(t.id), 0)
-  const cardFee = cardFeeAed(subtotal)
-  const grandTotal = subtotal + cardFee
+  // Nothing is paid online for a reservation, so there is no card fee and
+  // nothing to charge: the subtotal is what the restaurant will bill.
+  const cardFee = reservation ? 0 : cardFeeAed(subtotal)
+  const grandTotal = reservation ? 0 : subtotal + cardFee
   const money = (n: number) => (Number.isInteger(n) ? `${n}` : n.toFixed(2))
 
   function inc(id: string) {
@@ -245,8 +251,8 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
   async function register() {
     setError('')
     setTried(true)
-    if (totalTickets === 0) return setError('Please add at least one ticket.')
-    if (selectedBeverage && !ageConfirmed) return setError(`Please confirm that every guest on a beverages ticket is aged ${DRINKING_AGE} or over.`)
+    if (totalTickets === 0) return setError(reservation ? 'Please choose at least one package.' : 'Please add at least one ticket.')
+    if (selectedBeverage && !ageConfirmed) return setError(`Please confirm that every guest on a beverage${reservation ? ' package' : 's ticket'} is aged ${DRINKING_AGE} or over.`)
 
     // Flatten to an ordered attendee list: [{ name, dietary, dietaryNote, ticketId }]
     const attendees: { name: string; title: string; dietary: Dietary; dietaryNote: string; ticketId: string; age: number | null }[] = []
@@ -263,7 +269,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       }
     }
     const missingName = attendees.some(a => !a.name)
-    const missingTitle = attendees.some(a => !a.title)
+    const missingTitle = !reservation && attendees.some(a => !a.title)
     const missingAge = tickets.some(t => t.is_child && (attendeesByTicket[t.id] || []).some(a => ageInvalid(a.age)))
     const missingEmail = !isEmail(email)
     const missingPhone = !isPlausibleMobile(phone)
@@ -273,7 +279,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       setError(
         missingName ? 'Please enter the full name of every attendee.'
           : missingTitle ? 'Please choose a title (Mr./Mrs./Miss) for every attendee.'
-          : missingAge ? `Please enter an age between 0 and ${MAX_CHILD_AGE} for every child ticket.`
+          : missingAge ? `Please enter an age between 0 and ${MAX_CHILD_AGE} for every child.`
           : missingEmail ? 'Please enter a valid email address for your confirmation.'
           : missingPhone ? 'Please enter the mobile number you used to join BILD.'
           : missingMember ? 'Please confirm that you are a BILD member.'
@@ -389,7 +395,9 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
       )}
 
       <h2 className="font-display text-2xl font-bold text-charcoal-800 mb-6 flex items-center gap-2">
-        <Ticket size={22} className="text-gold-500" /> Register for this event
+        {reservation
+          ? <><UtensilsCrossed size={22} className="text-gold-500" /> Reserve your place</>
+          : <><Ticket size={22} className="text-gold-500" /> Register for this event</>}
       </h2>
 
       {/* Step 1 - choose tickets */}
@@ -397,8 +405,13 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
           used to cap the booking and to show a sold-out state, but a public
           countdown tells people how an event is selling. */}
       <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gold-600">Step 1 · Choose your registration type</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-gold-600">Step 1 · {reservation ? 'Choose your package' : 'Choose your registration type'}</p>
       </div>
+      {reservation && (
+        <p className="text-sm text-charcoal-600 mb-3">
+          This is a reservation at {event.venue || 'the restaurant'}. Nothing is paid here: once you book, your details are sent to {event.venue || 'the restaurant'}, who will send you a payment link directly.
+        </p>
+      )}
       {totalTickets >= MAX_TICKETS_PER_BOOKING && (
         <p className="text-sm text-charcoal-600 mb-3">
           That is the most we can take on one booking. For a larger group, book again or email{' '}
@@ -421,7 +434,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
             <div className="min-w-0">
               <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="font-semibold text-charcoal-800">{t.name}</span>
-                <span className="font-display font-bold text-charcoal-800">{priceLabel(t)}</span>
+                <span className="font-display font-bold text-charcoal-800">{priceLabel(t, reservation)}</span>
               </div>
               {t.description && <p className="text-sm text-charcoal-600 mt-0.5">{t.description}</p>}
               {(t.menu_image_url || t.food_menu_image_url) && (
@@ -475,13 +488,13 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         <>
           <p className="text-xs font-semibold uppercase tracking-wide text-gold-600 mb-2">Step 2 · Who&rsquo;s attending?</p>
           <p className="text-sm text-charcoal-600 mb-4">
-            We check everyone in by name at the door, so please choose a title and give the full name of each person attending{selectedTickets.some(t => t.is_child) ? ', and the age of each child' : ''}{dietaryRequired ? ', and let us know of any dietary requirements' : ''}.
+            {reservation ? 'Please give the full name of each person attending' : 'We check everyone in by name at the door, so please choose a title and give the full name of each person attending'}{selectedTickets.some(t => t.is_child) ? ', and the age of each child' : ''}{dietaryRequired ? ', and let us know of any dietary requirements' : ''}.
           </p>
           <div className="space-y-5 mb-8">
             {selectedTickets.map(t => (
               <div key={t.id}>
                 <p className="text-sm font-semibold text-charcoal-700 mb-2">
-                  {t.name} <span className="text-charcoal-600 font-normal">· {count(t.id)} {count(t.id) === 1 ? 'ticket' : 'tickets'}</span>
+                  {t.name} <span className="text-charcoal-600 font-normal">· {count(t.id)} {reservation ? (count(t.id) === 1 ? 'person' : 'people') : (count(t.id) === 1 ? 'ticket' : 'tickets')}</span>
                 </p>
                 <div className="space-y-4">
                   {(attendeesByTicket[t.id] || []).map((a, i) => {
@@ -493,7 +506,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                     return (
                       <div key={i} className={`space-y-2 ${count(t.id) > 1 ? 'pb-4 border-b border-stone-200 last:pb-0 last:border-0' : ''}`}>
                         <div className="flex flex-col sm:flex-row gap-2">
-                          <select
+                          {!reservation && <select
                             value={a.title}
                             onChange={e => setTitle(t.id, i, e.target.value)}
                             aria-label={`Title for ${isLead ? 'you' : `guest ${i + 1}`}`}
@@ -503,7 +516,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                             <option value="Mr.">Mr.</option>
                             <option value="Mrs.">Mrs.</option>
                             <option value="Miss">Miss</option>
-                          </select>
+                          </select>}
                           <input
                             type="text"
                             value={a.name}
@@ -556,7 +569,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
 
           {/* Step 3 - contact */}
           <p className="text-xs font-semibold uppercase tracking-wide text-gold-600 mb-2">Step 3 · Your contact details</p>
-          <p className="text-sm text-charcoal-600 mb-3">Your ticket confirmation is emailed here.</p>
+          <p className="text-sm text-charcoal-600 mb-3">Your {reservation ? 'reservation' : 'ticket'} confirmation is emailed here.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <Field label="Email" value={email} onChange={setEmail} placeholder="you@email.com" type="email" invalid={tried && !isEmail(email)} />
             <Field label="Mobile number you used to join BILD" value={phone} onChange={setPhone} placeholder="+971 50 000 0000" type="tel" invalid={tried && !isPlausibleMobile(phone)} />
@@ -592,7 +605,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
                 )}
                 <p>
                   Here&rsquo;s how it works: if you&rsquo;re the first in your group to book, leave the box below
-                  empty. Once you&rsquo;ve paid, we&rsquo;ll email you a short table code, along with a ready-made
+                  empty. Once you&rsquo;ve {reservation ? 'booked' : 'paid'}, we&rsquo;ll email you a short table code, along with a ready-made
                   WhatsApp message you can send straight to anyone you&rsquo;d like at your table - just tap to
                   share, no copying or typing needed. When they book, they enter the same code in this box, and
                   everyone who enters it is seated together.
@@ -660,8 +673,19 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         </>
       )}
 
+      {/* Reservation: what the restaurant will bill on the night. Nothing is paid here. */}
+      {reservation && totalTickets > 0 && subtotal > 0 && (
+        <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 mb-5 text-sm">
+          <div className="flex justify-between font-semibold text-charcoal-800">
+            <span>Package total ({totalTickets} {totalTickets === 1 ? 'person' : 'people'})</span>
+            <span>{money(subtotal)} AED</span>
+          </div>
+          <p className="text-charcoal-600 text-xs mt-1">Paid to {event.venue || 'the restaurant'} through the payment link they send you. Nothing is charged here.</p>
+        </div>
+      )}
+
       {/* Price breakdown */}
-      {totalTickets > 0 && subtotal > 0 && (
+      {!reservation && totalTickets > 0 && subtotal > 0 && (
         <div className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 mb-5 text-sm">
           <div className="flex justify-between text-charcoal-600">
             <span>Tickets ({totalTickets})</span>
@@ -693,7 +717,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
             onChange={e => setAgeConfirmed(e.target.checked)}
             className="mt-0.5 h-4 w-4 rounded border-stone-300 text-gold-600 focus:ring-gold-500"
           />
-          <span>I confirm that every guest on a beverages ticket is aged {DRINKING_AGE} or over.</span>
+          <span>I confirm that every guest on a beverage{reservation ? ' package' : 's ticket'} is aged {DRINKING_AGE} or over.</span>
         </label>
       )}
 
@@ -707,9 +731,11 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         {loading ? (
           grandTotal > 0
             ? <><Loader2 size={20} className="animate-spin" /> Redirecting to payment...</>
-            : <><Loader2 size={20} className="animate-spin" /> Registering...</>
+            : <><Loader2 size={20} className="animate-spin" /> {reservation ? 'Reserving...' : 'Registering...'}</>
         ) : totalTickets === 0 ? (
-          <>Add to continue</>
+          <>{reservation ? 'Choose a package to continue' : 'Add to continue'}</>
+        ) : reservation ? (
+          <>Confirm reservation</>
         ) : grandTotal > 0 ? (
           <>Pay {money(grandTotal)} AED &amp; register</>
         ) : (
@@ -717,7 +743,7 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         )}
       </button>
       <p className="text-center text-charcoal-600 text-xs mt-3">
-        {grandTotal > 0 ? 'Secure payment powered by Stripe. A confirmation is emailed to you.' : 'A confirmation is emailed to you.'}
+        {reservation ? `Your name, email, mobile and booking are shared with ${event.venue || 'the restaurant'} so they can send you a payment link. A confirmation is emailed to you.` : grandTotal > 0 ? 'Secure payment powered by Stripe. A confirmation is emailed to you.' : 'A confirmation is emailed to you.'}
       </p>
     </div>
   )

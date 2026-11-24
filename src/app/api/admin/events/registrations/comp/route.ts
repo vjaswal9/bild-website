@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
 
   const { data: event, error: eventError } = await supabaseAdmin
     .from('events')
-    .select('id, slug, title, event_date, end_date, venue, google_maps_url, capacity_limit, seating_enabled, seats_per_table')
+    // '*' so booking_mode comes back once that column exists.
+    .select('*')
     .eq('id', eventId)
     .maybeSingle()
   if (eventError) return NextResponse.json({ error: eventError.message }, { status: 500 })
@@ -158,6 +159,7 @@ export async function POST(req: NextRequest) {
     : null
 
   await sendEventConfirmation({
+    reservation: (event as { booking_mode?: string }).booking_mode === 'reservation',
     to: buyerEmail,
     firstName,
     lastName,

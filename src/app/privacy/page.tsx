@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     'How BILD collects, uses, stores and protects personal information from membership applications, events, the Business Directory, WhatsApp groups and this website.',
 }
 
-const LAST_UPDATED = '1 November 2026'
+const LAST_UPDATED = '24 November 2026'
 
 export default async function PrivacyPolicyPage() {
   const googleReviews = await getGoogleReviews()
@@ -227,6 +227,9 @@ export default async function PrivacyPolicyPage() {
               <li><strong>WhatsApp (Meta)</strong> - member groups.</li>
               <li><strong>Event venues, caterers and suppliers</strong> - only the details needed to run an event,
                 such as a guest list or dietary requirements.</li>
+              <li><strong>Restaurants hosting a reservation event</strong> - when you book an event where the
+                restaurant takes payment, your name, email, mobile number, chosen packages and the names of your
+                guests are sent to that restaurant so it can send you a payment link.</li>
             </ul>
             <p>
               We may also disclose information where we are required to do so by law, by a regulator or by a court, or

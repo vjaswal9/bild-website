@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
 
   const { data: ev } = await supabaseAdmin
     .from('events')
-    .select('title, slug, event_date, end_date, venue, google_maps_url')
+    // '*' so booking_mode comes back once that column exists.
+    .select('*')
     .eq('id', reg.event_id)
     .maybeSingle()
 
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
   }
 
   const outcome = await sendEventConfirmation({
+    reservation: (ev as { booking_mode?: string } | null)?.booking_mode === 'reservation',
     to: target,
     firstName: reg.first_name,
     lastName: reg.last_name,

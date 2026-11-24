@@ -4,6 +4,7 @@ import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-auth'
 import { verifyAdminPassword } from '@/lib/admin-password'
 import { stripDashes } from '@/lib/utils'
 import { revalidatePublic, EVENT_PATHS } from '@/lib/revalidate-public'
+import { parseEmailList } from '@/lib/email-validate'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,12 @@ function cleanPermit(v: unknown): { ok: true; value: string | null } | { ok: fal
     return { ok: false, error: 'The permit number can only contain letters, numbers, spaces and - / . # ( ) ,' }
   }
   return { ok: true, value: s }
+}
+
+// True when the database does not have the booking_mode column yet
+// (supabase/event-booking-mode.sql not run).
+function bookingModeColumnMissing(err: { code?: string; message?: string } | null) {
+  return !!err && (err.code === '42703' || err.code === 'PGRST204' || /booking_mode/.test(err.message || ''))
 }
 
 // True when the database does not have the permit_number column yet.
@@ -74,6 +81,24 @@ export async function POST(req: NextRequest) {
     permit = p.value
   }
 
+  // How people book: only written when the form sends it, so an older tab
+  // never turns a reservation event back into a ticketed one.
+  const bookingMode = b.booking_mode === 'reservation' ? 'reservation' : b.booking_mode === 'tickets' ? 'tickets' : undefined
+  let bookingModeNotSaved = false
+  if (bookingMode) {
+    const probe = await supabaseAdmin.from('events').select('booking_mode').limit(1)
+    if (probe.error && bookingModeColumnMissing(probe.error)) bookingModeNotSaved = bookingMode === 'reservation'
+    else {
+      Object.assign(fields, { booking_mode: bookingMode })
+      // Where reservations are forwarded. Only written when the form sends it.
+      if (b.restaurant_email !== undefined) {
+        const { emails, invalid } = parseEmailList(b.restaurant_email)
+        if (invalid.length) return NextResponse.json({ error: `This restaurant email does not look right: ${invalid[0]}` }, { status: 400 })
+        Object.assign(fields, { restaurant_email: emails.length ? emails.join(', ') : null })
+      }
+    }
+  }
+
   if (b.id) {
     let permitNotSaved = false
     let { error } = await supabaseAdmin.from('events').update(permit === undefined ? fields : { ...fields, permit_number: permit }).eq('id', b.id)
@@ -85,7 +110,7 @@ export async function POST(req: NextRequest) {
     }
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     revalidatePublic(EVENT_PATHS)
-    return NextResponse.json({ ok: true, id: b.id, ...(permitNotSaved ? { permitNotSaved: true } : {}) })
+    return NextResponse.json({ ok: true, id: b.id, ...(permitNotSaved ? { permitNotSaved: true } : {}), ...(bookingModeNotSaved ? { bookingModeNotSaved: true } : {}) })
   }
 
   // New event - generate a unique slug.
@@ -106,7 +131,7 @@ export async function POST(req: NextRequest) {
 
   if (created.error || !created.data) return NextResponse.json({ error: created.error?.message || 'Could not create the event.' }, { status: 500 })
   revalidatePublic(EVENT_PATHS)
-  return NextResponse.json({ ok: true, id: created.data.id, ...(permitNotSaved ? { permitNotSaved: true } : {}) })
+  return NextResponse.json({ ok: true, id: created.data.id, ...(permitNotSaved ? { permitNotSaved: true } : {}), ...(bookingModeNotSaved ? { bookingModeNotSaved: true } : {}) })
 }
 
 export async function DELETE(req: NextRequest) {

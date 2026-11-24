@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, MapPin, ArrowLeft, HelpCircle, ShieldCheck, Users } from 'lucide-react'
 import { getEventBySlug } from '@/lib/events-server'
-import { EventRow, EventTicket, isPastEvent, isNotTakingSignUps } from '@/lib/events'
+import { EventRow, EventTicket, isPastEvent, isNotTakingSignUps, isReservationEvent } from '@/lib/events'
 import { formatEventDate, formatEventTime } from '@/lib/utils'
 import EventRegistration from './EventRegistration'
 import EventGallery from './EventGallery'
@@ -42,11 +42,13 @@ function shortEventDate(isoString: string): string {
   })
 }
 
-function priceLine(tickets: EventTicket[]): string {
+function priceLine(tickets: EventTicket[], reservation = false): string {
   const prices = tickets.filter(t => t.active).map(t => t.price_aed)
   if (prices.length === 0) return ''
   const min = Math.min(...prices)
   const max = Math.max(...prices)
+  // A restaurant reservation: the prices are the restaurant's packages, paid to the restaurant by its own payment link.
+  if (reservation) return min === max ? `Packages ${min} AED, paid to the restaurant.` : `Packages from ${min} AED, paid to the restaurant.`
   if (min === 0 && max === 0) return 'Free entry.'
   if (min === max) return `Tickets ${min} AED.`
   return `Tickets from ${min} AED.`
@@ -79,7 +81,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const dateStr = shortEventDate(event.event_date)
   const venueStr = event.venue || event.location || ''
   const whenWhere = `${event.title} - ${dateStr}${venueStr ? ` at ${venueStr}` : ''}.`
-  const factsWithPrice = [whenWhere, quiet ? '' : priceLine(tickets)].filter(Boolean).join(' ')
+  const factsWithPrice = [whenWhere, quiet ? '' : priceLine(tickets, isReservationEvent(event))].filter(Boolean).join(' ')
 
   const flavour = event.description
     ? plainDescription(event.description)
@@ -318,7 +320,7 @@ export default async function EventDetailPage({ params }: { params: { slug: stri
         )}
 
         {!isPast && (
-          <EventRegistration event={{ id: event.id, slug: event.slug, title: event.title, venue: event.venue }} tickets={tickets} soldOut={remaining != null && remaining <= 0} waitlistOpen={event.waitlist_open !== false} dietaryRequired={event.dietary_required} seatingEnabled={event.seating_enabled} tableSize={event.seats_per_table} />
+          <EventRegistration event={{ id: event.id, slug: event.slug, title: event.title, venue: event.venue }} tickets={tickets} soldOut={remaining != null && remaining <= 0} waitlistOpen={event.waitlist_open !== false} dietaryRequired={event.dietary_required} seatingEnabled={event.seating_enabled} tableSize={event.seats_per_table} reservation={isReservationEvent(event)} />
         )}
 
         {isPast && gallery.length > 0 && <EventGallery items={gallery} />}

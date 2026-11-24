@@ -215,9 +215,9 @@ export async function sendWelcomeEmail(opts: { to: string; name?: string; invite
             ? (nextEvent.waitlistOpen
                 ? 'This one is at capacity. Join the waitlist and we will email you if a place frees up.'
                 : 'This one is at capacity and registration has closed. Have a look at what else is coming up.')
-            : 'Our events fill up fast and members hear first. Grab your ticket now rather than hearing about it in the group afterwards.'}
+            : 'Our events fill up fast and members hear first. Book your place now rather than hearing about it in the group afterwards.'}
         </p>
-        <a href="${site}/events/${nextEvent.slug}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:11px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Join the waitlist' : 'See the event') : 'Get your tickets'}</a>
+        <a href="${site}/events/${nextEvent.slug}" style="display:inline-block;background:#C8861A;color:#fff;text-decoration:none;font-weight:bold;font-size:15px;padding:13px 26px;border-radius:11px">${nextEvent.soldOut ? (nextEvent.waitlistOpen ? 'Join the waitlist' : 'See the event') : 'Book your place'}</a>
         <p style="margin:14px 0 0"><a href="${site}/events" style="color:#C8861A;font-size:13px;text-decoration:none">See everything coming up &rarr;</a></p>
       </div>
     </div>`
@@ -486,12 +486,16 @@ export async function sendEventConfirmation(opts: {
   // 10" - computed by the caller (seatingPositionFor). Absent whenever a
   // table size has not been set, in which case the line is simply left out.
   seatingPosition?: { from: number; to: number; of: number } | null
+  // A restaurant reservation: nothing was paid through BILD, the restaurant
+  // takes payment on the night, and the word "ticket" is never used.
+  reservation?: boolean
 }) {
   if (!apiKey) {
     console.warn('Email skipped: RESEND_API_KEY not set')
     return { ok: false, reason: 'Email is not configured on this server (RESEND_API_KEY is not set).' }
   }
   const resend = new Resend(apiKey)
+  const reservation = opts.reservation === true
   const first = esc(opts.firstName || 'there')
   const qty = opts.quantity && opts.quantity > 0 ? opts.quantity : 1
   const guests = (opts.guests || []).filter(g => g && g.name)
@@ -502,8 +506,11 @@ export async function sendEventConfirmation(opts: {
   })
   // When we know the true Stripe-charged total (subtotal + card fee), show a
   // full breakdown so the fee isn't hidden - otherwise fall back to one line.
-  const paymentBlock =
-    opts.amountAed > 0 && opts.totalPaidAed != null
+  const restaurantName = opts.venue ? esc(opts.venue) : 'the restaurant'
+  const paymentBlock = reservation
+    ? `<p style="color:#C8861A;font-size:15px;font-weight:bold;margin:0">${restaurantName} will send you a payment link</p>
+       <p style="color:#cfcabd;font-size:13px;margin:4px 0 0">Your booking details have been passed to ${restaurantName}. They will contact you directly with a link to pay for your packages, which secures your reservation. Nothing is paid to BILD.</p>`
+    : opts.amountAed > 0 && opts.totalPaidAed != null
       ? `<p style="color:#cfcabd;font-size:14px;margin:0">Tickets: ${opts.amountAed} AED</p>
          <p style="color:#cfcabd;font-size:14px;margin:4px 0 0">Third Party Card processing Fee: ${(opts.totalPaidAed - opts.amountAed).toFixed(2)} AED</p>
          <p style="color:#C8861A;font-size:15px;font-weight:bold;margin:8px 0 0">Total paid: ${opts.totalPaidAed} AED</p>`
@@ -530,7 +537,7 @@ export async function sendEventConfirmation(opts: {
   // integration. BILD's servers are not involved in what happens after this
   // is tapped, and never see who it is sent to.
   const whatsappShareText = seatingInviteUrl
-    ? `Join me at ${opts.eventTitle}! I've got us a table - tap this link to get your ticket and we'll be seated together: ${seatingInviteUrl}`
+    ? `Join me at ${opts.eventTitle}! I've got us a table - tap this link to ${reservation ? 'book your place' : 'get your ticket'} and we'll be seated together: ${seatingInviteUrl}`
     : ''
   const whatsappShareUrl = whatsappShareText ? `https://wa.me/?text=${encodeURIComponent(whatsappShareText)}` : null
   const seatingBlock = opts.seatingEnabled && opts.seatingCode
@@ -600,14 +607,17 @@ export async function sendEventConfirmation(opts: {
 
   const label = (text: string) =>
     `<p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 4px">${text}</p>`
+  const countText = reservation
+    ? `${totalTickets} ${totalTickets === 1 ? 'person' : 'people'}`
+    : `${totalTickets} ticket${totalTickets === 1 ? '' : 's'}`
   const ticketsBlock =
-    `${label('Tickets')}<p style="color:#F4F1EC;font-size:17px;font-weight:bold;margin:0 0 4px">${totalTickets} ticket${totalTickets === 1 ? '' : 's'}</p>` +
+    `${label(reservation ? 'Your reservation' : 'Tickets')}<p style="color:#F4F1EC;font-size:17px;font-weight:bold;margin:0 0 4px">${countText}</p>` +
     // The breakdown is only worth printing when there is more than one ticket:
     // "1 ticket" followed by "1 x Adult Ticket" just says it twice.
     (breakdown && totalTickets > 1 ? `<p style="color:#cfcabd;font-size:14px;margin:0 0 16px">${breakdown}</p>` : '<div style="margin:0 0 16px"></div>')
   const attendeesBlock = attendees.length
     ? `${label("Who's coming")}<p style="color:#cfcabd;font-size:15px;margin:0 0 16px">${attendees
-        .map(a => `${esc(a.name)}${a.isBuyer ? ' (you)' : ''}${a.ticket ? ` &mdash; ${esc(a.ticket)}` : ''}${a.age != null ? ` (age ${a.age})` : ''}`)
+        .map(a => `${esc(a.name)}${a.isBuyer ? ' (you)' : ''}${a.ticket ? ` - ${esc(a.ticket)}` : ''}${a.age != null ? ` (age ${a.age})` : ''}`)
         .join('<br>')}</p>`
     : ''
 
@@ -620,7 +630,7 @@ export async function sendEventConfirmation(opts: {
   const html = `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;background:#0E0E0E;border-radius:16px;overflow:hidden">
     <div style="padding:32px 28px">
-      <div style="color:#C8861A;font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:bold;text-align:center">You're registered</div>
+      <div style="color:#C8861A;font-size:13px;letter-spacing:3px;text-transform:uppercase;font-weight:bold;text-align:center">${reservation ? 'Reservation received' : "You're registered"}</div>
       <h1 style="color:#F4F1EC;font-family:Georgia,serif;font-size:26px;margin:12px 0 20px;text-align:center">See you there, ${first}! 🎉</h1>
       <div style="background:#1a1a1a;border-radius:12px;padding:20px 22px;margin-bottom:20px">
         <p style="color:#8a857a;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin:0 0 4px">Event</p>
@@ -654,7 +664,7 @@ export async function sendEventConfirmation(opts: {
     const result = await resend.emails.send({
       from: EVENTS_FROM,
       to: opts.to,
-      subject: `You're registered: ${opts.eventTitle}`,
+      subject: reservation ? `Your reservation request: ${opts.eventTitle}` : `You're registered: ${opts.eventTitle}`,
       html,
     })
     if (result.error) {
@@ -1047,6 +1057,82 @@ export async function sendPasswordChangedNotification() {
 }
 
 // Admin alert whenever a ticket is sold (paid or free registration completes).
+// Reservation events: each booking goes to the restaurant as it is made, so
+// the restaurant can send the guest a payment link directly. Replies go
+// straight to the guest. Returns whether Resend accepted it, so the admin
+// alert can say plainly if it did not.
+export async function sendRestaurantBookingEmail(opts: {
+  to: string[]
+  restaurantName?: string | null
+  eventTitle: string
+  eventDate: string
+  buyerFirstName: string
+  buyerLastName?: string | null
+  buyerEmail: string
+  buyerPhone?: string | null
+  buyerPackage?: string | null
+  buyerDietary?: string | null
+  guests?: GuestEntry[]
+  reference: string
+}): Promise<{ ok: boolean; reason?: string }> {
+  if (!apiKey) return { ok: false, reason: 'Email is not configured on this server.' }
+  const resend = new Resend(apiKey)
+  const guests = (opts.guests || []).filter(g => g && g.name)
+  const qty = 1 + guests.length
+  const when = new Date(opts.eventDate).toLocaleString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai',
+  })
+  const buyerName = `${opts.buyerFirstName} ${opts.buyerLastName || ''}`.trim()
+  const diet = (d?: string | null, note?: string | null) => d ? ` (${esc(d === 'other' ? (note || 'other') : d)})` : ''
+  const people = [
+    `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(buyerName)} (booker)${diet(opts.buyerDietary)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(opts.buyerPackage || '')}</td></tr>`,
+    ...guests.map(g => `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(g.name)}${g.age != null ? ` (age ${g.age})` : ''}${diet(g.dietary, g.dietary_note)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(g.ticket_name || '')}</td></tr>`),
+  ].join('')
+  const counts = new Map<string, number>()
+  for (const n of [opts.buyerPackage || '', ...guests.map(g => g.ticket_name || '')]) if (n) counts.set(n, (counts.get(n) || 0) + 1)
+  const summary = Array.from(counts.entries()).map(([n, c]) => `${c} x ${esc(n)}`).join(', ')
+
+  const html = `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
+    <p style="font-size:13px;color:#7d4e0a;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin:0 0 6px">New BILD reservation</p>
+    <h2 style="font-size:19px;margin:0 0 4px">${esc(opts.eventTitle)}</h2>
+    <p style="color:#555;font-size:14px;margin:0 0 16px">${when}${opts.restaurantName ? ` · ${esc(opts.restaurantName)}` : ''}</p>
+    <p style="font-size:14px;margin:0 0 14px">Please send ${esc(opts.buyerFirstName)} a payment link for this booking. BILD has not taken any payment.</p>
+    <table style="border-collapse:collapse;font-size:14px;margin:0 0 14px">
+      <tr><td style="padding:3px 12px 3px 0;color:#555">Booked by</td><td style="padding:3px 0;font-weight:bold">${esc(buyerName)}</td></tr>
+      <tr><td style="padding:3px 12px 3px 0;color:#555">Email</td><td style="padding:3px 0">${esc(opts.buyerEmail)}</td></tr>
+      <tr><td style="padding:3px 12px 3px 0;color:#555">Mobile</td><td style="padding:3px 0">${esc(opts.buyerPhone || '')}</td></tr>
+      <tr><td style="padding:3px 12px 3px 0;color:#555">People</td><td style="padding:3px 0">${qty}${summary ? ` (${summary})` : ''}</td></tr>
+      <tr><td style="padding:3px 12px 3px 0;color:#555">BILD reference</td><td style="padding:3px 0">${esc(opts.reference)}</td></tr>
+    </table>
+    <table style="border-collapse:collapse;font-size:14px;width:100%;border:1px solid #eee">
+      <tr style="background:#faefd9"><th style="text-align:left;padding:6px 10px">Name</th><th style="text-align:left;padding:6px 10px">Package</th></tr>
+      ${people}
+    </table>
+    <p style="color:#777;font-size:12px;margin:16px 0 0">Replying to this email goes straight to ${esc(buyerName)}. Questions for BILD: events@bild.ae</p>
+  </div>`
+
+  try {
+    const result = await resend.emails.send({
+      from: EVENTS_FROM,
+      to: opts.to,
+      replyTo: opts.buyerEmail,
+      subject: `BILD reservation: ${buyerName}, ${qty} ${qty === 1 ? 'person' : 'people'} - ${opts.eventTitle}`,
+      html,
+    })
+    if (result.error) {
+      const reason = result.error.message || String(result.error)
+      console.error('Restaurant booking email rejected by Resend:', result.error)
+      return { ok: false, reason }
+    }
+    return { ok: true }
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e)
+    console.error('Restaurant booking email failed:', e)
+    return { ok: false, reason }
+  }
+}
+
 export async function sendTicketSaleAlert(opts: {
   eventTitle: string
   buyerName: string
@@ -1056,10 +1142,44 @@ export async function sendTicketSaleAlert(opts: {
   amountAed: number
   guests?: GuestEntry[]
   totalTicketsSold?: number
+  // A restaurant reservation: worded as a booking, with nothing paid to BILD.
+  reservation?: boolean
+  // Reservations only: whether the booking reached the restaurant, in words.
+  restaurantNote?: string
 }) {
   if (!apiKey) { console.warn('Email skipped: RESEND_API_KEY not set'); return } // email disabled until a key is set
   const resend = new Resend(apiKey)
   const qty = opts.quantity && opts.quantity > 0 ? opts.quantity : 1
+  if (opts.reservation) {
+    const guests = (opts.guests || []).filter(g => g && g.name)
+    const people = `${qty} ${qty === 1 ? 'person' : 'people'}`
+    const guestList = guests.length
+      ? `<p style="margin:2px 0 0;color:#555;font-size:13px">Guests: ${guests.map(g => `${esc(g.name)}${g.ticket_name ? ` (${esc(g.ticket_name)})` : ''}`).join(', ')}</p>`
+      : ''
+    const totalRes = opts.totalTicketsSold != null
+      ? `<p style="margin:2px 0 0;color:#555;font-size:14px">Total booked for this event: <strong>${opts.totalTicketsSold}</strong></p>`
+      : ''
+    const resHtml = `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto">
+    <h2 style="color:#0E0E0E;font-size:18px;margin:0 0 4px">New reservation: ${esc(opts.eventTitle)}</h2>
+    <p style="color:#555;font-size:14px;margin:0 0 4px">${people} · paid to the restaurant by their payment link</p>
+    ${opts.restaurantNote ? `<p style="color:#555;font-size:13px;margin:0 0 4px">${esc(opts.restaurantNote)}</p>` : ''}
+    ${totalRes}
+    <div style="border:1px solid #eee;border-radius:10px;padding:16px;margin-top:12px">
+      <p style="margin:0;color:#0E0E0E;font-size:15px;font-weight:bold">${esc(opts.buyerName)}</p>
+      <p style="margin:2px 0 0;color:#555;font-size:13px">${esc(opts.buyerEmail)}</p>
+      <p style="margin:8px 0 0;color:#555;font-size:13px">Their package: ${opts.ticketName ? esc(opts.ticketName) : 'n/a'}</p>
+      ${guestList}
+    </div>
+    <p style="color:#999;font-size:12px;margin-top:14px">View the full guest list in the BILD admin → Events.</p>
+  </div>`
+    try {
+      await resend.emails.send({ from: EVENTS_FROM, to: EVENTS_ALERT_EMAILS, subject: `New reservation: ${opts.eventTitle}, ${people}`, html: resHtml })
+    } catch (e) {
+      console.error('Reservation alert failed:', e)
+    }
+    return
+  }
   const guests = (opts.guests || []).filter(g => g && g.name)
   const guestLines = guests.length
     ? `<p style="margin:2px 0 0;color:#555;font-size:13px">Guests: ${guests.map(g => `${esc(g.name)}${g.ticket_name ? ` (${esc(g.ticket_name)})` : ''}`).join(', ')}</p>`
