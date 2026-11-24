@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Ticket, Loader2, Minus, Plus, Users, UtensilsCrossed, Image as ImageIcon } from 'lucide-react'
-import { EventTicket, Dietary } from '@/lib/events'
+import { EventTicket, Dietary, orderPackages } from '@/lib/events'
 import { cardFeeAed } from '@/lib/fees'
 import { isValidEmail } from '@/lib/email-validate'
 import { warnFromPartySize } from '@/lib/seating-fit'
@@ -49,10 +49,9 @@ function priceLabel(t: EventTicket, reservation = false) {
 export default function EventRegistration({ event, tickets: rawTickets, soldOut, waitlistOpen, dietaryRequired, seatingEnabled, tableSize, reservation = false }: {
   event: MiniEvent; tickets: EventTicket[]; soldOut?: boolean; waitlistOpen?: boolean; dietaryRequired?: boolean; seatingEnabled?: boolean; tableSize?: number | null; reservation?: boolean
 }) {
-  // Cheapest first, always - regardless of whatever order the admin happens
-  // to have them in (sort_order is for the admin's own ticket-editing screen,
-  // not for what a buyer sees here).
-  const tickets = [...rawTickets].sort((a, b) => a.price_aed - b.price_aed)
+  // In the order the admin arranged them under Manage, or cheapest first if
+  // they have not been arranged (see orderPackages in src/lib/events.ts).
+  const tickets = orderPackages(rawTickets)
   // attendees[ticketId] = array of { name, dietary } for that package (length = qty)
   const [attendeesByTicket, setAttendeesByTicket] = useState<Record<string, Attendee[]>>({})
   const [email, setEmail] = useState('')
@@ -423,8 +422,9 @@ export default function EventRegistration({ event, tickets: rawTickets, soldOut,
         <div className="mb-4 rounded-xl border border-stone-200 bg-stone-50 p-4 text-sm text-charcoal-700">
           <p>
             <strong className="text-charcoal-800">Beverage packages:</strong> beverages are provided and served by{' '}
-            {venuePossessive(event.venue)} licensed outlet, not by BILD. Guests must be {DRINKING_AGE} or over and show
-            valid photo ID. Please choose the Soft Drinks package for anyone under {DRINKING_AGE} or who does not drink.
+            {venuePossessive(event.venue)} licensed outlet, not by BILD. Only guests aged {DRINKING_AGE} or over can be
+            booked on a beverage package, and they must show valid photo ID. Children, and anyone under {DRINKING_AGE} or
+            who does not drink, are very welcome on the other packages.
           </p>
         </div>
       )}

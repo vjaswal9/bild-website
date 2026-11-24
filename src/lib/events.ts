@@ -79,6 +79,18 @@ export type EventRow = {
   restaurant_email?: string | null
 }
 
+// The order packages are shown in, on the booking form and in the admin. Once
+// an admin has arranged them (every package has its own position), that order
+// is used. Until then, cheapest first, which is how every event looked before
+// packages could be reordered.
+export function orderPackages<T extends { price_aed: number; sort_order?: number | null }>(tickets: T[]): T[] {
+  const positions = tickets.map(t => t.sort_order ?? 0)
+  const arranged = new Set(positions).size === tickets.length
+  return [...tickets].sort((a, b) => arranged
+    ? (a.sort_order ?? 0) - (b.sort_order ?? 0)
+    : a.price_aed - b.price_aed)
+}
+
 export function isReservationEvent(e: { booking_mode?: string | null } | null | undefined): boolean {
   return e?.booking_mode === 'reservation'
 }

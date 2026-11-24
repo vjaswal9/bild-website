@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
     // When true the booking form asks for each attendee's age on this ticket,
     // and the checkout route refuses the booking without one.
     is_child: b.is_child === true,
-    sort_order: Number(b.sort_order) || 0,
     // Only http(s) is ever stored: a javascript: or data: URL here would
     // become a live link on the public booking page the moment it renders.
     menu_image_url: b.menu_image_url ? httpUrl(b.menu_image_url) ?? null : null,
@@ -114,20 +113,56 @@ export async function POST(req: NextRequest) {
     // Whether the ticket is on sale is only changed when the caller says so.
     // Defaulting it to true here meant editing the description of a ticket that
     // had been switched off quietly put it back on sale.
-    const updateFields = b.active === undefined ? fields : { ...fields, active: b.active !== false }
+    // The position is only changed when the caller sends one: editing a
+    // package used to reset it to 0, which scrambled the order.
+    const withOrder = b.sort_order === undefined ? fields : { ...fields, sort_order: Number(b.sort_order) || 0 }
+    const updateFields = b.active === undefined ? withOrder : { ...withOrder, active: b.active !== false }
     const { error } = await supabaseAdmin.from('event_tickets').update(updateFields).eq('id', b.id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ ok: true, id: b.id, updated, ambiguous })
   }
 
   if (!b.event_id) return NextResponse.json({ error: 'Missing event_id' }, { status: 400 })
+  // A new package goes to the end of the event's list.
+  const { data: last } = await supabaseAdmin
+    .from('event_tickets')
+    .select('sort_order')
+    .eq('event_id', b.event_id)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+  const nextPosition = (Number(last?.[0]?.sort_order) || 0) + 10
   const { data, error } = await supabaseAdmin
     .from('event_tickets')
-    .insert([{ ...fields, active: b.active === false ? false : true, event_id: b.event_id }])
+    .insert([{ ...fields, sort_order: nextPosition, active: b.active === false ? false : true, event_id: b.event_id }])
     .select('id')
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true, id: data.id })
+}
+
+// Puts an event's packages in the order given: { eventId, order: [ids] }.
+// Every package of the event must be listed exactly once, so a stale screen
+// cannot leave two packages sharing a position.
+export async function PATCH(req: NextRequest) {
+  if (!(await authed(req))) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  const b = await req.json().catch(() => null)
+  const eventId = typeof b?.eventId === 'string' ? b.eventId : ''
+  const order: unknown[] = Array.isArray(b?.order) ? b.order : []
+  if (!eventId || order.length === 0 || order.some(id => typeof id !== 'string')) {
+    return NextResponse.json({ error: 'Missing event or order.' }, { status: 400 })
+  }
+  const { data: rows, error: readError } = await supabaseAdmin.from('event_tickets').select('id').eq('event_id', eventId)
+  if (readError) return NextResponse.json({ error: readError.message }, { status: 500 })
+  const ids = new Set((rows || []).map(r => String(r.id)))
+  const wanted = order as string[]
+  if (new Set(wanted).size !== wanted.length || wanted.length !== ids.size || wanted.some(id => !ids.has(id))) {
+    return NextResponse.json({ error: 'The packages have changed since this page loaded. Refresh and try again.' }, { status: 409 })
+  }
+  for (let i = 0; i < wanted.length; i++) {
+    const { error } = await supabaseAdmin.from('event_tickets').update({ sort_order: (i + 1) * 10 }).eq('id', wanted[i]).eq('event_id', eventId)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  return NextResponse.json({ ok: true })
 }
 
 export async function DELETE(req: NextRequest) {

@@ -9,7 +9,7 @@ import ImportGuestsPanel from '@/components/admin/ImportGuestsPanel'
 import CashFlowPanel from '@/components/admin/CashFlowPanel'
 import PrivateLinksPanel from '@/components/admin/PrivateLinksPanel'
 import { compressImage } from '@/lib/compress-image'
-import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, isReservationEvent, valueGivenUpOf } from '@/lib/events'
+import { EventRow, EventTicket, EventRegistration, GalleryItem, isPastEvent, isReservationEvent, orderPackages, valueGivenUpOf } from '@/lib/events'
 import { parseEmailList } from '@/lib/email-validate'
 import { readTicketChoices, describeTicketChoices, waitingTotalsByType } from '@/lib/waitlist-tickets'
 import AdminMemoField from '@/components/admin/AdminMemoField'
@@ -1970,8 +1970,30 @@ function MenuImageField({ value, onChange, label }: { value: string; onChange: (
   )
 }
 
-function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTicket[] }) {
+function TicketManager({ eventId, tickets: rawTickets }: { eventId: string; tickets: EventTicket[] }) {
   const router = useRouter()
+  // Shown in the same order as on the booking form, so the arrows move things
+  // exactly where people will see them.
+  const tickets = orderPackages(rawTickets)
+  const [moving, setMoving] = useState(false)
+
+  async function move(index: number, by: -1 | 1) {
+    const next = [...tickets]
+    const target = index + by
+    if (target < 0 || target >= next.length) return
+    ;[next[index], next[target]] = [next[target], next[index]]
+    setMoving(true)
+    const res = await fetch('/api/admin/events/tickets', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId, order: next.map(t => t.id) }),
+    })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      alert(d.error || 'Could not change the order.')
+    }
+    router.refresh()
+    setMoving(false)
+  }
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
   const [price, setPrice] = useState('')
@@ -1988,7 +2010,7 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
     const res = await fetch('/api/admin/events/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id: eventId, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild, sort_order: tickets.length }),
+      body: JSON.stringify({ event_id: eventId, name, description: desc, price_aed: price, cost_price_aed: costPrice, menu_image_url: menuImageUrl, food_menu_image_url: foodMenuImageUrl, is_child: isChild }),
     })
     if (res.ok) {
       // Refresh server data in place - keeps the Manage panel open.
@@ -2014,7 +2036,10 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
     <div className="px-6 py-5">
       {tickets.length > 0 ? (
         <div className="space-y-2 mb-4">
-          {tickets.map(t => (
+          {tickets.length > 1 && (
+            <p className="text-gray-500 text-xs">Shown on the booking page in this order. Use the arrows to move a package up or down.</p>
+          )}
+          {tickets.map((t, index) => (
             editingId === t.id ? (
               <EditTicketRow
                 key={t.id}
@@ -2047,6 +2072,16 @@ function TicketManager({ eventId, tickets }: { eventId: string; tickets: EventTi
                   {t.description && <p className="text-gray-500 text-xs mt-0.5 ml-6">{t.description}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {tickets.length > 1 && (
+                    <>
+                      <button onClick={() => move(index, -1)} disabled={moving || index === 0} className="text-gray-500 hover:text-white disabled:opacity-25 disabled:hover:text-gray-500 p-1.5" title="Move up" aria-label={`Move ${t.name} up`}>
+                        <ChevronUp size={15} />
+                      </button>
+                      <button onClick={() => move(index, 1)} disabled={moving || index === tickets.length - 1} className="text-gray-500 hover:text-white disabled:opacity-25 disabled:hover:text-gray-500 p-1.5" title="Move down" aria-label={`Move ${t.name} down`}>
+                        <ChevronDown size={15} />
+                      </button>
+                    </>
+                  )}
                   <button onClick={() => setEditingId(t.id)} className="text-gray-500 hover:text-white p-1.5" title="Edit ticket">
                     <Pencil size={15} />
                   </button>
