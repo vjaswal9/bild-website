@@ -335,6 +335,7 @@ export async function POST(req: NextRequest) {
             buyerEmail,
             buyerPhone: phone,
             buyerPackage: buyerTicket.name,
+            buyerPackagePrice: buyerTicket.price_aed,
             buyerDietary: normalizeDietary(dietary) === 'other' ? (normalizeDietaryNote(dietaryNote) || 'other') : normalizeDietary(dietary),
             guests: guestEntries,
             reference: String(reg.id).slice(0, 8).toUpperCase(),

@@ -1071,6 +1071,8 @@ export async function sendRestaurantBookingEmail(opts: {
   buyerEmail: string
   buyerPhone?: string | null
   buyerPackage?: string | null
+  // The package's price per person, for the cost breakdown.
+  buyerPackagePrice?: number | null
   buyerDietary?: string | null
   guests?: GuestEntry[]
   reference: string
@@ -1092,6 +1094,26 @@ export async function sendRestaurantBookingEmail(opts: {
   for (const n of [opts.buyerPackage || '', ...guests.map(g => g.ticket_name || '')]) if (n) counts.set(n, (counts.get(n) || 0) + 1)
   const summary = Array.from(counts.entries()).map(([n, c]) => `${c} x ${esc(n)}`).join(', ')
 
+  // The cost of the booking at the restaurant's own package prices, so they
+  // know what to put on the payment link: one line per package, then a total.
+  const priceOf = new Map<string, number>()
+  if (opts.buyerPackage && opts.buyerPackagePrice != null) priceOf.set(opts.buyerPackage, Number(opts.buyerPackagePrice) || 0)
+  for (const g of guests) if (g.ticket_name && !priceOf.has(g.ticket_name)) priceOf.set(g.ticket_name, Number(g.price_aed) || 0)
+  const money = (n: number) => `${n.toLocaleString('en-AE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} AED`
+  const costRows = Array.from(counts.entries()).map(([n, c]) => {
+    const each = priceOf.get(n) ?? 0
+    return `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(n)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center">${c}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${each === 0 ? 'Free' : money(each)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${each === 0 ? '0 AED' : money(each * c)}</td></tr>`
+  }).join('')
+  const totalCost = Array.from(counts.entries()).reduce((s, [n, c]) => s + (priceOf.get(n) ?? 0) * c, 0)
+  const costBlock = `
+    <p style="font-size:13px;color:#7d4e0a;letter-spacing:1px;text-transform:uppercase;font-weight:bold;margin:18px 0 6px">Cost of this booking</p>
+    <table style="border-collapse:collapse;font-size:14px;width:100%;border:1px solid #eee">
+      <tr style="background:#faefd9"><th style="text-align:left;padding:6px 10px">Package</th><th style="padding:6px 10px">People</th><th style="text-align:right;padding:6px 10px">Price pp</th><th style="text-align:right;padding:6px 10px">Subtotal</th></tr>
+      ${costRows}
+      <tr><td colspan="3" style="padding:8px 10px;font-weight:bold">Total to collect</td><td style="padding:8px 10px;text-align:right;font-weight:bold">${money(totalCost)}</td></tr>
+    </table>
+    <p style="color:#777;font-size:12px;margin:6px 0 0">Worked out from the package prices on the BILD event page.</p>`
+
   const html = `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a">
     <p style="font-size:13px;color:#7d4e0a;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin:0 0 6px">New BILD reservation</p>
@@ -1104,11 +1126,13 @@ export async function sendRestaurantBookingEmail(opts: {
       <tr><td style="padding:3px 12px 3px 0;color:#555">Mobile</td><td style="padding:3px 0">${esc(opts.buyerPhone || '')}</td></tr>
       <tr><td style="padding:3px 12px 3px 0;color:#555">People</td><td style="padding:3px 0">${qty}${summary ? ` (${summary})` : ''}</td></tr>
       <tr><td style="padding:3px 12px 3px 0;color:#555">BILD reference</td><td style="padding:3px 0">${esc(opts.reference)}</td></tr>
+      <tr><td style="padding:3px 12px 3px 0;color:#555">Total to collect</td><td style="padding:3px 0;font-weight:bold">${money(totalCost)}</td></tr>
     </table>
     <table style="border-collapse:collapse;font-size:14px;width:100%;border:1px solid #eee">
       <tr style="background:#faefd9"><th style="text-align:left;padding:6px 10px">Name</th><th style="text-align:left;padding:6px 10px">Package</th></tr>
       ${people}
     </table>
+    ${costBlock}
     <p style="color:#777;font-size:12px;margin:16px 0 0">Replying to this email goes straight to ${esc(buyerName)}. Questions for BILD: events@bild.ae</p>
   </div>`
 
